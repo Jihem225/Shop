@@ -1,17 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" data-title-en="Help & FAQ — RELAXX">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Checkout — RELAXX</title>
-<meta name="description" content="RELAXX checkout: delivery and payment.">
-<meta name="robots" content="noindex">
+<title>Aide & FAQ — RELAXX</title>
+<meta name="description" content="Aide RELAXX : livraison, retours, guide des tailles, entretien, questions fréquentes et contact.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#0e0e0e">
 <meta property="og:site_name" content="RELAXX">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Checkout — RELAXX">
-<meta property="og:description" content="RELAXX checkout: delivery and payment.">
+<meta property="og:title" content="Aide & FAQ — RELAXX">
+<meta property="og:description" content="Aide RELAXX : livraison, retours, guide des tailles, entretien, questions fréquentes et contact.">
 <meta property="og:image" content="https://images.unsplash.com/photo-1785927984870-79d4e5129e88?w=1200&q=80&auto=format&fit=crop">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,7 +26,6 @@
   if (l === "fr") { d.classList.add("i18n-pending"); setTimeout(function () { d.classList.remove("i18n-pending"); }, 4000); }
 })();
 </script>
-<script>window.RELAXX_MAX_AGE = 0; // always the latest prices and stock</script>
 <script src="relaxx-db.js"></script>
 <style>
 :root{
@@ -451,107 +449,54 @@ html.js [data-reveal="fm"].in{opacity:1;transform:none}
 .cc-cursor.is-active.is-muted{opacity:0}
 
 /* ======================================================================
-   CHECKOUT — layout after the reference (delivery + payment only)
+   LEGAL PAGES
    ====================================================================== */
-:root{--bg:#f2f1ee;--co-line:#dcd9d3;--co-muted:#8b877f;--co-err:#b3261e}
-body{background:var(--bg);font-family:Geist,sans-serif;color:#15161a}
-.co-page{padding:118px var(--pad-x) 110px}
-.co-title{margin:0 0 64px;font-size:clamp(56px,8.4vw,132px);font-weight:800;line-height:.85;letter-spacing:-.045em;text-transform:uppercase}
-.co-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:clamp(40px,6vw,110px);align-items:start}
-.co-form{max-width:760px}
-.co-sec + .co-sec{margin-top:70px}
-.co-sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:6px}
-.co-sec-head h2,.co-summary h2{margin:0;font-size:28px;font-weight:400;letter-spacing:-.01em}
-.co-step{color:var(--co-muted);font-size:13px}
-.co-sec h3{margin:30px 0 2px;font-size:14px;font-weight:600}
-.co-row{display:grid;grid-template-columns:1fr 1fr;gap:0 30px}
-.co-field{position:relative;display:block;padding-top:18px;margin-bottom:12px}
-.co-field input,.co-field select,.co-promo input{
-  display:block;width:100%;height:40px;padding:10px 0 6px;border:0;border-bottom:1px solid var(--co-line);border-radius:0;
-  background:transparent;color:#15161a;font:inherit;font-size:15px;outline:0;transition:border-color .3s;-webkit-appearance:none;appearance:none;
-}
-.co-field select{padding-right:22px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none'%3E%3Cpath d='m2 4 4 4 4-4' stroke='%2315161a' stroke-width='1.3'/%3E%3C/svg%3E") no-repeat right 2px center;cursor:pointer}
-.co-field input:focus,.co-field select:focus,.co-promo input:focus{border-color:#15161a}
-.co-lbl{position:absolute;left:0;top:29px;color:var(--co-muted);font-size:14px;pointer-events:none;transition:top .25s var(--ease),font-size .25s var(--ease)}
-.co-field input:focus ~ .co-lbl,.co-field input:not(:placeholder-shown) ~ .co-lbl,.co-field select ~ .co-lbl{top:0;font-size:12px}
-.co-field.is-invalid input,.co-field.is-invalid select{border-color:var(--co-err)}
-.co-err{display:block;margin-top:6px;color:var(--co-err);font-size:12px}
-.co-err:empty{display:none}
-.co-opts{margin-top:8px}
-.co-opt{display:flex;align-items:center;gap:14px;padding:18px 0;border-bottom:1px solid var(--co-line);cursor:pointer}
-.co-opt input{flex:none;display:grid;place-items:center;width:17px;height:17px;margin:0;border:1px solid #15161a;border-radius:50%;-webkit-appearance:none;appearance:none;cursor:pointer}
-.co-opt input::before{content:"";width:9px;height:9px;border-radius:50%;background:#15161a;transform:scale(0);transition:transform .2s var(--ease)}
-.co-opt input:checked::before{transform:scale(1)}
-.co-opt input:focus-visible{outline:2px solid #15161a;outline-offset:3px}
-.co-opt-main{flex:1;display:flex;flex-direction:column;gap:3px}
-.co-opt-title{font-size:14px;font-weight:600}
-.co-opt-sub{color:var(--co-muted);font-size:12.5px}
-.co-opt-side{display:flex;gap:6px;font-size:14px}
-.co-pill{display:inline-flex;align-items:center;height:22px;padding:0 7px;border:1px solid var(--co-line);border-radius:3px;background:#fff;font-size:10.5px;font-weight:700;letter-spacing:.04em}
-.co-panel{padding:8px 0 16px 31px;border-bottom:1px solid var(--co-line)}
-.co-panel[hidden]{display:none}
-.co-panel p{margin:10px 0 0;color:var(--co-muted);font-size:13px}
-.co-check{position:relative;display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px;margin-top:22px;color:#4a4842;font-size:13px;cursor:pointer}
-.co-check input{flex:none;display:grid;place-items:center;width:15px;height:15px;margin:1px 0 0;border:1px solid #15161a;border-radius:0;-webkit-appearance:none;appearance:none;cursor:pointer}
-.co-check input::before{content:"";width:8px;height:5px;margin-top:-2px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) scale(0);transition:transform .2s var(--ease)}
-.co-check input:checked{background:#15161a}
-.co-check input:checked::before{transform:rotate(-45deg) scale(1)}
-.co-check a{color:#15161a;text-decoration:underline;text-underline-offset:3px}
-.co-check .co-err{flex-basis:100%;margin:0 0 0 25px}
-.co-check.is-invalid input{border-color:var(--co-err)}
-.co-pay{display:flex;justify-content:center;align-items:center;width:100%;min-height:56px;margin-top:26px;padding:0 18px;background:#1f2124;color:#fff;font-size:12.5px;font-weight:600;letter-spacing:.08em;text-align:center;text-transform:uppercase;transition:background-color .3s,opacity .3s}
-.co-pay:hover{background:#000}
-.co-pay:disabled{opacity:.35;cursor:not-allowed}
-/* order summary */
-.co-summary{position:sticky;top:100px}
-.co-summary h2{margin-bottom:26px}
-.co-items{margin:0;padding:0;list-style:none}
-.co-item{display:grid;grid-template-columns:84px minmax(0,1fr) auto;gap:18px;padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--co-line)}
-.co-item-img{display:block;width:84px;aspect-ratio:3/4;overflow:hidden;background:#e6e4e0}
-.co-item-img img{display:block;width:100%;height:100%;object-fit:cover}
-.co-item-name{font-size:14px;font-weight:600}
-.co-item dl{display:grid;gap:4px;margin:12px 0 0;font-size:12.5px}
-.co-item dl div{display:grid;grid-template-columns:80px 1fr}
-.co-item dt{color:var(--co-muted)}
-.co-item dd{margin:0}
-.co-item-price{font-size:14px;white-space:nowrap}
-.co-empty{padding:26px 0;border-bottom:1px solid var(--co-line);color:var(--co-muted);font-size:14px}
-.co-empty p{margin:0 0 10px}
-.co-link{color:#15161a;text-decoration:underline;text-underline-offset:3px}
-.co-promo{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:end;margin-top:30px}
-.co-promo input::placeholder{color:var(--co-muted);font-size:13px}
-.co-promo button{height:40px;background:#e2e0dc;color:#6d6a63;font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;transition:background-color .3s,color .3s}
-.co-promo button:hover{background:#15161a;color:#fff}
-.co-promo-msg{margin:10px 0 0;font-size:12.5px;color:var(--co-muted)}
-.co-form-msg{margin:0 0 14px;padding:10px 12px;border:1px solid #e3b7b0;background:#fbf1ef;color:#8c1d18;font-size:13.5px;line-height:1.5}
-.co-warn{margin:0 0 16px;padding:10px 12px;border:1px solid #e3b7b0;background:#fbf1ef;color:#8c1d18;font-size:13px;line-height:1.5}
-.co-promo-msg.is-ok{color:#2e6b3a}
-.co-promo-msg.is-bad{color:var(--co-err)}
-.co-lines{margin-top:22px}
-.co-line{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--co-line);font-size:13px}
-.co-total{display:flex;justify-content:space-between;align-items:baseline;margin-top:26px;font-size:28px}
-.co-total strong{font-weight:400}
-/* confirmation */
-.co-done{max-width:640px;padding:30px 0 10px}
-.co-done[hidden]{display:none}
-.co-done-kicker{margin:0 0 12px;color:var(--co-muted);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
-.co-done h2{margin:0 0 18px;font-size:40px;font-weight:500;letter-spacing:-.02em}
-.co-done p{margin:0 0 10px;color:#4a4842;font-size:16px}
-.co-done .co-pay{width:auto;display:inline-flex;margin-top:22px;padding:0 34px}
+:root{--bg:#fff}
+body{background:#fff;font-family:Geist,sans-serif}
+.lg-page{max-width:1320px;margin:0 auto;padding:150px 24px 110px}
+.lg-head{max-width:860px;margin-bottom:64px}
+.lg-kicker{margin:0 0 14px;color:#8a857c;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.lg-head h1{margin:0;font-size:56px;font-weight:500;line-height:1.05;letter-spacing:-.02em}
+.lg-date{margin:18px 0 0;color:#77736c;font-size:15px}
+.lg-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:80px;align-items:start}
+.lg-toc{position:sticky;top:100px;font-size:14px}
+.lg-toc-title{margin:0 0 14px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.lg-toc ol{margin:0;padding:0;list-style:none;counter-reset:toc;border-left:1px solid #e6e2da}
+.lg-toc li{counter-increment:toc}
+.lg-toc a{display:block;padding:7px 0 7px 16px;margin-left:-1px;border-left:1px solid transparent;color:#77736c;line-height:1.35;transition:color .3s,border-color .3s}
+.lg-toc ol a::before{content:counter(toc) ". "}
+.lg-toc a:hover,.lg-toc a.is-current{color:#000;border-left-color:#000}
+.lg-other{margin-top:28px;padding-top:20px;border-top:1px solid #e6e2da}
+.lg-other a{display:block;padding:5px 0;color:#77736c;transition:color .3s}
+.lg-other a:hover{color:#000}
+.lg-other a[aria-current="page"]{color:#000;font-weight:600}
+.lg-body{max-width:780px;color:#2d2b28;font-size:16px;line-height:1.75}
+.lg-body section{scroll-margin-top:100px;padding-top:8px}
+.lg-body section + section{margin-top:44px}
+.lg-body h2{margin:0 0 14px;color:#000;font-size:24px;font-weight:600;line-height:1.3}
+.lg-body h3{margin:24px 0 8px;color:#000;font-size:17px;font-weight:600}
+.lg-body p{margin:0 0 14px}
+.lg-body ul{margin:0 0 14px;padding-left:20px}
+.lg-body li{margin:4px 0}
+.lg-body a{color:#000;text-decoration:underline;text-underline-offset:3px}
+.lg-body table{width:100%;margin:8px 0 18px;border-collapse:collapse;font-size:15px}
+.lg-body th,.lg-body td{padding:12px 12px 12px 0;border-bottom:1px solid #e6e2da;text-align:left;vertical-align:top}
+.lg-body th{color:#000;font-weight:600}
+.lg-form{margin-top:10px;padding:24px 28px;border:1px solid #e6e2da;border-radius:6px;background:#faf9f6}
+.lg-form p{margin:0 0 10px}
+.ph{padding:0 3px;border-radius:3px;background:#fff1c7;color:#6b4e00}
 @media (max-width:991px){
-  .co-grid{grid-template-columns:1fr}
-  .co-summary{position:static;order:-1}
-  .co-form{max-width:none}
+  .lg-grid{grid-template-columns:1fr;gap:40px}
+  .lg-toc{position:static}
+  .lg-head h1{font-size:42px}
 }
 @media (max-width:479px){
-  .co-page{padding-top:100px}
-  .co-title{margin-bottom:40px}
-  .co-row{grid-template-columns:1fr}
-  .co-sec-head h2,.co-summary h2{font-size:24px}
-  .co-item{grid-template-columns:64px minmax(0,1fr) auto;gap:14px}
-  .co-item-img{width:64px}
-  .co-total{font-size:24px}
+  .lg-page{padding:120px 16px 80px}
+  .lg-head h1{font-size:34px}
+  .lg-body h2{font-size:21px}
+  .lg-body table{display:block;overflow-x:auto}
 }
+html[data-lang="fr"] .lg-page[data-lang="en"],html[data-lang="en"] .lg-page[data-lang="fr"]{display:none}
 
 /* language switch */
 html.i18n-pending body{visibility:hidden}
@@ -628,88 +573,164 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
   </div>
 </nav>
 
-<main class="co-page" data-checkout>
-  <h1 class="co-title">Checkout</h1>
-  <div class="co-grid">
-    <form class="co-form" novalidate aria-label="Checkout">
-      <section class="co-sec" aria-labelledby="co-delivery">
-        <div class="co-sec-head"><h2 id="co-delivery">Delivery</h2><span class="co-step">Step 1 / 2</span></div>
-        <h3>Contact</h3>
-        <div class="co-row">
-          <label class="co-field"><input name="firstname" placeholder=" " autocomplete="given-name" data-req><span class="co-lbl">First name</span><span class="co-err" aria-live="polite"></span></label>
-          <label class="co-field"><input name="lastname" placeholder=" " autocomplete="family-name" data-req><span class="co-lbl">Last name</span><span class="co-err" aria-live="polite"></span></label>
-        </div>
-        <div class="co-row">
-          <label class="co-field"><input name="email" placeholder=" " type="email" autocomplete="email" data-req><span class="co-lbl">Email</span><span class="co-err" aria-live="polite"></span></label>
-          <label class="co-field"><input name="phone" placeholder=" " type="tel" autocomplete="tel" data-req><span class="co-lbl">Phone number</span><span class="co-err" aria-live="polite"></span></label>
-        </div>
-        <h3>Shipping address</h3>
-        <div class="co-row">
-          <label class="co-field"><select name="country" autocomplete="country-name"><option>France</option><option>Belgium</option><option>Switzerland</option><option>Luxembourg</option><option>Germany</option><option>Italy</option><option>Spain</option><option>Netherlands</option><option>United Kingdom</option><option>United States</option><option>Canada</option></select><span class="co-lbl">Country / Region</span></label>
-          <label class="co-field"><input name="city" placeholder=" " autocomplete="address-level2" data-req><span class="co-lbl">City</span><span class="co-err" aria-live="polite"></span></label>
-        </div>
-        <div class="co-row">
-          <label class="co-field"><input name="address" placeholder=" " autocomplete="street-address" data-req><span class="co-lbl">Address</span><span class="co-err" aria-live="polite"></span></label>
-          <label class="co-field"><input name="zip" placeholder=" " autocomplete="postal-code"><span class="co-lbl">Postal code (optional)</span><span class="co-err" aria-live="polite"></span></label>
-        </div>
-        <h3>Delivery method</h3>
-        <div class="co-opts" role="radiogroup" aria-label="Delivery method">
-          <label class="co-opt"><input type="radio" name="shipping" value="standard" checked><span class="co-opt-main"><span class="co-opt-title">Standard delivery</span><span class="co-opt-sub">Delivered within 2–4 business days</span></span><span class="co-opt-side">Free</span></label>
-          <label class="co-opt"><input type="radio" name="shipping" value="express"><span class="co-opt-main"><span class="co-opt-title">Express delivery</span><span class="co-opt-sub">Delivered within 1–2 business days</span></span><span class="co-opt-side">CFA10,000.00</span></label>
-        </div>
+<main class="lg-page" data-lang="fr" data-no-i18n>
+  <header class="lg-head">
+    <p class="lg-kicker">Service client</p>
+    <h1>Aide & FAQ</h1>
+    <p class="lg-date">Livraison, retours, tailles, entretien : tout ce qu'il faut savoir avant et après votre commande.</p>
+  </header>
+  <div class="lg-grid">
+    <nav class="lg-toc" aria-label="Sommaire">
+      <p class="lg-toc-title">Sommaire</p>
+      <ol><li><a href="#livraison">Livraison</a></li><li><a href="#retours">Retours et échanges</a></li><li><a href="#tailles">Guide des tailles</a></li><li><a href="#entretien">Entretien</a></li><li><a href="#faq">Questions fréquentes</a></li><li><a href="#contact">Nous contacter</a></li><li><a href="#boutique">Notre boutique</a></li></ol>
+      <div class="lg-other"><a href="aide.html" aria-current="page">Aide &amp; FAQ</a><a href="cgv.html">Conditions générales de vente</a><a href="cgu.html">Conditions générales d'utilisation</a><a href="confidentialite.html">Politique de confidentialité</a></div>
+    </nav>
+    <article class="lg-body">
+      <section id="livraison">
+        <h2>Livraison</h2>
+        <p>Nous livrons dans les pays suivants : <span class="ph" data-shop="countries">[pays desservis]</span>.</p>
+        <ul>
+          <li><span data-shop="standard"><b>Livraison standard</b> : <span class="ph" data-shop="stdDays">[délai]</span> jours ouvrés, <span class="ph" data-shop="stdPrice">[tarif]</span><span data-shop="freeOverBlock"> — offerte dès <span class="ph" data-shop="freeOver">[montant]</span> d'achat</span>.</span></li>
+          <li><span data-shop="express"><b>Livraison express</b> : <span class="ph" data-shop="expDays">[délai]</span> jours ouvrés, <span class="ph" data-shop="expPrice">[tarif]</span>.</span></li>
+        </ul>
+        <p>Les délais courent à partir de la confirmation de votre commande. Le tarif exact s'affiche avant la validation de la commande, selon le mode choisi et le montant de votre panier.</p>
       </section>
-
-      <section class="co-sec" aria-labelledby="co-payment">
-        <div class="co-sec-head"><h2 id="co-payment">Payment</h2><span class="co-step">Step 2 / 2</span></div>
-        <div class="co-opts" role="radiogroup" aria-label="Payment method">
-          <label class="co-opt"><input type="radio" name="payment" value="mobilemoney"><span class="co-opt-main"><span class="co-opt-title">Mobile Money</span><span class="co-opt-sub">Wave, Orange Money, MTN MoMo, Moov Money</span></span><span class="co-opt-side"><span class="co-pill">WAVE</span><span class="co-pill">ORANGE</span><span class="co-pill">MTN</span></span></label>
-          <div class="co-panel" data-panel="mobilemoney" hidden>
-            <div class="co-row">
-              <label class="co-field"><select name="operator" data-no-i18n><option value="wave">Wave</option><option value="orange">Orange Money</option><option value="mtn">MTN MoMo</option><option value="moov">Moov Money</option></select><span class="co-lbl">Operator</span><span class="co-err" aria-live="polite"></span></label>
-              <label class="co-field"><input name="momo" placeholder=" " type="tel" inputmode="tel" autocomplete="tel" data-req><span class="co-lbl">Mobile Money number</span><span class="co-err" aria-live="polite"></span></label>
-            </div>
-            <p>After your order, you receive a payment request on this number to confirm.</p>
-          </div>
-          <label class="co-opt"><input type="radio" name="payment" value="card" checked><span class="co-opt-main"><span class="co-opt-title">Credit card</span></span><span class="co-opt-side"><span class="co-pill">VISA</span><span class="co-pill">MASTERCARD</span></span></label>
-          <div class="co-panel" data-panel="card"><p>After your order, we send you a secure payment link by e-mail and SMS.</p></div>
-          <label class="co-opt"><input type="radio" name="payment" value="paypal"><span class="co-opt-main"><span class="co-opt-title">PayPal</span></span><span class="co-opt-side"><span class="co-pill">PAYPAL</span></span></label>
-          <div class="co-panel" data-panel="paypal" hidden><p>After your order, we send you a secure payment link by e-mail and SMS.</p></div>
-          <label class="co-opt"><input type="radio" name="payment" value="applepay"><span class="co-opt-main"><span class="co-opt-title">Apple Pay</span></span><span class="co-opt-side"><span class="co-pill">APPLE PAY</span></span></label>
-          <div class="co-panel" data-panel="applepay" hidden><p>After your order, we send you a secure payment link by e-mail and SMS.</p></div>
-          <label class="co-opt"><input type="radio" name="payment" value="cod"><span class="co-opt-main"><span class="co-opt-title">Cash on delivery</span><span class="co-opt-sub co-cod-note"></span></span><span class="co-opt-side"><span class="co-pill">CASH</span></span></label>
-          <div class="co-panel" data-panel="cod" hidden><p>Pay in cash when your order is delivered.</p></div>
-        </div>
-        <label class="co-check"><input type="checkbox" name="terms"><span>I have read and accept the <a href="cgv.html" target="_blank">terms of sale</a> and the <a href="confidentialite.html" target="_blank">privacy policy</a>.</span><span class="co-err" aria-live="polite"></span></label>
-        <button type="submit" class="co-pay"></button>
+      <section id="retours">
+        <h2>Retours et échanges</h2>
+        <p>Vous avez 30 jours après la réception pour nous retourner un article, sans avoir à vous justifier ; le retour est gratuit. Écrivez-nous à <span class="ph" data-store="email">[adresse e-mail]</span> en indiquant votre numéro de commande : nous vous expliquons comment renvoyer le colis.</p>
+        <p>Les articles doivent être non portés, non lavés et munis de leurs étiquettes. Le remboursement intervient au plus tard 14 jours après la réception du retour, par le moyen de paiement de la commande (Mobile Money ou virement pour une commande payée à la livraison). Pour un échange de taille, précisez simplement la taille souhaitée.</p>
+        <p>Tous les détails figurent dans nos <a href="cgv.html#retractation">conditions générales de vente</a>.</p>
       </section>
-    </form>
-
-    <aside class="co-summary" aria-label="Order summary">
-      <h2 class="co-bag-title">Shopping Bag (0)</h2>
-      <ul class="co-items"></ul>
-      <form class="co-promo" novalidate>
-        <input name="promo" placeholder="Promo code" aria-label="Promo code" autocomplete="off">
-        <button type="submit">Apply</button>
-      </form>
-      <p class="co-promo-msg" aria-live="polite"></p>
-      <div class="co-lines">
-        <div class="co-line"><span>Subtotal</span><span class="co-sub">$0.00</span></div>
-        <div class="co-line"><span>Shipping</span><span class="co-ship">Free</span></div>
-        <div class="co-line"><span>Discount</span><span class="co-disc">$0.00</span></div>
-      </div>
-      <div class="co-total"><span>Total:</span><strong>$0.00</strong></div>
-    </aside>
+      <section id="tailles">
+        <h2>Guide des tailles</h2>
+        <h3>Vêtements</h3>
+        <div data-size-guide="clothes"></div>
+        <p>Chaque fiche produit précise la coupe (ample, près du corps…) et la taille portée par le mannequin.</p>
+        <h3>Accessoires (taille unique)</h3>
+        <div data-size-guide="accessories"></div>
+      </section>
+      <section id="entretien">
+        <h2>Entretien</h2>
+        <ul>
+          <li><b>Manteaux</b> : nettoyage à sec uniquement. Brossez après chaque port et suspendez sur un cintre épaulé.</li>
+          <li><b>Maille</b> : lavage à la main à froid ou programme laine. Séchez à plat, loin d'une source de chaleur ; pas de sèche-linge.</li>
+          <li><b>Robes</b> : nettoyage à sec recommandé. Repassage doux sur l'envers si nécessaire.</li>
+          <li><b>Chemises</b> : lavage en machine à 30 °C avec des couleurs proches. Séchez suspendu et repassez légèrement humide.</li>
+          <li><b>Pantalons</b> : nettoyage à sec ou lavage délicat à la main. Défroissez à la vapeur.</li>
+          <li><b>Maroquinerie</b> : essuyez avec un chiffon doux et sec, évitez la pluie et le soleil direct, rangez rembourré dans sa housse.</li>
+        </ul>
+        <p>Suivez toujours l'étiquette cousue dans le vêtement, qui prime sur ces conseils généraux.</p>
+      </section>
+      <section id="faq">
+        <h2>Questions fréquentes</h2>
+        <h3>Faut-il créer un compte pour commander ?</h3>
+        <p>Non. Vous commandez en tant qu'invité : il suffit d'indiquer vos coordonnées et votre adresse de livraison.</p>
+        <h3>Quels moyens de paiement acceptez-vous ?</h3>
+        <p><span class="ph" data-shop="payments">[moyens de paiement]</span>. Aucune donnée de carte bancaire n'est saisie sur le site : pour un paiement en ligne, vous recevez une demande ou un lien de paiement sécurisé après votre commande.</p>
+        <h3>Comment ma commande est-elle confirmée ?</h3>
+        <p>Un numéro de commande s'affiche dès la validation. Nous vous contactons ensuite par e-mail, SMS ou téléphone pour confirmer la commande et son paiement.</p>
+        <h3>Livrez-vous hors de Côte d'Ivoire ?</h3>
+        <p>Oui, dans les pays suivants : <span class="ph" data-shop="countries">[pays desservis]</span>.</p>
+        <h3>Comment utiliser un code promo ?</h3>
+        <p>Saisissez-le dans le champ « Code promo » du récapitulatif, sur la page de commande. La remise s'affiche aussitôt si le code est valable.</p>
+        <h3>Un article est épuisé dans ma taille. Sera-t-il réassorti ?</h3>
+        <p>Écrivez-nous à <span class="ph" data-store="email">[adresse e-mail]</span> : nous vous dirons si un réassort est prévu.</p>
+      </section>
+      <section id="contact">
+        <h2>Nous contacter</h2>
+        <ul>
+          <li>E-mail : <a href="mailto:hello@relaxx.example" data-store-link="email"><span class="ph" data-store="email">[adresse e-mail]</span></a></li>
+          <li>Téléphone : <a href="tel:+2250700000000" data-store-link="phone"><span class="ph" data-store="phone">[téléphone]</span></a></li>
+          <li>Horaires du service client : <span class="ph" data-store="hours">[horaires]</span></li>
+        </ul>
+      </section>
+      <section id="boutique">
+        <h2>Notre boutique</h2>
+        <p>Venez essayer nos dernières pièces : <span class="ph" data-store="address">[adresse]</span>, <span class="ph" data-store="countryName">[pays]</span>.</p>
+        <p>Horaires : <span class="ph" data-store="hours">[horaires]</span>.</p>
+        <p><a href="#" data-store-link="map" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:10px 22px;background:#000;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:.06em;font-size:13px">Itinéraire</a></p>
+      </section>
+    </article>
   </div>
-
-  <section class="co-done" hidden aria-live="polite">
-    <p class="co-done-kicker"><span>Order number</span> <strong class="co-done-no"></strong></p>
-    <h2>Thank you for your order</h2>
-    <p><span>We will contact you to confirm your order and its payment:</span> <strong class="co-done-email"></strong>.</p>
-    <p><span>Total:</span> <strong class="co-done-total"></strong></p>
-    <a href="shop.html" class="co-pay">Back to the shop</a>
-  </section>
 </main>
-
+<main class="lg-page" data-lang="en" data-no-i18n>
+  <header class="lg-head">
+    <p class="lg-kicker">Customer service</p>
+    <h1>Help & FAQ</h1>
+    <p class="lg-date">Delivery, returns, sizes, care: everything you need to know before and after your order.</p>
+  </header>
+  <div class="lg-grid">
+    <nav class="lg-toc" aria-label="Contents">
+      <p class="lg-toc-title">Contents</p>
+      <ol><li><a href="#en-livraison">Delivery</a></li><li><a href="#en-retours">Returns and exchanges</a></li><li><a href="#en-tailles">Size guide</a></li><li><a href="#en-entretien">Care</a></li><li><a href="#en-faq">Frequently asked questions</a></li><li><a href="#en-contact">Contact us</a></li><li><a href="#en-boutique">Our store</a></li></ol>
+      <div class="lg-other"><a href="aide.html" aria-current="page">Help &amp; FAQ</a><a href="cgv.html">Terms of Sale</a><a href="cgu.html">Terms of Use</a><a href="confidentialite.html">Privacy Policy</a></div>
+    </nav>
+    <article class="lg-body">
+      <section id="en-livraison">
+        <h2>Delivery</h2>
+        <p>We deliver to the following countries: <span class="ph" data-shop="countries">[countries served]</span>.</p>
+        <ul>
+          <li><span data-shop="standard"><b>Standard delivery</b>: <span class="ph" data-shop="stdDays">[time]</span> business days, <span class="ph" data-shop="stdPrice">[price]</span><span data-shop="freeOverBlock"> — free on orders over <span class="ph" data-shop="freeOver">[amount]</span></span>.</span></li>
+          <li><span data-shop="express"><b>Express delivery</b>: <span class="ph" data-shop="expDays">[time]</span> business days, <span class="ph" data-shop="expPrice">[price]</span>.</span></li>
+        </ul>
+        <p>Delivery times run from the confirmation of your order. The exact price is shown before you confirm the order, depending on the method chosen and the amount of your bag.</p>
+      </section>
+      <section id="en-retours">
+        <h2>Returns and exchanges</h2>
+        <p>You have 30 days after receipt to return an item, without giving a reason; returns are free. Write to us at <span class="ph" data-store="email">[e-mail address]</span> with your order number and we will explain how to send the parcel back.</p>
+        <p>Items must be unworn, unwashed and with their labels. Refunds are made no later than 14 days after we receive the return, using the payment method of the order (Mobile Money or bank transfer for an order paid on delivery). For a size exchange, just tell us the size you want.</p>
+        <p>Full details are in our <a href="cgv.html#retractation">terms of sale</a>.</p>
+      </section>
+      <section id="en-tailles">
+        <h2>Size guide</h2>
+        <h3>Clothing</h3>
+        <div data-size-guide="clothes"></div>
+        <p>Each product page describes the fit (relaxed, close…) and the size worn by the model.</p>
+        <h3>Accessories (one size)</h3>
+        <div data-size-guide="accessories"></div>
+      </section>
+      <section id="en-entretien">
+        <h2>Care</h2>
+        <ul>
+          <li><b>Outerwear</b>: dry clean only. Brush after wearing and hang on a shaped hanger.</li>
+          <li><b>Knitwear</b>: hand wash cold or use a wool cycle. Dry flat, away from direct heat; do not tumble dry.</li>
+          <li><b>Dresses</b>: dry cleaning recommended. Cool iron on the reverse if needed.</li>
+          <li><b>Shirts</b>: machine wash at 30°C with similar colours. Line dry and iron while slightly damp.</li>
+          <li><b>Trousers</b>: dry clean or gentle hand wash. Steam to refresh.</li>
+          <li><b>Leather goods</b>: wipe with a soft dry cloth, keep away from rain and direct sunlight, store filled in the dust bag.</li>
+        </ul>
+        <p>Always follow the label sewn into the garment, which takes precedence over this general advice.</p>
+      </section>
+      <section id="en-faq">
+        <h2>Frequently asked questions</h2>
+        <h3>Do I need an account to order?</h3>
+        <p>No. You order as a guest: just enter your contact details and delivery address.</p>
+        <h3>Which payment methods do you accept?</h3>
+        <p><span class="ph" data-shop="payments">[payment methods]</span>. No card details are entered on the site: for an online payment, you receive a secure payment request or link after your order.</p>
+        <h3>How is my order confirmed?</h3>
+        <p>An order number is displayed as soon as you confirm. We then contact you by e-mail, text message or phone to confirm the order and its payment.</p>
+        <h3>Do you deliver outside Côte d'Ivoire?</h3>
+        <p>Yes, to the following countries: <span class="ph" data-shop="countries">[countries served]</span>.</p>
+        <h3>How do I use a promo code?</h3>
+        <p>Enter it in the "Promo code" field of the summary on the checkout page. The discount appears straight away if the code is valid.</p>
+        <h3>An item is sold out in my size. Will it be restocked?</h3>
+        <p>Write to us at <span class="ph" data-store="email">[e-mail address]</span>: we will tell you whether a restock is planned.</p>
+      </section>
+      <section id="en-contact">
+        <h2>Contact us</h2>
+        <ul>
+          <li>E-mail: <a href="mailto:hello@relaxx.example" data-store-link="email"><span class="ph" data-store="email">[e-mail address]</span></a></li>
+          <li>Phone: <a href="tel:+2250700000000" data-store-link="phone"><span class="ph" data-store="phone">[phone number]</span></a></li>
+        </ul>
+      </section>
+      <section id="en-boutique">
+        <h2>Our store</h2>
+        <p>Come and try our latest pieces: <span class="ph" data-store="address">[address]</span>, <span class="ph" data-store="countryName">[country]</span>.</p>
+        <p><a href="#" data-store-link="map" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;padding:10px 22px;background:#000;color:#fff;text-decoration:none;text-transform:uppercase;letter-spacing:.06em;font-size:13px">Directions</a></p>
+      </section>
+    </article>
+  </div>
+</main>
 <!-- FOOTER (layout + motion after AZ Milano, RELAXX content) -->
 <footer class="mfoot">
   <div class="mf-banner" aria-hidden="true"><div class="mf-banner-track"><div class="mf-banner-group"><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div></div><div class="mf-banner-group"><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div></div></div></div>
@@ -775,7 +796,7 @@ RelaxxDB.ready(function () {
 (function () {
   "use strict";
   var d = document.documentElement, lang = d.getAttribute("data-lang") || "en";
-  var DICT = {"Mobile Money":"Mobile Money","Wave, Orange Money, MTN MoMo, Moov Money":"Wave, Orange Money, MTN MoMo, Moov Money","Operator":"Opérateur","Mobile Money number":"Numéro Mobile Money","You will receive a payment request on your phone to confirm.":"Vous recevrez une demande de paiement à confirmer sur votre téléphone.","Cash on delivery":"Paiement à la livraison","Pay in cash when your order is delivered.":"Réglez en espèces à la livraison de votre commande.","Code applied — free delivery":"Code appliqué — livraison offerte","This code has expired.":"Ce code a expiré.","This code is no longer available.":"Ce code n'est plus disponible.","Open menu":"Ouvrir le menu","Close menu":"Fermer le menu","RELAXX home":"Accueil RELAXX","Open search":"Ouvrir la recherche","Close search":"Fermer la recherche","Search":"Rechercher","Search…":"Rechercher…","Search products":"Rechercher des produits","Open cart":"Ouvrir le panier","Main menu":"Menu principal","Language":"Langue","Outerwear":"Manteaux","Knitwear":"Maille","Dresses":"Robes","Shirts":"Chemises","Trousers":"Pantalons","Accessories":"Accessoires","All":"Tout","Your cart":"Votre panier","Your Cart":"Votre panier","Close cart":"Fermer le panier","No items found.":"Votre panier est vide.","Remove":"Retirer","Subtotal":"Sous-total","Continue to Checkout":"Passer la commande","Visit Socials":"Nos réseaux","Shop RELAXX":"Boutique RELAXX","Try the latest pieces at our store":"Essayez nos dernières pièces dans notre boutique","FIND THE STORE":"VOIR LA BOUTIQUE","Categories":"Catégories","Company":"Entreprise","About":"À propos","Journal":"Journal","Shop":"Boutique","Contact":"Contact","Shipping":"Livraison","Help":"Aide","Returns":"Retours","Size Guide":"Guide des tailles","Care":"Entretien","FAQ":"FAQ","© 2026 RELAXX. All rights reserved.":"© 2026 RELAXX. Tous droits réservés.","Terms of Sale":"CGV","Terms of Use":"CGU","Privacy Policy":"Confidentialité","Designed & made in small batches":"Conçu et fabriqué en petites séries","RELAXX — Fashion Store":"RELAXX — Boutique de mode","Product":"Produit","Checkout":"Commande","Woven to":"Tissé pour","awaken":"éveiller","shop now":"découvrir","© 2026 relaxx collection":"© 2026 collection relaxx","scroll":"défiler","Trending":"Tendance","Woman in a long dark coat":"Femme en manteau long sombre","Woman in a soft knit sweater":"Femme en pull en maille douce","Woman in a red dress":"Femme en robe rouge","Shop the trending outerwear edit":"Les manteaux tendance à découvrir","Shop the trending knitwear edit":"La maille tendance à découvrir","Shop the trending dresses edit":"Les robes tendance à découvrir","Collection categories":"Catégories de la collection","Chosen With Care, Made to Be Worn":"Choisis avec soin, faits pour être portés","View All Collections":"Voir toutes les collections","Portrait in sunglasses":"Portrait avec lunettes de soleil","Minimal portrait":"Portrait minimaliste","Where Style":"Là où le style","Meets Substance":"rencontre l'essentiel","Every RELAXX garment begins with one simple question: will this still feel right in ten years? We start from honest fibres like organic cotton, washed linen and responsibly sourced wool, then cut in small runs so nothing is made without a reason. Each seam is finished with care by the same small workshops we have partnered with since day one. The result is a wardrobe that works quietly in the background of a full life: pieces that soften with wear, pair with everything you already own and carry intention rather than excess. Fewer, better things, made to be kept, repaired and worn for many years to come.":"Chaque vêtement RELAXX commence par une question simple : sera-t-il toujours juste dans dix ans ? Nous partons de fibres honnêtes comme le coton biologique, le lin lavé et la laine d'origine responsable, puis nous produisons en petites séries pour que rien ne soit fabriqué sans raison. Chaque couture est finie avec soin par les mêmes petits ateliers qui nous accompagnent depuis le premier jour. Le résultat : une garde-robe qui accompagne discrètement une vie bien remplie, des pièces qui s'adoucissent au fil du temps, s'accordent avec tout ce que vous possédez déjà et portent une intention plutôt qu'un excès. Moins de choses, mais de meilleures, faites pour être gardées, réparées et portées pendant de longues années.","learn more about us":"en savoir plus sur nous","what our clients say":"ce que disent nos clients","About Us":"À propos","Testimonials":"Témoignages","Previous slide":"Diapositive précédente","Next slide":"Diapositive suivante","“ The fit is quiet and exact. Nothing shouts, yet everything feels considered. My RELAXX coat is the thing I reach for first. ”":"« La coupe est discrète et précise. Rien ne crie, et pourtant tout semble pensé. Mon manteau RELAXX est la première pièce que j'attrape. »","“ I love knowing where my clothes come from. The fabrics are beautiful and still look new after a full year of wear. ”":"« J'aime savoir d'où viennent mes vêtements. Les tissus sont magnifiques et semblent encore neufs après une année entière. »","“ Each drop feels like a small, careful edit instead of a flood of product. Choosing is easy, and wearing is even easier. ”":"« Chaque collection ressemble à une petite sélection soignée plutôt qu'à un déluge de produits. Choisir est simple, porter l'est encore plus. »","“ Clean lines, soft textures and no compromise on comfort. RELAXX has quietly become the backbone of my wardrobe. ”":"« Des lignes nettes, des matières douces et aucun compromis sur le confort. RELAXX est discrètement devenu la base de ma garde-robe. »","“ You can feel the hand finishing in every detail. These are clothes that ask to be kept, mended and worn again. ”":"« On sent la finition à la main dans chaque détail. Ce sont des vêtements qu'on a envie de garder, de réparer et de porter encore. »","our blog":"notre blog","From the Journal":"Le Journal","journal":"journal","materials":"matières","style":"style","lifestyle":"art de vivre","Portrait in red light":"Portrait en lumière rouge","Designers at work in a studio":"Créatrices au travail dans un atelier","Outdoor fashion portrait":"Portrait de mode en extérieur","Perfume bottle":"Flacon de parfum","The Quiet Luxury of Getting Dressed Slowly":"Le luxe discret de s'habiller lentement","What Natural Fibres Did for My Wardrobe":"Ce que les fibres naturelles ont changé dans ma garde-robe","Beyond Trends: Building a Personal Uniform":"Au-delà des tendances : construire son uniforme","Scent, Memory and the Clothes We Keep":"Parfum, mémoire et vêtements que l'on garde","read more":"lire la suite","Best Selling":"Meilleure vente","On Sale":"Promo","New Collection":"Nouvelle collection","Close":"Fermer","Previous":"Précédent","Next":"Suivant","Explore the RELAXX Collection":"Découvrez la collection RELAXX","Pieces for every day and every season, cut in small runs from honest fibres. Browse by category or see everything at once.":"Des pièces pour chaque jour et chaque saison, produites en petites séries à partir de fibres honnêtes. Parcourez par catégorie ou voyez tout d'un coup d'œil.","1 product matches your search.":"1 produit correspond à votre recherche.","Camel Wrap Coat":"Manteau portefeuille camel","Double-Breasted Coat":"Manteau croisé","Belted Trench":"Trench ceinturé","Wool Overcoat":"Pardessus en laine","Cropped Jacket":"Veste courte","Longline Coat":"Manteau long","Cable Knit Sweater":"Pull torsadé","Merino Crewneck":"Pull col rond en mérinos","Ribbed Turtleneck":"Col roulé côtelé","Chunky Cardigan":"Gilet en grosse maille","Mohair Pullover":"Pull en mohair","Cashmere V-Neck":"Pull col V en cachemire","Silk Slip Dress":"Robe nuisette en soie","Wrap Midi Dress":"Robe portefeuille midi","Pleated Maxi Dress":"Robe longue plissée","Satin Evening Dress":"Robe de soirée en satin","Linen Shirt Dress":"Robe chemise en lin","Knit Column Dress":"Robe colonne en maille","Oversized Linen Shirt":"Chemise oversize en lin","Poplin Button-Down":"Chemise en popeline","Relaxed Oxford Shirt":"Chemise Oxford décontractée","Wide-Leg Trousers":"Pantalon large","Pleated Wool Trousers":"Pantalon à pinces en laine","Tailored Straight Pants":"Pantalon droit tailleur","Leather Tote":"Cabas en cuir","Mini Shoulder Bag":"Mini sac porté épaule","Structured Top-Handle":"Sac structuré à anse","More images":"Autres images","Product images":"Images du produit","Choose image":"Choisir une image","Breadcrumb":"Fil d'Ariane","Quantity":"Quantité","Decrease quantity":"Diminuer la quantité","Increase quantity":"Augmenter la quantité","Add to wishlist":"Ajouter à la liste d'envies","Close size guide":"Fermer le guide des tailles","Color —":"Couleur —","Size":"Taille","Size guide →":"Guide des tailles →","Please choose a size.":"Veuillez choisir une taille.","In stock — ships within 2–4 business days":"En stock — expédié sous 2 à 4 jours ouvrés","Free returns within 30 days":"Retours gratuits sous 30 jours","You may also like":"Vous aimerez aussi","Size guide":"Guide des tailles","Body measurements in centimetres. Between two sizes? Take the larger one for a relaxed fit.":"Mesures du corps en centimètres. Entre deux tailles ? Choisissez la plus grande pour une coupe plus ample.","Measurements of the bag, taken flat.":"Dimensions du sac, mesurées à plat.","Chest":"Tour de poitrine","Waist":"Tour de taille","Hips":"Tour de hanches","Dimensions":"Dimensions","Strap drop":"Hauteur de bandoulière","Weight":"Poids","22–55 cm, adjustable":"22–55 cm, réglable","One size":"Taille unique","Added ✓":"Ajouté ✓","Fabric & Fit":"Matière & coupe","Care Instructions":"Entretien","Shipping & Returns":"Livraison & retours","Available colours":"Couleurs disponibles","Camel":"Camel","Charcoal":"Anthracite","Ink":"Encre","Stone":"Pierre","Oat":"Avoine","Ecru":"Écru","Sage":"Sauge","Black":"Noir","Taupe":"Taupe","Sand":"Sable","White":"Blanc","Sky":"Ciel","Olive":"Olive","Cognac":"Cognac","Chocolate":"Chocolat","Bone":"Ivoire","A clean, structured shape in a dense wool blend that holds its line all season. Fully lined, with deep pockets and tonal buttons, cut to layer easily over knitwear.":"Une ligne nette et structurée dans un mélange de laine dense qui garde sa tenue toute la saison. Entièrement doublé, avec des poches profondes et des boutons ton sur ton, coupé pour se porter facilement sur la maille.","80% wool, 20% recycled polyamide; lining 100% viscose. Relaxed fit, true to size — the model is 176 cm and wears size S.":"80 % laine, 20 % polyamide recyclé ; doublure 100 % viscose. Coupe ample, taille normalement — le mannequin mesure 176 cm et porte une taille S.","Dry clean only. Brush gently after wearing, hang on a shaped hanger and store in a breathable garment bag.":"Nettoyage à sec uniquement. Brossez délicatement après chaque port, suspendez sur un cintre épaulé et rangez dans une housse respirante.","Knitted in a soft, springy yarn with a relaxed shoulder and ribbed trims. Warm without the weight, easy on its own or under a coat.":"Tricoté dans un fil doux et élastique, avec une épaule décontractée et des finitions côtelées. Chaud sans être lourd, à porter seul ou sous un manteau.","70% merino wool, 30% recycled cashmere. Relaxed fit — size down for a closer shape. The model wears size S.":"70 % laine mérinos, 30 % cachemire recyclé. Coupe ample — prenez une taille en dessous pour un tombé plus ajusté. Le mannequin porte une taille S.","Hand wash cold or use a wool cycle. Dry flat in shape, away from direct heat. Do not tumble dry.":"Lavage à la main à froid ou programme laine. Séchez à plat en remettant en forme, loin d'une source de chaleur. Pas de sèche-linge.","A fluid silhouette that moves with the body, finished with a concealed back zip and a soft lining. Designed to go from day to evening.":"Une silhouette fluide qui accompagne le mouvement, finie par une fermeture invisible au dos et une doublure douce. Pensée pour passer du jour au soir.","70% silk, 30% wool, fully lined. True to size — the model is 175 cm and wears size S.":"70 % soie, 30 % laine, entièrement doublée. Taille normalement — le mannequin mesure 175 cm et porte une taille S.","Dry clean recommended. Cool iron on the reverse if needed and store on a hanger.":"Nettoyage à sec recommandé. Repassez à fer doux sur l'envers si besoin et rangez sur un cintre.","An easy, slightly oversized shirt with a soft collar and dropped shoulders. Light and breathable, it only gets better with every wash.":"Une chemise facile, légèrement oversize, avec un col souple et des épaules tombantes. Légère et respirante, elle s'embellit à chaque lavage.","100% organic cotton. Oversized fit — take your usual size. The model wears size S.":"100 % coton biologique. Coupe oversize — prenez votre taille habituelle. Le mannequin porte une taille S.","Machine wash at 30°C with similar colours. Line dry and iron while slightly damp.":"Lavage en machine à 30 °C avec des couleurs similaires. Séchez sur un fil et repassez encore légèrement humide.","High-waisted with a pressed front crease and a long, wide leg. Slanted side pockets and a hook-and-bar fastening keep the line clean.":"Taille haute, pli marqué sur le devant et jambe longue et large. Poches latérales en biais et fermeture à crochet pour une ligne nette.","54% wool, 44% recycled polyester, 2% elastane. High rise, full length — the model is 176 cm and wears size S.":"54 % laine, 44 % polyester recyclé, 2 % élasthanne. Taille haute, longueur complète — le mannequin mesure 176 cm et porte une taille S.","Dry clean or gentle hand wash. Steam to refresh the crease and hang to store.":"Nettoyage à sec ou lavage délicat à la main. Défroissez à la vapeur pour raviver le pli et rangez suspendu.","Shaped in smooth full-grain leather with a clean, minimal outline. Room for the essentials, an inner zip pocket and a detachable strap.":"Façonné dans un cuir pleine fleur lisse aux lignes nettes et minimales. De la place pour l'essentiel, une poche intérieure zippée et une bandoulière amovible.","100% full-grain leather, cotton lining. 30 × 22 × 11 cm, strap drop 22–55 cm.":"100 % cuir pleine fleur, doublure coton. 30 × 22 × 11 cm, hauteur de bandoulière 22–55 cm.","Wipe with a soft dry cloth. Keep away from heavy rain and direct sunlight, and store filled in its dust bag.":"Essuyez avec un chiffon doux et sec. Protégez-le des fortes pluies et du soleil direct, et rangez-le rembourré dans sa housse.","Free standard delivery on orders over CFA100,000, dispatched within 2–4 business days; express delivery is offered at checkout. Returns are free within 30 days of delivery — see our":"Livraison standard offerte dès 100 000 FCFA d'achat, expédiée sous 2 à 4 jours ouvrés ; la livraison express est proposée au moment du paiement. Les retours sont gratuits sous 30 jours après la livraison — consultez nos","terms of sale":"conditions générales de vente","privacy policy":"politique de confidentialité","Delivery":"Livraison","Step 1 / 2":"Étape 1 / 2","Step 2 / 2":"Étape 2 / 2","First name":"Prénom","Last name":"Nom","Email":"E-mail","Phone number":"Téléphone","Shipping address":"Adresse de livraison","Country / Region":"Pays / Région","City":"Ville","Address":"Adresse","Postal code (optional)":"Code postal (facultatif)","Delivery method":"Mode de livraison","Standard delivery":"Livraison standard","Delivered within 2–4 business days":"Livrée sous 2 à 4 jours ouvrés","Free":"Offerte","Express delivery":"Livraison express","Delivered within 1–2 business days":"Livrée sous 1 à 2 jours ouvrés","Payment":"Paiement","Payment method":"Moyen de paiement","Credit card":"Carte bancaire","Card number":"Numéro de carte","Cardholder name":"Titulaire de la carte","Expiration date (MM/YY)":"Date d'expiration (MM/AA)","After your order, we send you a secure payment link by e-mail and SMS.":"Après votre commande, nous vous envoyons un lien de paiement sécurisé par e-mail et SMS.","After your order, you receive a payment request on this number to confirm.":"Après votre commande, vous recevez sur ce numéro une demande de paiement à confirmer.","I have read and accept the":"J'ai lu et j'accepte les","and the":"et la","Order summary":"Récapitulatif de commande","Promo code":"Code promo","Apply":"Appliquer","Discount":"Remise","Total:":"Total :","Size:":"Taille :","Color:":"Couleur :","Quantity:":"Quantité :","Your bag is empty.":"Votre panier est vide.","Continue shopping":"Continuer mes achats","Required field":"Champ obligatoire","Enter a valid email address":"Saisissez une adresse e-mail valide","Enter a valid phone number":"Saisissez un numéro de téléphone valide","Enter a valid card number":"Saisissez un numéro de carte valide","Enter a valid date (MM/YY)":"Saisissez une date valide (MM/AA)","Enter a valid CVV":"Saisissez un CVV valide","Please accept the terms to continue":"Veuillez accepter les conditions pour continuer","Code applied — 10% off":"Code appliqué — 10 % de remise","This code is not valid.":"Ce code n'est pas valide.","Order number":"Numéro de commande","Thank you for your order":"Merci pour votre commande","We will contact you to confirm your order and its payment:":"Nous vous contacterons pour confirmer votre commande et son paiement :","Back to the shop":"Retour à la boutique","Belgium":"Belgique","Switzerland":"Suisse","Germany":"Allemagne","Italy":"Italie","Spain":"Espagne","Netherlands":"Pays-Bas","United Kingdom":"Royaume-Uni","United States":"États-Unis"};
+  var DICT = {"Open menu":"Ouvrir le menu","Close menu":"Fermer le menu","RELAXX home":"Accueil RELAXX","Open search":"Ouvrir la recherche","Close search":"Fermer la recherche","Search":"Rechercher","Search…":"Rechercher…","Search products":"Rechercher des produits","Open cart":"Ouvrir le panier","Main menu":"Menu principal","Language":"Langue","Outerwear":"Manteaux","Knitwear":"Maille","Dresses":"Robes","Shirts":"Chemises","Trousers":"Pantalons","Accessories":"Accessoires","All":"Tout","Your cart":"Votre panier","Your Cart":"Votre panier","Close cart":"Fermer le panier","No items found.":"Votre panier est vide.","Remove":"Retirer","Subtotal":"Sous-total","Continue to Checkout":"Passer la commande","Visit Socials":"Nos réseaux","Shop RELAXX":"Boutique RELAXX","Try the latest pieces at our store":"Essayez nos dernières pièces dans notre boutique","FIND THE STORE":"VOIR LA BOUTIQUE","Categories":"Catégories","Company":"Entreprise","About":"À propos","Journal":"Journal","Shop":"Boutique","Contact":"Contact","Shipping":"Livraison","Help":"Aide","Returns":"Retours","Size Guide":"Guide des tailles","Care":"Entretien","FAQ":"FAQ","© 2026 RELAXX. All rights reserved.":"© 2026 RELAXX. Tous droits réservés.","Terms of Sale":"CGV","Terms of Use":"CGU","Privacy Policy":"Confidentialité","Designed & made in small batches":"Conçu et fabriqué en petites séries","RELAXX — Fashion Store":"RELAXX — Boutique de mode","Product":"Produit","Checkout":"Commande","Woven to":"Tissé pour","awaken":"éveiller","shop now":"découvrir","© 2026 relaxx collection":"© 2026 collection relaxx","scroll":"défiler","Trending":"Tendance","Woman in a long dark coat":"Femme en manteau long sombre","Woman in a soft knit sweater":"Femme en pull en maille douce","Woman in a red dress":"Femme en robe rouge","Shop the trending outerwear edit":"Les manteaux tendance à découvrir","Shop the trending knitwear edit":"La maille tendance à découvrir","Shop the trending dresses edit":"Les robes tendance à découvrir","Collection categories":"Catégories de la collection","Chosen With Care, Made to Be Worn":"Choisis avec soin, faits pour être portés","View All Collections":"Voir toutes les collections","Portrait in sunglasses":"Portrait avec lunettes de soleil","Minimal portrait":"Portrait minimaliste","Where Style":"Là où le style","Meets Substance":"rencontre l'essentiel","Every RELAXX garment begins with one simple question: will this still feel right in ten years? We start from honest fibres like organic cotton, washed linen and responsibly sourced wool, then cut in small runs so nothing is made without a reason. Each seam is finished with care by the same small workshops we have partnered with since day one. The result is a wardrobe that works quietly in the background of a full life: pieces that soften with wear, pair with everything you already own and carry intention rather than excess. Fewer, better things, made to be kept, repaired and worn for many years to come.":"Chaque vêtement RELAXX commence par une question simple : sera-t-il toujours juste dans dix ans ? Nous partons de fibres honnêtes comme le coton biologique, le lin lavé et la laine d'origine responsable, puis nous produisons en petites séries pour que rien ne soit fabriqué sans raison. Chaque couture est finie avec soin par les mêmes petits ateliers qui nous accompagnent depuis le premier jour. Le résultat : une garde-robe qui accompagne discrètement une vie bien remplie, des pièces qui s'adoucissent au fil du temps, s'accordent avec tout ce que vous possédez déjà et portent une intention plutôt qu'un excès. Moins de choses, mais de meilleures, faites pour être gardées, réparées et portées pendant de longues années.","learn more about us":"en savoir plus sur nous","what our clients say":"ce que disent nos clients","About Us":"À propos","Testimonials":"Témoignages","Previous slide":"Diapositive précédente","Next slide":"Diapositive suivante","“ The fit is quiet and exact. Nothing shouts, yet everything feels considered. My RELAXX coat is the thing I reach for first. ”":"« La coupe est discrète et précise. Rien ne crie, et pourtant tout semble pensé. Mon manteau RELAXX est la première pièce que j'attrape. »","“ I love knowing where my clothes come from. The fabrics are beautiful and still look new after a full year of wear. ”":"« J'aime savoir d'où viennent mes vêtements. Les tissus sont magnifiques et semblent encore neufs après une année entière. »","“ Each drop feels like a small, careful edit instead of a flood of product. Choosing is easy, and wearing is even easier. ”":"« Chaque collection ressemble à une petite sélection soignée plutôt qu'à un déluge de produits. Choisir est simple, porter l'est encore plus. »","“ Clean lines, soft textures and no compromise on comfort. RELAXX has quietly become the backbone of my wardrobe. ”":"« Des lignes nettes, des matières douces et aucun compromis sur le confort. RELAXX est discrètement devenu la base de ma garde-robe. »","“ You can feel the hand finishing in every detail. These are clothes that ask to be kept, mended and worn again. ”":"« On sent la finition à la main dans chaque détail. Ce sont des vêtements qu'on a envie de garder, de réparer et de porter encore. »","our blog":"notre blog","From the Journal":"Le Journal","journal":"journal","materials":"matières","style":"style","lifestyle":"art de vivre","Portrait in red light":"Portrait en lumière rouge","Designers at work in a studio":"Créatrices au travail dans un atelier","Outdoor fashion portrait":"Portrait de mode en extérieur","Perfume bottle":"Flacon de parfum","The Quiet Luxury of Getting Dressed Slowly":"Le luxe discret de s'habiller lentement","What Natural Fibres Did for My Wardrobe":"Ce que les fibres naturelles ont changé dans ma garde-robe","Beyond Trends: Building a Personal Uniform":"Au-delà des tendances : construire son uniforme","Scent, Memory and the Clothes We Keep":"Parfum, mémoire et vêtements que l'on garde","read more":"lire la suite","Best Selling":"Meilleure vente","On Sale":"Promo","New Collection":"Nouvelle collection","Close":"Fermer","Previous":"Précédent","Next":"Suivant","Explore the RELAXX Collection":"Découvrez la collection RELAXX","Pieces for every day and every season, cut in small runs from honest fibres. Browse by category or see everything at once.":"Des pièces pour chaque jour et chaque saison, produites en petites séries à partir de fibres honnêtes. Parcourez par catégorie ou voyez tout d'un coup d'œil.","1 product matches your search.":"1 produit correspond à votre recherche.","Camel Wrap Coat":"Manteau portefeuille camel","Double-Breasted Coat":"Manteau croisé","Belted Trench":"Trench ceinturé","Wool Overcoat":"Pardessus en laine","Cropped Jacket":"Veste courte","Longline Coat":"Manteau long","Cable Knit Sweater":"Pull torsadé","Merino Crewneck":"Pull col rond en mérinos","Ribbed Turtleneck":"Col roulé côtelé","Chunky Cardigan":"Gilet en grosse maille","Mohair Pullover":"Pull en mohair","Cashmere V-Neck":"Pull col V en cachemire","Silk Slip Dress":"Robe nuisette en soie","Wrap Midi Dress":"Robe portefeuille midi","Pleated Maxi Dress":"Robe longue plissée","Satin Evening Dress":"Robe de soirée en satin","Linen Shirt Dress":"Robe chemise en lin","Knit Column Dress":"Robe colonne en maille","Oversized Linen Shirt":"Chemise oversize en lin","Poplin Button-Down":"Chemise en popeline","Relaxed Oxford Shirt":"Chemise Oxford décontractée","Wide-Leg Trousers":"Pantalon large","Pleated Wool Trousers":"Pantalon à pinces en laine","Tailored Straight Pants":"Pantalon droit tailleur","Leather Tote":"Cabas en cuir","Mini Shoulder Bag":"Mini sac porté épaule","Structured Top-Handle":"Sac structuré à anse","More images":"Autres images","Product images":"Images du produit","Choose image":"Choisir une image","Breadcrumb":"Fil d'Ariane","Quantity":"Quantité","Decrease quantity":"Diminuer la quantité","Increase quantity":"Augmenter la quantité","Add to wishlist":"Ajouter à la liste d'envies","Close size guide":"Fermer le guide des tailles","Color —":"Couleur —","Size":"Taille","Size guide →":"Guide des tailles →","Please choose a size.":"Veuillez choisir une taille.","In stock — ships within 2–4 business days":"En stock — expédié sous 2 à 4 jours ouvrés","Free returns within 30 days":"Retours gratuits sous 30 jours","You may also like":"Vous aimerez aussi","Size guide":"Guide des tailles","Body measurements in centimetres. Between two sizes? Take the larger one for a relaxed fit.":"Mesures du corps en centimètres. Entre deux tailles ? Choisissez la plus grande pour une coupe plus ample.","Measurements of the bag, taken flat.":"Dimensions du sac, mesurées à plat.","Chest":"Tour de poitrine","Waist":"Tour de taille","Hips":"Tour de hanches","Dimensions":"Dimensions","Strap drop":"Hauteur de bandoulière","Weight":"Poids","22–55 cm, adjustable":"22–55 cm, réglable","One size":"Taille unique","Added ✓":"Ajouté ✓","Fabric & Fit":"Matière & coupe","Care Instructions":"Entretien","Shipping & Returns":"Livraison & retours","Available colours":"Couleurs disponibles","Camel":"Camel","Charcoal":"Anthracite","Ink":"Encre","Stone":"Pierre","Oat":"Avoine","Ecru":"Écru","Sage":"Sauge","Black":"Noir","Taupe":"Taupe","Sand":"Sable","White":"Blanc","Sky":"Ciel","Olive":"Olive","Cognac":"Cognac","Chocolate":"Chocolat","Bone":"Ivoire","A clean, structured shape in a dense wool blend that holds its line all season. Fully lined, with deep pockets and tonal buttons, cut to layer easily over knitwear.":"Une ligne nette et structurée dans un mélange de laine dense qui garde sa tenue toute la saison. Entièrement doublé, avec des poches profondes et des boutons ton sur ton, coupé pour se porter facilement sur la maille.","80% wool, 20% recycled polyamide; lining 100% viscose. Relaxed fit, true to size — the model is 176 cm and wears size S.":"80 % laine, 20 % polyamide recyclé ; doublure 100 % viscose. Coupe ample, taille normalement — le mannequin mesure 176 cm et porte une taille S.","Dry clean only. Brush gently after wearing, hang on a shaped hanger and store in a breathable garment bag.":"Nettoyage à sec uniquement. Brossez délicatement après chaque port, suspendez sur un cintre épaulé et rangez dans une housse respirante.","Knitted in a soft, springy yarn with a relaxed shoulder and ribbed trims. Warm without the weight, easy on its own or under a coat.":"Tricoté dans un fil doux et élastique, avec une épaule décontractée et des finitions côtelées. Chaud sans être lourd, à porter seul ou sous un manteau.","70% merino wool, 30% recycled cashmere. Relaxed fit — size down for a closer shape. The model wears size S.":"70 % laine mérinos, 30 % cachemire recyclé. Coupe ample — prenez une taille en dessous pour un tombé plus ajusté. Le mannequin porte une taille S.","Hand wash cold or use a wool cycle. Dry flat in shape, away from direct heat. Do not tumble dry.":"Lavage à la main à froid ou programme laine. Séchez à plat en remettant en forme, loin d'une source de chaleur. Pas de sèche-linge.","A fluid silhouette that moves with the body, finished with a concealed back zip and a soft lining. Designed to go from day to evening.":"Une silhouette fluide qui accompagne le mouvement, finie par une fermeture invisible au dos et une doublure douce. Pensée pour passer du jour au soir.","70% silk, 30% wool, fully lined. True to size — the model is 175 cm and wears size S.":"70 % soie, 30 % laine, entièrement doublée. Taille normalement — le mannequin mesure 175 cm et porte une taille S.","Dry clean recommended. Cool iron on the reverse if needed and store on a hanger.":"Nettoyage à sec recommandé. Repassez à fer doux sur l'envers si besoin et rangez sur un cintre.","An easy, slightly oversized shirt with a soft collar and dropped shoulders. Light and breathable, it only gets better with every wash.":"Une chemise facile, légèrement oversize, avec un col souple et des épaules tombantes. Légère et respirante, elle s'embellit à chaque lavage.","100% organic cotton. Oversized fit — take your usual size. The model wears size S.":"100 % coton biologique. Coupe oversize — prenez votre taille habituelle. Le mannequin porte une taille S.","Machine wash at 30°C with similar colours. Line dry and iron while slightly damp.":"Lavage en machine à 30 °C avec des couleurs similaires. Séchez sur un fil et repassez encore légèrement humide.","High-waisted with a pressed front crease and a long, wide leg. Slanted side pockets and a hook-and-bar fastening keep the line clean.":"Taille haute, pli marqué sur le devant et jambe longue et large. Poches latérales en biais et fermeture à crochet pour une ligne nette.","54% wool, 44% recycled polyester, 2% elastane. High rise, full length — the model is 176 cm and wears size S.":"54 % laine, 44 % polyester recyclé, 2 % élasthanne. Taille haute, longueur complète — le mannequin mesure 176 cm et porte une taille S.","Dry clean or gentle hand wash. Steam to refresh the crease and hang to store.":"Nettoyage à sec ou lavage délicat à la main. Défroissez à la vapeur pour raviver le pli et rangez suspendu.","Shaped in smooth full-grain leather with a clean, minimal outline. Room for the essentials, an inner zip pocket and a detachable strap.":"Façonné dans un cuir pleine fleur lisse aux lignes nettes et minimales. De la place pour l'essentiel, une poche intérieure zippée et une bandoulière amovible.","100% full-grain leather, cotton lining. 30 × 22 × 11 cm, strap drop 22–55 cm.":"100 % cuir pleine fleur, doublure coton. 30 × 22 × 11 cm, hauteur de bandoulière 22–55 cm.","Wipe with a soft dry cloth. Keep away from heavy rain and direct sunlight, and store filled in its dust bag.":"Essuyez avec un chiffon doux et sec. Protégez-le des fortes pluies et du soleil direct, et rangez-le rembourré dans sa housse.","Free standard delivery on orders over CFA100,000, dispatched within 2–4 business days; express delivery is offered at checkout. Returns are free within 30 days of delivery — see our":"Livraison standard offerte dès 100 000 FCFA d'achat, expédiée sous 2 à 4 jours ouvrés ; la livraison express est proposée au moment du paiement. Les retours sont gratuits sous 30 jours après la livraison — consultez nos","terms of sale":"conditions générales de vente","privacy policy":"politique de confidentialité","Delivery":"Livraison","Step 1 / 2":"Étape 1 / 2","Step 2 / 2":"Étape 2 / 2","First name":"Prénom","Last name":"Nom","Email":"E-mail","Phone number":"Téléphone","Shipping address":"Adresse de livraison","Country / Region":"Pays / Région","City":"Ville","Address":"Adresse","Zip / Postal code":"Code postal","Delivery method":"Mode de livraison","Standard delivery":"Livraison standard","Delivered within 2–4 business days":"Livrée sous 2 à 4 jours ouvrés","Free":"Offerte","Express delivery":"Livraison express","Delivered within 1–2 business days":"Livrée sous 1 à 2 jours ouvrés","Payment":"Paiement","Payment method":"Moyen de paiement","Credit card":"Carte bancaire","Card number":"Numéro de carte","Cardholder name":"Titulaire de la carte","Expiration date (MM/YY)":"Date d'expiration (MM/AA)","You will be redirected to PayPal to complete your payment.":"Vous serez redirigé vers PayPal pour finaliser votre paiement.","Confirm the payment with Apple Pay on your device.":"Confirmez le paiement avec Apple Pay sur votre appareil.","I have read and accept the":"J'ai lu et j'accepte les","and the":"et la","Order summary":"Récapitulatif de commande","Promo code":"Code promo","Apply":"Appliquer","Discount":"Remise","Total:":"Total :","Size:":"Taille :","Color:":"Couleur :","Quantity:":"Quantité :","Your bag is empty.":"Votre panier est vide.","Continue shopping":"Continuer mes achats","Required field":"Champ obligatoire","Enter a valid email address":"Saisissez une adresse e-mail valide","Enter a valid phone number":"Saisissez un numéro de téléphone valide","Enter a valid card number":"Saisissez un numéro de carte valide","Enter a valid date (MM/YY)":"Saisissez une date valide (MM/AA)","Enter a valid CVV":"Saisissez un CVV valide","Please accept the terms to continue":"Veuillez accepter les conditions pour continuer","Code applied — 10% off":"Code appliqué — 10 % de remise","This code is not valid.":"Ce code n'est pas valide.","Order number":"Numéro de commande","Thank you for your order":"Merci pour votre commande","A confirmation email will be sent to":"Un e-mail de confirmation sera envoyé à","Back to the shop":"Retour à la boutique","Belgium":"Belgique","Switzerland":"Suisse","Germany":"Allemagne","Italy":"Italie","Spain":"Espagne","Netherlands":"Pays-Bas","United Kingdom":"Royaume-Uni","United States":"États-Unis"};
   if (window.RelaxxDB) { try { var DX = RelaxxDB.dict(); for (var dk in DX) DICT[dk] = DX[dk]; } catch (e) {} }
   var has = Object.prototype.hasOwnProperty;
   function tr(s) {
@@ -790,12 +811,6 @@ RelaxxDB.ready(function () {
     return s.match(/^\s*/)[0] + out + s.match(/\s*$/)[0];
   }
   var PATTERNS = [
-    [/^Delivered within (.+?)[–-](.+) business days$/, function (m) { return "Livrée sous " + m[1] + " à " + m[2] + " jours ouvrés"; }],
-    [/^Delivered within (.+) business days$/, function (m) { return "Livrée sous " + m[1] + " jours ouvrés"; }],
-    [/^Code applied — (\d+)% off$/, function (m) { return "Code appliqué — " + m[1] + " % de remise"; }],
-    [/^Code applied — (.+) off$/, function (m) { return "Code appliqué — " + m[1] + " de remise"; }],
-    [/^Minimum order for this code: (.+)$/, function (m) { return "Commande minimum pour ce code : " + m[1]; }],
-    [/^Not available above (.+)$/, function (m) { return "Indisponible au-delà de " + m[1]; }],
     [/^Add to bag — (.+)$/, function (m) { return "Ajouter au panier — " + m[1]; }],
     [/^Order with obligation to pay — (.+)$/, function (m) { return "Commander avec obligation de paiement — " + m[1]; }],
     [/^(\d(?:\.\d)?) \((\d+) reviews\)$/, function (m) { return m[1].replace(".", ",") + " (" + m[2] + " avis)"; }],
@@ -945,6 +960,43 @@ RelaxxDB.ready(function () {
       '</div></div>';
   }
 
+  /* ---------- legal pages: table of contents (one per language) ---------- */
+  (function () {
+    var tocs = $$(".lg-toc");
+    if (!tocs.length) return;
+    tocs.forEach(function (toc) {
+      toc.addEventListener("click", function (e) {
+        var a = e.target.closest('a[href^="#"]'); if (!a) return;
+        var t = document.querySelector(a.getAttribute("href")); if (!t) return;
+        e.preventDefault();
+        if (lenis) lenis.scrollTo(t, { offset: -90 }); else t.scrollIntoView({ behavior: "smooth" });
+        history.replaceState(null, "", a.getAttribute("href"));
+      });
+    });
+    // deep links (e.g. cgv.html#retractation) also work on the English version
+    var h = location.hash.slice(1);
+    if (h && document.documentElement.getAttribute("data-lang") === "en" && h.indexOf("en-") !== 0) {
+      var t = document.getElementById("en-" + h);
+      if (t) {
+        var jump = function () {
+          var y = Math.max(0, t.getBoundingClientRect().top + scrollY - 90);
+          if (lenis) lenis.scrollTo(y, { immediate: true }); else scrollTo(0, y);
+        };
+        if (document.readyState === "complete") setTimeout(jump, 50);
+        else addEventListener("load", function () { setTimeout(jump, 50); });
+      }
+    }
+    if (!("IntersectionObserver" in window)) return;
+    var links = $$(".lg-toc ol a");
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (l) { l.classList.toggle("is-current", l.getAttribute("href") === "#" + en.target.id); });
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    $$(".lg-body section").forEach(function (s) { obs.observe(s); });
+  })();
+
   /* ---------- cart ---------- */
   var cart = [];
   try { cart = JSON.parse(localStorage.getItem("relaxx-cart") || "[]"); } catch (err) { cart = []; }
@@ -1080,204 +1132,6 @@ RelaxxDB.ready(function () {
     }
     sBtn.addEventListener("click", function () { setSearch(!searchOpen); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") { setMenu(false); setSearch(false); } });
-  })();
-
-  /* ---------- checkout ---------- */
-  (function () {
-    var root = $("[data-checkout]");
-    if (!root) return;
-    var form = $(".co-form"), payBtn = $(".co-pay", form), promo = null;
-    var LANG = document.documentElement.getAttribute("data-lang") === "fr" ? "fr" : "en";
-    // delivery rates, payment methods and countries are managed in the back office
-    var SH = window.RelaxxDB ? RelaxxDB.shipping() : { standard: { enabled: true, price: 0, days: "2–4" }, express: { enabled: true, price: 10000, days: "1–2" }, freeOver: 0 };
-    var PM = window.RelaxxDB ? RelaxxDB.payments() : null;
-    function shipPrice(m, amount) { var o = SH[m]; if (!o) return 0; if (m === "standard" && SH.freeOver && amount >= SH.freeOver) return 0; return o.price; }
-    function optOf(name, v) { var i = form.querySelector('input[name="' + name + '"][value="' + v + '"]'); return i ? i.closest(".co-opt") : null; }
-    (function setup() {
-      if (window.RelaxxDB) {
-        var cs = form.country; cs.setAttribute("data-no-i18n", "");
-        cs.innerHTML = RelaxxDB.countries(LANG).map(function (c) { return '<option value="' + c.code + '">' + c.name + '</option>'; }).join("");
-      }
-      ["standard", "express"].forEach(function (m) {
-        var o = optOf("shipping", m); if (!o) return;
-        if (!SH[m].enabled) { o.hidden = true; $("input", o).checked = false; }
-        $(".co-opt-sub", o).textContent = "Delivered within " + SH[m].days + " business days";
-      });
-      if (!form.querySelector('input[name="shipping"]:checked')) { var fs = form.querySelector('.co-opt:not([hidden]) input[name="shipping"]'); if (fs) fs.checked = true; }
-      if (PM) {
-        ["mobilemoney", "card", "paypal", "applepay", "cod"].forEach(function (k) {
-          var o = optOf("payment", k), pn = form.querySelector('.co-panel[data-panel="' + k + '"]');
-          if (o && (!PM[k] || !PM[k].enabled)) { o.hidden = true; $("input", o).checked = false; if (pn) pn.remove(); }
-        });
-        $$("option", form.operator).forEach(function (op) { if (!PM.mobilemoney[op.value]) op.remove(); });
-        // operators offered: the ones enabled in the back office
-        var mmo = optOf("payment", "mobilemoney");
-        if (mmo) { var sub = $(".co-opt-sub", mmo); sub.setAttribute("data-no-i18n", ""); sub.textContent = $$("option", form.operator).map(function (op) { return op.textContent; }).join(", "); }
-        var first = form.querySelector('.co-opt:not([hidden]) input[name="payment"]');
-        if (first) { first.checked = true; $$(".co-panel", form).forEach(function (pn) { pn.hidden = pn.getAttribute("data-panel") !== first.value; }); }
-      }
-    })();
-    function items() {
-      var chk = window.RelaxxDB ? RelaxxDB.checkCart(cart) : [];
-      return cart.filter(function (l, i) { return P[l.id] && (!chk[i] || !chk[i].problem || chk[i].problem === "reduced"); });
-    }
-    function blockedLines() { return window.RelaxxDB ? RelaxxDB.checkCart(cart).filter(function (r) { return r.problem && r.problem !== "reduced"; }).length : 0; }
-    function method() { return (form.querySelector('input[name="payment"]:checked') || {}).value; }
-    function totals() {
-      var sub = items().reduce(function (s, l) { return s + P[l.id].price * l.q; }, 0);
-      if (promo && window.RelaxxDB && !RelaxxDB.checkPromo(promo.code, sub).ok) promo = null; // cart changed below the code's minimum
-      var disc = window.RelaxxDB ? RelaxxDB.discountFor(promo, sub) : 0;
-      var ship = sub ? shipPrice((form.querySelector('input[name="shipping"]:checked') || {}).value, sub - disc) : 0;
-      if (promo && promo.type === "shipping") ship = 0;
-      return { sub: sub, ship: ship, disc: disc, total: sub - disc + ship };
-    }
-    function render() {
-      var ls = items(), count = ls.reduce(function (s, l) { return s + l.q; }, 0);
-      $(".co-bag-title").textContent = "Shopping Bag (" + count + ")";
-      $(".co-items").innerHTML = ls.length ? ls.map(function (l) {
-        var p = P[l.id];
-        return '<li class="co-item"><a class="co-item-img" href="product.html?id=' + p.id + '"><img src="' + IMG(((p.colors || []).filter(function (c) { return c.name === l.c; })[0] || {}).img || p.img, 240) + '" alt="' + p.name + '"></a>' +
-          '<div class="co-item-info"><a class="co-item-name" href="product.html?id=' + p.id + '">' + p.name + '</a><dl>' +
-          (l.s ? '<div><dt>Size:</dt><dd>' + l.s + '</dd></div>' : '') +
-          (l.c ? '<div><dt>Color:</dt><dd>' + l.c + '</dd></div>' : '') +
-          '<div><dt>Quantity:</dt><dd>' + l.q + '</dd></div></dl></div>' +
-          '<div class="co-item-price">' + money(p.price * l.q) + '</div></li>';
-      }).join("") : '<li class="co-empty"><p>Your bag is empty.</p><a class="co-link" href="shop.html">Continue shopping</a></li>';
-      var t = totals();
-      $(".co-sub").textContent = money(t.sub);
-      $(".co-ship").textContent = t.ship ? money(t.ship) : "Free";
-      $(".co-disc").textContent = t.disc ? "−" + money(t.disc) : money(0);
-      $(".co-total strong").textContent = money(t.total);
-      payBtn.textContent = "Order with obligation to pay — " + money(t.total);
-      payBtn.disabled = !ls.length;
-      // items that cannot be ordered stay in the bag (drawer) with the reason; tell the visitor here too
-      var nb = blockedLines(), warn = $(".co-warn");
-      if (!warn) { warn = document.createElement("p"); warn.className = "co-warn"; warn.setAttribute("data-no-i18n", ""); warn.setAttribute("role", "status"); $(".co-items").after(warn); }
-      warn.hidden = !nb;
-      warn.textContent = !nb ? "" : LANG === "fr" ? nb + (nb > 1 ? " articles de votre panier ne peuvent pas être commandés (épuisés, retirés de la vente ou sans taille choisie) : ils ne sont pas comptés." : " article de votre panier ne peut pas être commandé (épuisé, retiré de la vente ou sans taille choisie) : il n'est pas compté.")
-        : nb + (nb > 1 ? " items in your bag cannot be ordered (sold out, no longer for sale or no size chosen): they are not counted." : " item in your bag cannot be ordered (sold out, no longer for sale or no size chosen): it is not counted.");
-      // live prices on the delivery options, cash-on-delivery ceiling
-      ["standard", "express"].forEach(function (m) { var o = optOf("shipping", m); if (!o) return; var pr = promo && promo.type === "shipping" ? 0 : shipPrice(m, t.sub - t.disc); $(".co-opt-side", o).textContent = pr ? money(pr) : "Free"; });
-      var cod = optOf("payment", "cod");
-      if (cod && PM && PM.cod.max) {
-        var over = t.total > PM.cod.max, ci = $("input", cod);
-        ci.disabled = over; cod.style.opacity = over ? ".5" : "";
-        $(".co-cod-note", cod).textContent = over ? "Not available above " + money(PM.cod.max) : "";
-        if (over && ci.checked) { var alt = form.querySelector('.co-opt:not([hidden]) input[name="payment"]:not(:disabled)'); if (alt) { alt.checked = true; alt.dispatchEvent(new Event("change", { bubbles: true })); } }
-      }
-    }
-    // keep the summary in sync when the cart drawer changes
-    var drawerRender = renderCart;
-    renderCart = function () { drawerRender(); render(); };
-
-    /* delivery + payment choices */
-    form.addEventListener("change", function (e) {
-      if (e.target.name === "shipping") render();
-      if (e.target.name === "payment") {
-        $$(".co-panel", form).forEach(function (pn) { pn.hidden = pn.getAttribute("data-panel") !== e.target.value; });
-      }
-    });
-
-    form.addEventListener("input", function (e) { if (e.target.getAttribute("aria-invalid") === "true") setErr(e.target, ""); });
-    form.terms.addEventListener("change", function () { if (form.terms.checked) setErr(form.terms, ""); });
-
-    /* validation */
-    function setErr(input, msg) {
-      var wrap = input.closest(".co-field") || input.closest(".co-check");
-      wrap.classList.toggle("is-invalid", !!msg);
-      $(".co-err", wrap).textContent = msg || "";
-      input.setAttribute("aria-invalid", msg ? "true" : "false");
-    }
-    function validate() {
-      var first = null;
-      function check(input, msg) { setErr(input, msg); if (msg && !first) first = input; }
-      $$("[data-req]", form).forEach(function (i) { check(i, i.closest("[hidden]") || i.value.trim() ? "" : "Required field"); });
-      var email = form.email.value.trim();
-      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) check(form.email, "Enter a valid email address");
-      var phone = form.phone.value.replace(/\D/g, "");
-      if (form.phone.value.trim() && phone.length < 8) check(form.phone, "Enter a valid phone number");
-      if (method() === "mobilemoney") {
-        var mm = form.momo.value.replace(/\D/g, "");
-        if (form.momo.value.trim() && mm.length < 8) check(form.momo, "Enter a valid phone number");
-      }
-      if (!form.terms.checked) check(form.terms, "Please accept the terms to continue");
-      if (first) first.focus();
-      return !first;
-    }
-
-    /* place order: nothing is charged on the site; the order waits for the shop to confirm the payment */
-    form.addEventListener("submit", function (e) {
-      e.preventDefault();
-      if (!items().length || !validate()) return;
-      var t = totals(), ordered = items(); // taken before the order: once it is placed, the stock of these lines is lower
-      // the order is recorded for the back office (card details are never part of it)
-      var m = method(), FR = LANG === "fr";
-      var MSG = {
-        stock: FR ? "Le stock a changé pendant votre commande : votre panier va être mis à jour." : "The stock changed while you were ordering: your bag is being updated.",
-        promo: FR ? "Ce code promo n'est plus valable : il a été retiré." : "This promo code is no longer valid: it has been removed.",
-        cod_max: FR ? "Le paiement à la livraison n'est pas possible pour ce montant : choisissez un autre moyen de paiement." : "Cash on delivery is not available for this amount: choose another payment method.",
-        country: FR ? "Nous ne livrons pas encore ce pays." : "We do not deliver to this country yet.",
-        rate: FR ? "Plusieurs commandes viennent d'être passées avec cette adresse e-mail : patientez quelques minutes ou contactez-nous." : "Several orders were just placed with this e-mail address: wait a few minutes or contact us.",
-        net: FR ? "Connexion impossible : vérifiez votre connexion Internet puis réessayez." : "Connection failed: check your Internet connection and try again.",
-        other: FR ? "La commande n'a pas pu être enregistrée. Vérifiez vos informations puis réessayez." : "The order could not be recorded. Check your details and try again."
-      };
-      var note = $(".co-form-msg", form);
-      if (!note) { note = document.createElement("p"); note.className = "co-form-msg"; note.setAttribute("role", "alert"); note.setAttribute("data-no-i18n", ""); payBtn.before(note); }
-      note.hidden = true;
-      var label = payBtn.textContent; payBtn.disabled = true; payBtn.setAttribute("aria-busy", "true"); payBtn.textContent = FR ? "Envoi de la commande…" : "Sending your order…";
-      // the order is recorded in the shop's database, which checks the stock and recomputes the prices (no card details)
-      RelaxxDB.placeOrder({
-        customer: { first: form.firstname.value.trim(), last: form.lastname.value.trim(), email: form.email.value.trim(), phone: form.phone.value.trim() },
-        address: { country: form.country.value, city: form.city.value.trim(), line: form.address.value.trim(), zip: form.zip.value.trim() },
-        items: ordered.map(function (l) { var p = P[l.id]; return { pid: l.id, name: p.name, price: p.price, q: l.q, size: l.s || "", color: l.c || "" }; }),
-        subtotal: t.sub, discount: t.disc, promo: promo ? promo.code : null,
-        shipping: { method: (form.querySelector('input[name="shipping"]:checked') || {}).value || "standard", price: t.ship }, total: t.total,
-        payment: { method: m, operator: m === "mobilemoney" && form.operator ? form.operator.value : "" }, lang: LANG
-      }).then(function (order) { done(order, ordered); }, function (err) {
-        payBtn.disabled = false; payBtn.removeAttribute("aria-busy"); payBtn.textContent = label;
-        var code = err && err.message;
-        note.textContent = MSG[code] || (err && !err.status && code !== "contact" && code !== "payment" && code !== "shipping" && code !== "closed" && code !== "empty" ? MSG.net : MSG.other);
-        note.hidden = false;
-        if (code === "promo") { promo = null; promoMsg.textContent = ""; render(); }
-        // new stock and prices, then the page again: each line of the bag shows what changed
-        if (code === "stock") RelaxxDB.refreshPublic().then(function () { setTimeout(function () { location.reload(); }, 1600); }, function () {});
-      });
-    });
-    // the confirmation shows what the database recorded (total recomputed there)
-    function done(order, ordered) {
-      var t = { total: order.total };
-      $(".co-done-no").textContent = order.id;
-      $(".co-done-email").textContent = form.email.value.trim() + " · " + form.phone.value.trim();
-      $(".co-done-total").textContent = money(t.total);
-      if (form.momo) form.momo.value = "";
-      promo = null;
-      // what was ordered leaves the bag; items that could not be ordered stay there
-      cart = cart.filter(function (l) { return ordered.indexOf(l) < 0; }); saveCart(); drawerRender();
-      $(".co-grid").hidden = true; $(".co-done").hidden = false;
-      if (lenis) lenis.scrollTo(0); else scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    /* promo codes: created and checked in the back office */
-    var promoForm = $(".co-promo"), promoMsg = $(".co-promo-msg");
-    promoForm.addEventListener("submit", function (e) {
-      e.preventDefault();
-      var code = promoForm.promo.value.trim().toUpperCase();
-      if (!code) return;
-      var sub = items().reduce(function (s, l) { return s + P[l.id].price * l.q; }, 0), btn = $("button", promoForm);
-      btn.disabled = true;
-      RelaxxDB.fetchPromo(code).then(function () { btn.disabled = false; show(RelaxxDB.checkPromo(code, sub)); },
-        function () { btn.disabled = false; promoMsg.textContent = LANG === "fr" ? "Vérification impossible : réessayez." : "Could not check the code: try again."; promoMsg.className = "co-promo-msg is-bad"; });
-    });
-    function show(res) {
-      var ok = res.ok;
-      promo = ok ? res : null;
-      promoMsg.textContent = ok ? (res.type === "percent" ? "Code applied — " + res.value + "% off" : res.type === "fixed" ? "Code applied — " + money(res.value) + " off" : "Code applied — free delivery")
-        : res.reason === "min" ? "Minimum order for this code: " + money(res.min) : res.reason === "expired" ? "This code has expired." : res.reason === "used" ? "This code is no longer available." : "This code is not valid.";
-      promoMsg.className = "co-promo-msg " + (ok ? "is-ok" : "is-bad");
-      render();
-    }
-
-    render();
   })();
 
   document.documentElement.classList.add("ix-ready");

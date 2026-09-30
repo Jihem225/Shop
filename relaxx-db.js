@@ -16,6 +16,10 @@
   "use strict";
   var KEY = "relaxx-db", VERSION = 1, DAY = 864e5;
   var hasLS = (function () { try { localStorage.setItem("__rx", "1"); localStorage.removeItem("__rx"); return true; } catch (e) { return false; } })();
+  // cart, wishlist and language used to be stored under "woven-*": move them to "relaxx-*" once
+  if (hasLS) ["lang", "cart", "wish"].forEach(function (k) {
+    try { var old = localStorage.getItem("woven-" + k); if (old !== null) { if (localStorage.getItem("relaxx-" + k) === null) localStorage.setItem("relaxx-" + k, old); localStorage.removeItem("woven-" + k); } } catch (e) {}
+  });
 
   /* ---------- media library (images and videos uploaded in the back office) ----------
      Files live in IndexedDB ("relaxx-media"); the data refers to them as "media:<id>.<ext>".
@@ -40,16 +44,51 @@
       });
     });
   }
-  var media = {
-    isRef: function (v) { return /^media:/.test(v || ""); },
-    isVideo: function (v) { return VIDEO_RE.test(v || ""); },
-    id: function (v) { var m = /^media:([\w-]+)/.exec(v || ""); return m ? m[1] : ""; },
-    ref: function (rec) { return "media:" + rec.id + "." + (rec.ext || "bin"); },
-    url: function (v, base) { return (base || "") + "media/" + String(v).slice(6); },
+  // this browser only (no Supabase): files in IndexedDB, referenced as "media:<id>.<ext>" and served by sw.js
+  var mediaLocal = {
     put: function (rec) { rec.created = rec.created || Date.now(); return mstore("readwrite", function (s) { return s.put(rec); }).then(function () { return media.ref(rec); }); },
     get: function (id) { return mstore("readonly", function (s) { return s.get(id); }); },
     all: function () { return mstore("readonly", function (s) { return s.getAll(); }).then(function (l) { return (l || []).sort(function (a, b) { return b.created - a.created; }); }); },
     remove: function (id) { return media.get(id).then(function (r) { return mstore("readwrite", function (s) { s.delete(id); if (r && r.poster) s.delete(media.id(r.poster)); return null; }); }); }
+  };
+  // Supabase: files in the public bucket "media", their details (name, size, poster…) in documents of the "media" collection
+  function storagePath(rec) { return rec.id + "." + (rec.ext || "bin"); }
+  function storageUrl(path) { return SUPA.url + "/storage/v1/object/public/media/" + path; }
+  var mediaRemote = {
+    put: function (rec) {
+      var path = storagePath(rec), meta = {};
+      for (var k in rec) if (k !== "blob") meta[k] = rec[k];
+      meta.created = meta.created || Date.now(); meta.url = storageUrl(path); meta.path = path;
+      return auth.token().then(function (tok) {
+        return fetch(SUPA.url + "/storage/v1/object/media/" + path, { method: "POST", body: rec.blob,
+          headers: { apikey: SUPA.key, Authorization: "Bearer " + tok, "Content-Type": rec.type || "application/octet-stream", "x-upsert": "true", "cache-control": "31536000" } });
+      }).then(function (r) {
+        if (!r.ok) return r.text().then(function (t) { var j = {}; try { j = JSON.parse(t); } catch (e) {} throw new Error("Envoi du fichier impossible : " + (j.message || j.error || "HTTP " + r.status)); });
+        return api("/rest/v1/rx_docs?on_conflict=coll,key", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: [{ coll: "media", key: rec.id, data: meta }] });
+      }).then(function () { return meta.url; });
+    },
+    get: function (id) { return api("/rest/v1/rx_docs?select=data&coll=eq.media&key=eq." + encodeURIComponent(id)).then(function (r) { return r.data && r.data[0] ? r.data[0].data : null; }); },
+    all: function () { return fetchAll("/rest/v1/rx_docs?select=data&coll=eq.media").then(function (rows) { return rows.map(function (r) { return r.data; }).sort(function (a, b) { return b.created - a.created; }); }); },
+    remove: function (id) {
+      return mediaRemote.get(id).then(function (r) {
+        var ids = [id], paths = r ? [r.path || storagePath(r)] : [];
+        if (r && r.poster) { ids.push(media.id(r.poster)); paths.push(String(r.poster).split("/media/").pop()); }
+        return api("/storage/v1/object/media", { method: "DELETE", body: { prefixes: paths } }).catch(function () {})
+          .then(function () { return api("/rest/v1/rx_docs?coll=eq.media&key=in.(" + encodeURIComponent(ids.map(quoteKey).join(",")) + ")", { method: "DELETE", headers: { Prefer: "return=minimal" } }); });
+      });
+    }
+  };
+  var media = {
+    isRef: function (v) { return /^media:/.test(v || ""); },
+    isVideo: function (v) { return VIDEO_RE.test(v || ""); },
+    // id of a file: "media:<id>.<ext>" (this browser) or …/media/<id>.<ext> (Supabase)
+    id: function (v) { var m = /^media:([\w-]+)/.exec(v || "") || /\/media\/([\w-]+)\.\w+(?:[?#]|$)/.exec(v || ""); return m ? m[1] : ""; },
+    ref: function (rec) { return rec.url || "media:" + rec.id + "." + (rec.ext || "bin"); },
+    url: function (v, base) { return (base || "") + "media/" + String(v).slice(6); },
+    put: function (rec) { return (REMOTE ? mediaRemote : mediaLocal).put(rec); },
+    get: function (id) { return (REMOTE ? mediaRemote : mediaLocal).get(id); },
+    all: function () { return (REMOTE ? mediaRemote : mediaLocal).all(); },
+    remove: function (id) { return (REMOTE ? mediaRemote : mediaLocal).remove(id); }
   };
   if (typeof navigator !== "undefined" && "serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
     try { navigator.serviceWorker.register(new URL("sw.js", (document.currentScript && document.currentScript.src) || location.href).href).catch(function () {}); } catch (e) {}
@@ -59,7 +98,9 @@
     document.addEventListener("error", function (e) {
       var t = e.target, m;
       if (!t || !/^(IMG|VIDEO|SOURCE)$/.test(t.tagName) || t.__rxMedia) return;
-      m = /\/media\/([\w-]+)\.\w+$/.exec((t.currentSrc || t.src || "").split(/[?#]/)[0]);
+      var u = (t.currentSrc || t.src || "").split(/[?#]/)[0];
+      if (u.indexOf(location.origin + "/") !== 0) return; // only files of this site (not Supabase addresses)
+      m = /\/media\/([\w-]+)\.\w+$/.exec(u);
       if (!m) return;
       t.__rxMedia = 1;
       media.get(m[1]).then(function (r) { if (r && r.blob) { t.src = URL.createObjectURL(r.blob); if (t.tagName === "VIDEO" && t.autoplay) { var p = t.play(); if (p && p.catch) p.catch(function () {}); } } }, function () {});
@@ -177,16 +218,19 @@
   }
   function slug(s) { return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "."); }
   function uid(p) { return (p || "") + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-  function money(n) { return "CFA" + Number(n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  // CFA francs have no decimals: "115 000 FCFA" in French, "CFA 115,000" in English (same rule as the back office)
+  function pageLang() { return typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "en" ? "en" : "fr"; }
+  function money(n, lang) {
+    var v = Math.round(Number(n) || 0);
+    return (lang || pageLang()) === "en" ? "CFA " + v.toLocaleString("en-US") : v.toLocaleString("fr-FR").replace(/\s/g, " ") + " FCFA";
+  }
+  // links set in the back office: web pages, anchors, e-mail and phone only (never javascript: or data:)
+  function safeHref(v) { v = String(v || "").trim(); return /^(https?:|mailto:|tel:|#|\.{0,2}\/|[\w-]+\.html)/i.test(v) ? v : ""; }
 
-  /* ---------- seed ---------- */
-  function seed() {
-    var r = rng(20260930), now = Date.now(), today = new Date(); today.setHours(0, 0, 0, 0);
-    var db = { version: VERSION, createdAt: now, demo: true };
-
-    db.settings = {
-      store: { name: "RELAXX", legalName: "RELAXX SARL", email: "hello@relaxx.example", phone: "+225 07 00 00 00 00", address: "Cocody Riviera 3, Abidjan", country: "CI",
-        rccm: "", ncc: "", currency: "XOF", vat: 18, vatIncluded: true, lowStock: 5, instagram: "https://instagram.com/", facebook: "", tiktok: "" },
+  // shop settings of a new shop (also used when a section is missing in the database)
+  function defaultSettings() {
+    return {
+      store: defaultStore(),
       shipping: {
         standard: { enabled: true, price: 3000, days: "2–4" },
         express: { enabled: true, price: 10000, days: "1–2" },
@@ -199,13 +243,22 @@
       },
       reviews: { moderation: true },
       content: {
-        announcement: { enabled: true, en: "Free delivery on orders over CFA100,000 — new collection online", fr: "Livraison offerte dès 100 000 FCFA d'achat — nouvelle collection en ligne", link: "shop.html" },
+        announcement: { enabled: true, en: "Free delivery on orders over CFA 100,000 — new collection online", fr: "Livraison offerte dès 100 000 FCFA d'achat — nouvelle collection en ligne", link: "shop.html" },
         maintenance: { enabled: false, en: "We are updating the store. Back very soon.", fr: "Nous mettons la boutique à jour. De retour très vite." }
       },
       notifications: { newOrder: true, lowStock: true, newReview: true, dailyReport: false },
       vitrine: defaultVitrine(),
-      instagram: defaultInstagram()
+      instagram: defaultInstagram(),
+      sizeGuide: defaultSizeGuide()
     };
+  }
+
+  /* ---------- seed ---------- */
+  function seed() {
+    var r = rng(20260930), now = Date.now(), today = new Date(); today.setHours(0, 0, 0, 0);
+    var db = { version: VERSION, createdAt: now, demo: true };
+
+    db.settings = defaultSettings();
 
     db.categories = CATEGORIES.map(function (c, i) { return { key: c.key, label: c.label, labelFr: c.labelFr, visible: true, order: i }; });
 
@@ -348,6 +401,40 @@
     return db;
   }
 
+  // shop details: also shown on the site (contact links, legal pages, help page)
+  function defaultStore() {
+    return { name: "RELAXX", legalName: "RELAXX SARL", legalForm: "SARL", capital: "", email: "hello@relaxx.example", phone: "+225 07 00 00 00 00", address: "Cocody Riviera 3, Abidjan", country: "CI",
+      hours: "du lundi au samedi, de 9 h à 18 h", director: "", host: "", rccm: "", ncc: "", currency: "XOF", vat: 18, vatIncluded: true, lowStock: 5,
+      instagram: "https://instagram.com/", facebook: "", tiktok: "", youtube: "" };
+  }
+
+  // size guide (product page and help page), edited in the back office: clothes per size, accessories as a list
+  function defaultSizeGuide() {
+    return {
+      clothes: {
+        note: { fr: "Mesures du corps en centimètres. Entre deux tailles ? Prenez la plus grande pour un porté ample.", en: "Body measurements in centimetres. Between two sizes? Take the larger one for a relaxed fit." },
+        cols: [{ fr: "Tour de poitrine", en: "Chest" }, { fr: "Tour de taille", en: "Waist" }, { fr: "Tour de hanches", en: "Hips" }],
+        rows: { XS: ["80–84", "62–66", "86–90"], S: ["84–88", "66–70", "90–94"], M: ["88–92", "70–74", "94–98"], L: ["92–98", "74–80", "98–104"], XL: ["98–104", "80–86", "104–110"] }
+      },
+      accessories: {
+        note: { fr: "Mesures du sac, prises à plat.", en: "Measurements of the bag, taken flat." },
+        rows: [{ fr: "Dimensions", en: "Dimensions", v: "30 × 22 × 11 cm" }, { fr: "Bandoulière (réglable)", en: "Strap drop (adjustable)", v: "22–55 cm" }, { fr: "Poids", en: "Weight", v: "800 g" }]
+      }
+    };
+  }
+  function sizeGuide() { return get().settings.sizeGuide || defaultSizeGuide(); }
+  // the guide as HTML for a page: { note, table }
+  function sizeGuideHTML(kind, lang) {
+    var g = sizeGuide()[kind === "accessories" ? "accessories" : "clothes"], fr = (lang || pageLang()) === "fr";
+    var t = function (x) { return esc(fr ? x.fr : x.en || x.fr); };
+    var table = kind === "accessories"
+      ? "<table><tbody>" + g.rows.map(function (r) { return "<tr><th>" + t(r) + "</th><td>" + esc(r.v) + "</td></tr>"; }).join("") + "</tbody></table>"
+      : "<table><thead><tr><th>" + (fr ? "Taille" : "Size") + "</th>" + g.cols.map(function (c) { return "<th>" + t(c) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        SIZES.map(function (sz) { var row = g.rows[sz] || []; return "<tr><th>" + sz + "</th>" + g.cols.map(function (c, i) { return "<td>" + esc(row[i] || "—") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table>";
+    return { note: fr ? g.note.fr : g.note.en || g.note.fr, table: table };
+  }
+  function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
   // storefront showcase managed in the back office ("Vitrine"): only the values changed there are stored,
   // everything else keeps the text written in the pages
   function defaultVitrine() {
@@ -379,10 +466,237 @@
     return steps.map(function (s, i) { if (i) t += Math.floor((0.3 + (r ? r() : 0.5) * 1.6) * DAY); return { t: Math.min(t, Date.now()), status: s, by: i ? "Équipe RELAXX" : "Client" }; });
   }
 
+  /* ---------- Supabase ----------
+     The shop's data lives in Supabase (table rx_docs, see supabase/schema.sql): one JSON document per
+     product, order, customer, review, subscriber, promo code, settings section, team member…
+     The publishable key is made for the browser: row-level security decides what it can do. Visitors only
+     reach the rx_* functions (public catalogue, order, review, newsletter, visits); the team signs in. */
+  var SUPA = (typeof window !== "undefined" && window.RELAXX_SUPABASE) || { url: "https://cosbmkovkxhvbdijijkm.supabase.co", key: "sb_publishable_ivudRpsxqYICjORzvO2mwg_GdBWcL88" };
+  var REMOTE = !!(SUPA && SUPA.url && SUPA.key) && !(typeof window !== "undefined" && window.RELAXX_LOCAL);
+  var ADMIN = typeof document !== "undefined" && document.documentElement.hasAttribute("data-admin");
+
+  function api(path, o) {
+    o = o || {};
+    // an expired team session never blocks a call: it goes out as a visitor
+    return (o.anon ? Promise.resolve(null) : auth.token().catch(function () { return null; })).then(function (tok) {
+      var h = { apikey: SUPA.key };
+      if (o.body !== undefined && !o.raw) h["Content-Type"] = "application/json";
+      if (tok) h.Authorization = "Bearer " + tok;
+      for (var k in o.headers || {}) h[k] = o.headers[k];
+      return fetch(SUPA.url + path, { method: o.method || "GET", headers: h, body: o.raw ? o.body : o.body !== undefined ? JSON.stringify(o.body) : undefined });
+    }).then(function (r) {
+      return r.text().then(function (t) {
+        var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) { j = t; }
+        if (!r.ok) {
+          var e = new Error((j && (j.message || j.msg || j.error_description || j.error)) || "HTTP " + r.status);
+          e.status = r.status; e.body = j; throw e;
+        }
+        return { data: j, headers: r.headers };
+      });
+    });
+  }
+  function rpc(fn, args) { return api("/rest/v1/rpc/" + fn, { method: "POST", body: args || {} }).then(function (r) { return r.data; }); }
+
+  /* ---------- team sign-in (Supabase Auth, e-mail + password) ---------- */
+  var AKEY = "relaxx-auth", refreshing = null;
+  var auth = {
+    session: function () { try { return JSON.parse(localStorage.getItem(AKEY) || "null"); } catch (e) { return null; } },
+    keep: function (j) {
+      var s = j ? { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: Date.now() + (j.expires_in || 3600) * 1000, email: String((j.user && j.user.email) || "").toLowerCase() } : null;
+      try { if (s) localStorage.setItem(AKEY, JSON.stringify(s)); else localStorage.removeItem(AKEY); } catch (e) {}
+      return s;
+    },
+    signIn: function (email, pass) {
+      return api("/auth/v1/token?grant_type=password", { method: "POST", anon: true, body: { email: String(email || "").trim().toLowerCase(), password: pass } }).then(function (r) { return auth.keep(r.data); });
+    },
+    // a valid access token, renewed a minute before it expires (null when signed out)
+    token: function () {
+      var s = auth.session();
+      if (!s) return Promise.resolve(null);
+      if (s.expires_at - Date.now() > 60e3) return Promise.resolve(s.access_token);
+      refreshing = refreshing || api("/auth/v1/token?grant_type=refresh_token", { method: "POST", anon: true, body: { refresh_token: s.refresh_token } })
+        .then(function (r) { refreshing = null; return auth.keep(r.data).access_token; }, function (e) { refreshing = null; if (e.status === 400 || e.status === 401) auth.keep(null); throw e; });
+      return refreshing;
+    },
+    signOut: function () { var p = api("/auth/v1/logout", { method: "POST", body: {} }).catch(function () {}); return p.then(function () { auth.keep(null); }); },
+    // the current password is checked by signing in again before the change
+    changePassword: function (current, next) {
+      var s = auth.session(); if (!s) return Promise.reject(new Error("Session expirée"));
+      return auth.signIn(s.email, current).then(function () { return api("/auth/v1/user", { method: "PUT", body: { password: next } }); });
+    }
+  };
+
+  /* ---------- documents <-> the database object used by the pages and the back office ---------- */
+  // collection -> [field of the database object, key of a record]
+  var LISTS = {
+    products: ["products", function (x) { return String(x.id); }], categories: ["categories", function (x) { return x.key; }],
+    orders: ["orders", function (x) { return x.id; }], customers: ["customers", function (x) { return x.id; }], reviews: ["reviews", function (x) { return x.id; }],
+    subscribers: ["subscribers", function (x) { return String(x.email).toLowerCase(); }], promos: ["promos", function (x) { return x.code; }],
+    activity: ["activity", function (x) { return x.id || (x.id = uid("a")); }], staff: ["users", function (x) { return String(x.email).toLowerCase(); }]
+  };
+  var SEP = "\u0001";
+  function emptyDb() { return { version: VERSION, createdAt: Date.now(), demo: false, settings: {}, categories: [], products: [], customers: [], orders: [], reviews: [], subscribers: [], promos: [], traffic: {}, users: [], activity: [] }; }
+  function toDocs(db) {
+    var out = {};
+    Object.keys(LISTS).forEach(function (coll) {
+      (db[LISTS[coll][0]] || []).forEach(function (x) { if (!x) return; var k = LISTS[coll][1](x); out[coll + SEP + k] = { coll: coll, key: k, data: x }; });
+    });
+    Object.keys(db.settings || {}).forEach(function (k) { out["settings" + SEP + k] = { coll: "settings", key: k, data: db.settings[k] }; });
+    Object.keys(db.traffic || {}).forEach(function (k) { out["traffic" + SEP + k] = { coll: "traffic", key: k, data: db.traffic[k] }; });
+    return out;
+  }
+  function applyDoc(db, coll, key, data, del) {
+    if (coll === "settings" || coll === "traffic") { if (del) delete db[coll][key]; else db[coll][key] = data; return; }
+    var L = LISTS[coll]; if (!L) return;
+    var arr = db[L[0]];
+    if (coll === "products") { if (del) delete arr[+key]; else arr[+key] = data; return; } // position = id
+    for (var i = 0; i < arr.length; i++) if (L[1](arr[i]) === key) { if (del) arr.splice(i, 1); else arr[i] = data; return; }
+    if (!del) arr.push(data);
+  }
+  function sortDb(db) {
+    db.orders.sort(function (a, b) { return a.date - b.date; });
+    db.reviews.sort(function (a, b) { return b.date - a.date; });
+    db.activity.sort(function (a, b) { return b.t - a.t; });
+    db.customers.sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
+    db.subscribers.sort(function (a, b) { return a.date - b.date; });
+    db.categories.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+  }
+  // sections or fields added to the shop over time get their default value
+  function normalize(db) {
+    var ds = defaultSettings();
+    Object.keys(ds).forEach(function (k) { if (!db.settings[k]) db.settings[k] = ds[k]; });
+    var st = db.settings.store, dst = defaultStore();
+    Object.keys(dst).forEach(function (k) { if (st[k] === undefined) st[k] = dst[k]; });
+    if (db.products.some(function (p) { return p && p.colors === undefined; })) migrateColors(db);
+    return db;
+  }
+  // the shop's own content without any demo record (a new shop, or the fallback when Supabase cannot be reached)
+  function baseline() {
+    var db = seed(); migrateColors(db);
+    db.demo = false; db.orders = []; db.customers = []; db.reviews = []; db.subscribers = []; db.promos = []; db.traffic = {}; db.activity = []; db.users = [];
+    return db;
+  }
+
+  /* ---------- back office: load everything, then send only what changed ---------- */
+  var synced = {}, syncChain = Promise.resolve(), pending = 0, lastSync = "";
+  function fetchAll(path) {
+    var out = [], size = 1000;
+    function page(from) {
+      return api(path, { headers: { Range: from + "-" + (from + size - 1), "Range-Unit": "items" } }).then(function (r) {
+        var rows = r.data || []; out = out.concat(rows);
+        return rows.length === size ? page(from + size) : out;
+      });
+    }
+    return page(0);
+  }
+  function loadAll() {
+    return fetchAll("/rest/v1/rx_docs?select=coll,key,data,updated_at&order=coll,key").then(function (rows) {
+      var db = emptyDb(); synced = {};
+      rows.forEach(function (r) {
+        applyDoc(db, r.coll, r.key, r.data);
+        synced[r.coll + SEP + r.key] = JSON.stringify(r.data);
+        if (r.updated_at > lastSync) lastSync = r.updated_at;
+      });
+      // an empty shop starts with its catalogue, categories and settings (sent right away)
+      var fresh = !db.products.length && !db.settings.shipping;
+      if (fresh) { var b = baseline(); db.settings = b.settings; db.categories = b.categories; db.products = b.products; }
+      normalize(db); sortDb(db);
+      cache = db;
+      if (fresh) pushChanges();
+      return db;
+    });
+  }
+  function emit(name, detail) { try { window.dispatchEvent(new CustomEvent(name, { detail: detail })); } catch (e) {} }
+  function quoteKey(k) { return '"' + String(k).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"'; }
+  function send(up, del) {
+    var jobs = [];
+    for (var i = 0; i < up.length; i += 200) {
+      jobs.push(up.slice(i, i + 200));
+    }
+    var byColl = {}; del.forEach(function (d) { (byColl[d.coll] = byColl[d.coll] || []).push(d.key); });
+    return jobs.reduce(function (p, rows) {
+      return p.then(function () { return api("/rest/v1/rx_docs?on_conflict=coll,key", { method: "POST", headers: { Prefer: "resolution=merge-duplicates,return=minimal" }, body: rows }); });
+    }, Promise.resolve()).then(function () {
+      return Object.keys(byColl).reduce(function (p, coll) {
+        return p.then(function () { return api("/rest/v1/rx_docs?coll=eq." + encodeURIComponent(coll) + "&key=in.(" + encodeURIComponent(byColl[coll].map(quoteKey).join(",")) + ")", { method: "DELETE", headers: { Prefer: "return=minimal" } }); });
+      }, Promise.resolve());
+    });
+  }
+  function pushChanges() {
+    if (!cache) return syncChain;
+    var docs = toDocs(cache), up = [], del = [];
+    Object.keys(docs).forEach(function (k) {
+      var s = JSON.stringify(docs[k].data);
+      if (synced[k] !== s) { up.push({ coll: docs[k].coll, key: docs[k].key, data: docs[k].data }); synced[k] = s; }
+    });
+    Object.keys(synced).forEach(function (k) { if (!docs[k]) { var p = k.split(SEP); del.push({ coll: p[0], key: p.slice(1).join(SEP) }); delete synced[k]; } });
+    if (!up.length && !del.length) return syncChain;
+    pending++; emit("relaxx:sync", { state: "saving" });
+    syncChain = syncChain.then(function () { return send(up, del); }).then(function () {
+      pending--; emit("relaxx:sync", { state: pending ? "saving" : "saved" });
+    }, function (e) {
+      pending--;
+      // not saved: compared again (and sent again) at the next save
+      up.forEach(function (d) { delete synced[d.coll + SEP + d.key]; });
+      del.forEach(function (d) { synced[d.coll + SEP + d.key] = "\u0000"; });
+      emit("relaxx:sync", { state: "error", error: e });
+    });
+    return syncChain;
+  }
+  // changes made elsewhere (orders from the site, another member of the team) since the last load
+  function poll() {
+    if (!lastSync) return Promise.resolve([]);
+    return api("/rest/v1/rx_docs?select=coll,key,data,updated_at&updated_at=gt." + encodeURIComponent(lastSync) + "&order=updated_at&limit=1000").then(function (r) {
+      var rows = r.data || [], changed = [];
+      rows.forEach(function (row) {
+        if (row.updated_at > lastSync) lastSync = row.updated_at;
+        var k = row.coll + SEP + row.key, s = JSON.stringify(row.data);
+        if (synced[k] === s) return;
+        synced[k] = s; applyDoc(cache, row.coll, row.key, row.data); changed.push(row);
+      });
+      if (changed.length) { normalize(cache); sortDb(cache); emit("relaxx:remote", { rows: changed }); }
+      return changed;
+    });
+  }
+
+  /* ---------- storefront: public catalogue, kept a minute in the browser ----------
+     A page opened less than a minute after the previous one uses the copy at once and refreshes it for the
+     next page; otherwise it waits for Supabase (6 s at most, then the last copy or the base catalogue). */
+  var PKEY = "relaxx-public", readyQ = [], isReady = false;
+  var MAX_AGE = typeof window !== "undefined" && window.RELAXX_MAX_AGE != null ? window.RELAXX_MAX_AGE : 60000;
+  function ready(fn) { if (isReady) fn(); else readyQ.push(fn); }
+  function markReady() {
+    if (isReady) return; isReady = true;
+    readyQ.splice(0).forEach(function (fn) { try { fn(); } catch (e) { setTimeout(function () { throw e; }); } });
+  }
+  function readPublic() { try { return JSON.parse(localStorage.getItem(PKEY) || "null"); } catch (e) { return null; } }
+  function fromPublic(pub) {
+    var db = emptyDb();
+    db.settings = pub.settings || {}; db.categories = pub.categories || [];
+    (pub.products || []).forEach(function (p) { db.products[p.id] = p; });
+    db.reviews = pub.reviews || [];
+    normalize(db); sortDb(db);
+    return db;
+  }
+  function refreshPublic() {
+    return rpc("rx_public").then(function (pub) {
+      try { localStorage.setItem(PKEY, JSON.stringify({ t: Date.now(), data: pub })); } catch (e) {}
+      return pub;
+    });
+  }
+  function loadPublic() {
+    var copy = readPublic(), timer = 0;
+    var fallback = function () { if (!isReady) { cache = copy ? fromPublic(copy.data) : baseline(); markReady(); } };
+    if (copy && Date.now() - copy.t < MAX_AGE) { cache = fromPublic(copy.data); markReady(); }
+    else timer = setTimeout(fallback, 6000);
+    refreshPublic().then(function (pub) { if (!isReady) { clearTimeout(timer); cache = fromPublic(pub); markReady(); } }, function () { clearTimeout(timer); fallback(); });
+  }
+
   /* ---------- load / save ---------- */
   var cache = null;
   function get() {
     if (cache) return cache;
+    if (REMOTE) { cache = ADMIN ? normalize(emptyDb()) : baseline(); return cache; } // before the data arrives
     var db = null;
     if (hasLS) { try { db = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { db = null; } }
     if (!db || db.version !== VERSION || !db.products) {
@@ -392,11 +706,17 @@
     }
     if (!db.settings.vitrine) { db.settings.vitrine = defaultVitrine(); cache = db; persist(); }
     if (!db.settings.instagram) { migrateInstagram(db); cache = db; persist(); }
+    if (!db.settings.sizeGuide) { db.settings.sizeGuide = defaultSizeGuide(); cache = db; persist(); }
     if (db.products.some(function (p) { return p.colors === undefined; })) { migrateColors(db); cache = db; persist(); }
+    // shop details added later (legal form, capital, opening hours, YouTube…)
+    var ds = defaultStore(), st = db.settings.store, added = false;
+    Object.keys(ds).forEach(function (k) { if (st[k] === undefined) { st[k] = ds[k]; added = true; } });
+    if (added) { cache = db; persist(); }
     cache = db;
     return db;
   }
   function persist() {
+    if (REMOTE) { if (ADMIN) pushChanges(); return; } // the storefront writes through the rx_* functions only
     if (!hasLS || !cache) return;
     try { localStorage.setItem(KEY, JSON.stringify(cache)); }
     catch (e) { // storage full: drop the oldest activity entries and retry once
@@ -404,10 +724,15 @@
     }
   }
   function update(fn) { var db = get(); fn(db); persist(); return db; }
-  // back office: make an edited copy the current database (after merging newer records into it)
-  function adopt(db) { if (db.products && db.products.some(function (p) { return p.colors === undefined; })) migrateColors(db); cache = db; persist(); return db; }
-  function reload() { cache = null; return get(); }
-  if (typeof window !== "undefined") window.addEventListener("storage", function (e) { if (e.key === KEY) cache = null; });
+  // back office: make an edited copy (or a restored backup) the current database
+  function adopt(db) { if (REMOTE) normalize(db); else if (db.products && db.products.some(function (p) { return p.colors === undefined; })) migrateColors(db); cache = db; persist(); return db; }
+  function reload() { if (REMOTE) return get(); cache = null; return get(); }
+  // back office: back to the shop's base content; the team is kept so nobody is locked out
+  function reset() {
+    if (!REMOTE) { cache = seed(); migrateColors(cache); persist(); return cache; }
+    var users = cache ? cache.users : [], b = baseline(); b.users = users; cache = b; persist(); return cache;
+  }
+  if (typeof window !== "undefined") window.addEventListener("storage", function (e) { if (e.key === KEY && !REMOTE) cache = null; });
 
   // reviews written before the back office existed (product page, key "relaxx-reviews")
   function migrateLegacy(db) {
@@ -433,28 +758,30 @@
   }
 
   /* ---------- storefront API ---------- */
+  // product and colour names go into HTML attributes on the pages: straight quotes and angle brackets become typographic ones
+  function clean(v) { return String(v == null ? "" : v).replace(/"([^"]*)"/g, "“$1”").replace(/"/g, "”").replace(/</g, "‹").replace(/>/g, "›"); }
   function totalStock(p) { return Object.keys(p.stock || {}).reduce(function (s, k) { return s + (+p.stock[k] || 0); }, 0); }
   function catalog(P) {
     var db = get(), hiddenCat = {};
     db.categories.forEach(function (c) { if (!c.visible) hiddenCat[c.key] = 1; });
     return db.products.map(function (p) {
       var out = totalStock(p) <= 0;
-      return { id: p.id, cat: p.cat, name: p.name, price: p.price, compare: p.compare, tag: out ? "Sold Out" : p.tag, img: p.img, desc: p.desc, stock: p.stock,
+      return { id: p.id, cat: p.cat, name: clean(p.name), nameFr: clean(p.nameFr), price: p.price, compare: p.compare, tag: out ? "Sold Out" : p.tag, img: p.img, desc: p.desc, stock: p.stock,
         colors: hasColors(p) ? p.colors : [], vstock: hasColors(p) ? p.vstock : null,
         hidden: p.status !== "active" || !!hiddenCat[p.cat], soldOut: out, sku: p.sku };
     });
   }
   function categories(CATS) {
     var db = get();
-    return db.categories.filter(function (c) { return c.visible; }).sort(function (a, b) { return a.order - b.order; }).map(function (c) { return { key: c.key, label: c.label }; });
+    return db.categories.filter(function (c) { return c.visible; }).sort(function (a, b) { return a.order - b.order; }).map(function (c) { return { key: c.key, label: clean(c.label) }; });
   }
   function dict() {
     var db = get(), d = { "Sold Out": "Épuisé", "Unavailable": "Indisponible", "Mobile Money": "Mobile Money", "Cash on delivery": "Paiement à la livraison" };
     db.products.forEach(function (p) {
-      if (p.nameFr) d[p.name] = p.nameFr; if (p.desc && p.descFr) d[p.desc] = p.descFr;
+      if (p.nameFr) d[clean(p.name)] = clean(p.nameFr); if (p.desc && p.descFr) d[p.desc] = p.descFr;
       (p.colors || []).forEach(function (c) { if (c.nameFr && !d[c.name]) d[c.name] = c.nameFr; });
     });
-    db.categories.forEach(function (c) { if (c.labelFr) d[c.label] = c.labelFr; });
+    db.categories.forEach(function (c) { if (c.labelFr) d[clean(c.label)] = clean(c.labelFr); });
     return d;
   }
   function product(id) { return get().products[id] || null; }
@@ -462,8 +789,21 @@
   function payments() { return get().settings.payments; }
   function countries(lang) { return get().settings.shipping.countries.filter(function (c) { return c.enabled; }).map(function (c) { return { code: c.code, name: lang === "fr" ? c.fr : c.en }; }); }
 
+  var promoRules = {};
+  // Supabase: the rules of the code typed at checkout (the list of codes is never sent to the browser)
+  function fetchPromo(code) {
+    code = String(code || "").trim().toUpperCase();
+    if (!REMOTE) return Promise.resolve(checkPromo(code, Infinity));
+    return rpc("rx_check_promo", { p_code: code }).then(function (r) { promoRules[code] = r; return r; });
+  }
   function checkPromo(code, subtotal) {
     code = String(code || "").trim().toUpperCase();
+    if (REMOTE) {
+      var rr = promoRules[code];
+      if (!rr || !rr.ok) return rr || { ok: false, reason: "invalid" };
+      if (rr.minOrder && subtotal < rr.minOrder) return { ok: false, reason: "min", min: rr.minOrder };
+      return { ok: true, code: rr.code, type: rr.type, value: rr.value };
+    }
     var p = get().promos.filter(function (x) { return x.code === code; })[0], now = Date.now();
     if (!p || !p.active) return { ok: false, reason: "invalid" };
     if (p.starts && p.starts > now) return { ok: false, reason: "invalid" };
@@ -479,18 +819,60 @@
     return 0;
   }
 
-  // order from the checkout: stored, stock and promo usage updated, customer created or updated
+  /* ---------- cart ----------
+     Cart lines (key "relaxx-cart") are { id, q, c: colour name, s: size }. Before showing or ordering them, each line
+     is checked against the catalogue: product on sale, colour and size chosen, quantity within the stock left. */
+  function needsChoice(p) {
+    if (!p) return false;
+    return sizesOf(p.cat).length > 1 || (hasColors(p) && p.colors.length > 1);
+  }
+  function checkLine(db, l) {
+    var p = db.products[l.id], hiddenCat = db.categories.some(function (c) { return p && c.key === p.cat && !c.visible; });
+    var out = { id: l.id, q: Math.max(1, Math.floor(+l.q || 1)), c: l.c || "", s: l.s || "", max: 0, problem: "" };
+    if (!p || p.status !== "active" || hiddenCat) { out.problem = "unavailable"; return out; }
+    var sizes = sizesOf(p.cat), size = out.s || (sizes.length === 1 ? sizes[0] : "");
+    var col = hasColors(p) ? (colorOf(p, out.c) || (p.colors.length === 1 ? p.colors[0] : null)) : null;
+    if (!size || sizes.indexOf(size) < 0 || (hasColors(p) && !col)) { out.problem = "options"; return out; }
+    out.max = Math.max(0, col ? +((p.vstock[col.id] || {})[size]) || 0 : +(p.stock || {})[size] || 0);
+    if (!out.max) out.problem = "soldout";
+    else if (out.q > out.max) { out.q = out.max; out.problem = "reduced"; }
+    return out;
+  }
+  function checkCart(lines) { var db = get(); return (lines || []).map(function (l) { return checkLine(db, l); }); }
+  // units of a product still available for a colour and size (product page)
+  function stockFor(id, color, size) { return checkLine(get(), { id: id, q: 1, c: color, s: size }).max; }
+
+  // order from the checkout: stored, stock and promo usage updated, customer created or updated.
+  // No payment is taken on the site: every order starts "pending" until the shop confirms the payment.
+  // resolves with the order; rejects with Error("stock") (+ .lines) when the stock changed, or Error(<reason>)
   function placeOrder(data) {
+    if (REMOTE) {
+      return rpc("rx_place_order", { p: { customer: data.customer, address: data.address, promo: data.promo || null, lang: data.lang || "fr",
+          items: data.items.map(function (it) { return { pid: it.pid, q: it.q, size: it.size || "", color: it.color || "" }; }),
+          shipping: { method: data.shipping.method }, payment: data.payment } })
+        .then(function (r) {
+          if (!r || r.error) { var e = new Error(r ? r.error : "order"); e.lines = r && r.lines; e.max = r && r.max; throw e; }
+          refreshPublic().then(function (pub) { cache = fromPublic(pub); }, function () {}); // new stock for the next page
+          return r;
+        });
+    }
+    try { return Promise.resolve(placeOrderLocal(data)); } catch (e) { return Promise.reject(e); }
+  }
+  function placeOrderLocal(data) {
     var order;
+    var bad = data.items.map(function (it) { return checkLine(get(), { id: it.pid, q: it.q, c: it.color, s: it.size }); })
+      .filter(function (r, i) { return r.problem || r.q < data.items[i].q; });
+    if (bad.length) { var err = new Error("stock"); err.lines = bad; throw err; }
     update(function (db) {
       var last = db.orders.reduce(function (m, o) { var n = +String(o.id).replace(/\D/g, ""); return n > m ? n : m; }, 10000);
       var email = String(data.customer.email || "").toLowerCase(), cust = db.customers.filter(function (c) { return c.email.toLowerCase() === email; })[0];
       if (!cust) {
-        cust = { id: "C" + (1001 + db.customers.length), first: data.customer.first, last: data.customer.last, email: data.customer.email, phone: data.customer.phone,
+        var lastC = db.customers.reduce(function (m, c) { var n = +String(c.id).replace(/\D/g, ""); return n > m ? n : m; }, 1000);
+        cust = { id: "C" + (lastC + 1), first: data.customer.first, last: data.customer.last, email: data.customer.email, phone: data.customer.phone,
           country: data.address.country, city: data.address.city, createdAt: Date.now(), tags: [], note: "", newsletter: false };
         db.customers.push(cust);
       } else { cust.phone = data.customer.phone || cust.phone; cust.city = data.address.city || cust.city; cust.country = data.address.country || cust.country; }
-      var status = data.payment.method === "cod" ? "pending" : "paid";
+      var status = "pending";
       order = { id: "RX-" + (last + 1), date: Date.now(), status: status, customerId: cust.id, customer: data.customer, address: data.address, items: data.items,
         subtotal: data.subtotal, discount: data.discount, promo: data.promo || null, shipping: data.shipping, total: data.total, payment: data.payment,
         tracking: "", notes: [], history: [{ t: Date.now(), status: status, by: "Client" }], source: "web", lang: data.lang || "fr" };
@@ -505,13 +887,37 @@
   }
 
   function myReviews() { try { return JSON.parse(localStorage.getItem("relaxx-my-reviews") || "[]"); } catch (e) { return []; } }
-  // reviews shown on the product page: published ones, plus the visitor's own reviews still waiting for moderation
+  // Supabase: the visitor's own reviews are kept in the browser until they are published
+  function myReviewRecs() { try { return JSON.parse(localStorage.getItem("relaxx-my-review-recs") || "[]"); } catch (e) { return []; } }
+  // reviews shown on the product page: published ones, plus the visitor's own reviews still waiting for moderation.
+  // The example reviews of the demo data stay in the back office: the site only shows reviews written by visitors.
   function reviewsFor(pid) {
     var mine = myReviews();
-    return get().reviews.filter(function (r) { return r.pid === pid && (r.status === "published" || (r.status === "pending" && mine.indexOf(r.id) > -1)); })
+    if (REMOTE) {
+      var pub = get().reviews.filter(function (r) { return r.pid === pid; }), ids = pub.map(function (r) { return r.id; });
+      var own = myReviewRecs().filter(function (r) { return r.pid === pid && ids.indexOf(r.id) < 0 && r.status === "pending"; });
+      return own.concat(pub).map(function (r) { var x = {}; for (var k in r) x[k] = r[k]; x.mine = mine.indexOf(r.id) > -1; return x; });
+    }
+    return get().reviews.filter(function (r) { return r.pid === pid && r.source !== "demo" && (r.status === "published" || (r.status === "pending" && mine.indexOf(r.id) > -1)); })
       .map(function (r) { var x = {}; for (var k in r) x[k] = r[k]; x.mine = mine.indexOf(r.id) > -1; return x; });
   }
+  // resolves with the saved review (status "pending" when reviews are moderated)
   function addReview(pid, rv) {
+    if (REMOTE) {
+      return rpc("rx_add_review", { p_pid: pid, p: { stars: rv.stars, title: rv.title, text: rv.text, name: rv.name, city: rv.city || "", size: rv.size || "", fit: rv.fit || "", lang: rv.lang || "fr" } })
+        .then(function (rec) {
+          if (!rec || rec.error) throw new Error(rec ? rec.error : "review");
+          try {
+            var m = myReviews(); m.unshift(rec.id); localStorage.setItem("relaxx-my-reviews", JSON.stringify(m.slice(0, 200)));
+            var recs = myReviewRecs(); recs.unshift(rec); localStorage.setItem("relaxx-my-review-recs", JSON.stringify(recs.slice(0, 50)));
+          } catch (e) {}
+          if (rec.status === "published") get().reviews.unshift(rec);
+          return rec;
+        });
+    }
+    return Promise.resolve(addReviewLocal(pid, rv));
+  }
+  function addReviewLocal(pid, rv) {
     var status = get().settings.reviews.moderation ? "pending" : "published";
     var rec = { id: rv.id || uid("r"), pid: pid, stars: rv.stars, title: rv.title, text: rv.text, name: rv.name, city: rv.city || "", size: rv.size || "", fit: rv.fit || "",
       date: Date.now(), status: status, reply: "", replyDate: 0, source: "web", lang: rv.lang || "fr" };
@@ -523,7 +929,12 @@
     return rec;
   }
 
+  // resolves with "ok", "exists" (already subscribed) or "invalid"
   function subscribe(email, lang, source) {
+    if (REMOTE) return rpc("rx_subscribe", { p_email: email, p_lang: lang || "fr", p_source: source || "home" });
+    return Promise.resolve(subscribeLocal(email, lang, source));
+  }
+  function subscribeLocal(email, lang, source) {
     email = String(email || "").trim().toLowerCase();
     var res = "ok";
     update(function (db) {
@@ -540,6 +951,7 @@
     if (!hasLS) return;
     var first = false;
     try { first = !sessionStorage.getItem("relaxx-session"); sessionStorage.setItem("relaxx-session", "1"); } catch (e) {}
+    if (REMOTE) { rpc("rx_track", { p_first: first }).catch(function () {}); return; }
     update(function (db) {
       var k = dayKey(Date.now()), t = db.traffic[k] || (db.traffic[k] = { sessions: 0, views: 0 });
       t.views++; if (first) t.sessions++;
@@ -547,7 +959,8 @@
   }
 
   /* ---------- storefront chrome: announcement bar + maintenance mode ---------- */
-  function adminPreview() { try { return !!sessionStorage.getItem("relaxx-admin-session"); } catch (e) { return false; } }
+  // a member of the team signed in on this browser sees the shop even in maintenance mode
+  function adminPreview() { try { return REMOTE ? !!auth.session() : !!sessionStorage.getItem("relaxx-admin-session"); } catch (e) { return false; } }
   /* ---------- showcase content (Vitrine) ----------
      Elements carry data-cms="key" (+ data-cms-type) and data-cms-href="key"; sections carry data-cms-section.
      Text values are stored per language ({ fr, en }); images, links and products as { v }. */
@@ -607,10 +1020,12 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-cms-section]"), function (el) { if (V.sections[el.getAttribute("data-cms-section")] === false) el.hidden = true, el.style.display = "none"; });
     Array.prototype.forEach.call(document.querySelectorAll("[data-cms]"), function (el) {
       var f = F[el.getAttribute("data-cms")], type = el.getAttribute("data-cms-type") || "text";
+      // featured review cards keep the live name and price of their product
+      if (!f && type === "rvproduct") { var m = /id=(\d+)/.exec(el.getAttribute("href") || ""); if (m) f = { v: +m[1] }; }
       if (!f) return;
       if (type === "img") { if (f.v) { el.removeAttribute("srcset"); el.src = imgUrl(f.v, el.classList.contains("social-img") ? 700 : 1600); } return; }
       if (type === "media") { if (f.v) setMedia(el, f, 2000); return; }
-      if (type === "href") { if (f.v) el.setAttribute("href", f.v); return; }
+      if (type === "href") { if (safeHref(f.v)) el.setAttribute("href", safeHref(f.v)); return; }
       if (type === "rvproduct") {
         var p = db.products[+f.v]; if (!p) return;
         el.setAttribute("href", "product.html?id=" + p.id);
@@ -625,9 +1040,14 @@
       if (type === "lines") { el.innerHTML = t.split(/\n/).map(function (l) { return l.replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }).join("<br>"); return; }
       el.textContent = t;
     });
-    Array.prototype.forEach.call(document.querySelectorAll("[data-cms-href]"), function (el) { var f = F[el.getAttribute("data-cms-href")]; if (f && f.v) el.setAttribute("href", f.v); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cms-href]"), function (el) { var f = F[el.getAttribute("data-cms-href")]; if (f && safeHref(f.v)) el.setAttribute("href", safeHref(f.v)); });
     var st = db.settings.store || {};
-    Array.prototype.forEach.call(document.querySelectorAll("[data-cms-social]"), function (el) { var u = st[el.getAttribute("data-cms-social")]; if (u) { el.setAttribute("href", u); el.setAttribute("target", "_blank"); el.setAttribute("rel", "noopener"); } });
+    // social links: the shop's accounts; an account that is not filled in is not shown
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cms-social]"), function (el) {
+      var u = st[el.getAttribute("data-cms-social")];
+      if (u && /^https?:\/\//.test(u)) { el.setAttribute("href", u); el.setAttribute("target", "_blank"); el.setAttribute("rel", "noopener"); el.hidden = false; el.style.display = ""; }
+      else { el.hidden = true; el.style.display = "none"; }
+    });
     // SEO per page
     var page = (location.pathname.split("/").pop() || "index.html").replace(".html", "") || "index", seo = (V.seo || {})[page];
     if (seo) {
@@ -637,6 +1057,98 @@
     }
   }
   function vitrine() { return get().settings.vitrine || defaultVitrine(); }
+
+  /* ---------- shop details on the pages ----------
+     data-store="field": text from the shop settings (an empty setting keeps the placeholder written in the page);
+     data-store-link="email|phone": mailto: / tel: link; data-shop="…": delivery and payment terms. */
+  function listJoin(items, lang) {
+    if (items.length < 2) return items.join("");
+    return items.slice(0, -1).join(", ") + (lang === "fr" ? " et " : " and ") + items[items.length - 1];
+  }
+  function applyStore() {
+    var db = get(), st = db.settings.store || {}, sh = db.settings.shipping, pm = db.settings.payments, lang = pageLang(), fr = lang === "fr";
+    Array.prototype.forEach.call(document.querySelectorAll("[data-store]"), function (el) {
+      var k = el.getAttribute("data-store"), v = k === "countryName" ? ((COUNTRIES.filter(function (c) { return c[0] === st.country; })[0] || [])[fr ? 2 : 1] || "") : st[k];
+      if (v == null || String(v).trim() === "") return;
+      el.textContent = String(v).trim(); el.classList.remove("ph"); el.setAttribute("data-no-i18n", "");
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-store-link]"), function (el) {
+      var k = el.getAttribute("data-store-link"), v = String(st[k === "map" ? "address" : k] || "").trim();
+      if (!v) return;
+      el.setAttribute("href", k === "email" ? "mailto:" + v : k === "map" ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(v) : "tel:" + v.replace(/[^\d+]/g, ""));
+    });
+    var PAY = { mobilemoney: "Mobile Money", card: fr ? "carte bancaire" : "bank card", paypal: "PayPal", applepay: "Apple Pay", cod: fr ? "paiement à la livraison" : "cash on delivery" };
+    var OPS = { wave: "Wave", orange: "Orange Money", mtn: "MTN MoMo", moov: "Moov Money" };
+    var values = {
+      freeOver: sh.freeOver ? money(sh.freeOver, lang) : "",
+      stdPrice: money(sh.standard.price, lang), stdDays: sh.standard.days, expPrice: money(sh.express.price, lang), expDays: sh.express.days,
+      countries: listJoin(sh.countries.filter(function (c) { return c.enabled; }).map(function (c) { return fr ? c.fr : c.en; }), lang),
+      payments: listJoin(["mobilemoney", "card", "paypal", "applepay", "cod"].filter(function (k) { return pm[k] && pm[k].enabled; }).map(function (k) {
+        if (k !== "mobilemoney") return PAY[k];
+        var ops = Object.keys(OPS).filter(function (o) { return pm.mobilemoney[o]; }).map(function (o) { return OPS[o]; });
+        return PAY[k] + (ops.length ? " (" + ops.join(", ") + ")" : "");
+      }), lang),
+      codMax: pm.cod && pm.cod.max ? money(pm.cod.max, lang) : ""
+    };
+    Array.prototype.forEach.call(document.querySelectorAll("[data-shop]"), function (el) {
+      var k = el.getAttribute("data-shop"), v = values[k];
+      if (k === "express" || k === "standard") { el.hidden = !(sh[k] && sh[k].enabled); return; }
+      if (k === "freeOverBlock") { el.hidden = !sh.freeOver; return; }
+      if (k === "codBlock") { el.hidden = !(pm.cod && pm.cod.enabled); return; }
+      if (k === "codMaxBlock") { el.hidden = !(pm.cod && pm.cod.enabled && pm.cod.max); return; }
+      if (v) { el.textContent = v; el.classList.remove("ph"); el.setAttribute("data-no-i18n", ""); }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-size-guide]"), function (el) {
+      var g = sizeGuideHTML(el.getAttribute("data-size-guide"), lang);
+      el.innerHTML = "<p>" + esc(g.note) + "</p>" + g.table; el.setAttribute("data-no-i18n", "");
+    });
+    // © year: always the current one
+    var year = String(new Date().getFullYear());
+    Array.prototype.forEach.call(document.querySelectorAll('[data-cms="footer.copyright"],[data-cms="home.hero.foot"]'), function (el) {
+      if (/©\s*\d{4}/.test(el.textContent)) el.textContent = el.textContent.replace(/(©\s*)\d{4}/, "$1" + year);
+    });
+  }
+
+  /* ---------- categories in the menu and the footer ----------
+     Same list, order and visibility as the shop tabs (back office › Catégories). Existing links are kept as they are
+     (their photo and event handlers); a category added in the back office gets a new link with a photo of one of its products. */
+  function applyCategories() {
+    var db = get(), cats = db.categories.filter(function (c) { return c.visible; }).sort(function (a, b) { return a.order - b.order; });
+    var photoOf = function (key) { var p = db.products.filter(function (x) { return x.cat === key && x.status === "active"; })[0]; return p ? imgUrl(p.img, 1400) : ""; };
+    var closeMenu = function () { var b = document.querySelector(".mn-burger.is-open"); if (b) b.click(); };
+    var menu = document.querySelector(".mn-links");
+    if (menu) {
+      var have = {};
+      Array.prototype.forEach.call(menu.querySelectorAll(".mn-link"), function (a) { have[(a.getAttribute("href") || "").split("#")[1]] = a; a.parentNode.removeChild(a); });
+      var tpl = have[Object.keys(have)[0]];
+      cats.forEach(function (c, i) {
+        var a = have[c.key];
+        if (!a && tpl) {
+          a = tpl.cloneNode(true); a.setAttribute("href", "shop.html#" + c.key);
+          var im = a.querySelector(".mn-link-img img"); if (im) im.src = photoOf(c.key);
+          a.addEventListener("mouseenter", function () { a.classList.add("is-hover"); });
+          a.addEventListener("mouseleave", function () { a.classList.remove("is-hover"); });
+          a.addEventListener("click", closeMenu);
+        }
+        if (!a) return;
+        a.querySelector(".mn-num").textContent = ("0" + (i + 1)).slice(-2) + ".";
+        a.querySelector(".mn-label").textContent = c.label;
+        a.style.setProperty("--od", (300 + i * 100) + "ms"); a.style.setProperty("--cd", Math.max(0, (cats.length - 1 - i) * 100) + "ms");
+        menu.appendChild(a);
+      });
+    }
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cat-list]"), function (col) {
+      var rows = {}, first = null;
+      Array.prototype.forEach.call(col.querySelectorAll("a.mf-link"), function (a) { var row = a.parentNode; rows[(a.getAttribute("href") || "").split("#")[1]] = row; first = first || row; row.parentNode.removeChild(row); });
+      cats.forEach(function (c) {
+        var row = rows[c.key];
+        if (!row && first) { row = first.cloneNode(true); row.classList.add("in"); row.querySelector("a").setAttribute("href", "shop.html#" + c.key); }
+        if (!row) return;
+        row.querySelector("a").textContent = c.label;
+        col.appendChild(row);
+      });
+    });
+  }
 
   /* ---------- Instagram ---------- */
   function igGet(path, token) {
@@ -738,6 +1250,8 @@
 
   function storefront() {
     try { applyVitrine(); } catch (e) {}
+    try { applyStore(); } catch (e) {}
+    try { applyCategories(); } catch (e) {}
     try {
       applyInstagram();
       var ig = get().settings.instagram;
@@ -777,7 +1291,7 @@
       var bar = document.createElement("div"); bar.className = "rx-ann"; bar.setAttribute("data-no-i18n", ""); bar.setAttribute("role", "region"); bar.setAttribute("aria-label", lang === "fr" ? "Annonce" : "Announcement");
       var txt = a[lang] || a.fr || a.en;
       bar.innerHTML = (a.link ? '<a></a>' : '<span></span>') + '<button type="button" class="rx-ann-x" aria-label="' + (lang === "fr" ? "Fermer l'annonce" : "Close announcement") + '">×</button>';
-      var t = bar.firstChild; t.textContent = txt; if (a.link) t.setAttribute("href", a.link);
+      var t = bar.firstChild; t.textContent = txt; if (a.link) t.setAttribute("href", safeHref(a.link) || "shop.html");
       document.body.insertBefore(bar, document.body.firstChild);
       html.classList.add("has-ann");
       var onScroll = function () { html.classList.toggle("ann-off", (window.scrollY || 0) > 60); };
@@ -791,18 +1305,24 @@
 
   window.RelaxxDB = {
     KEY: KEY, SIZES: SIZES, CATEGORIES: CATEGORIES, COUNTRIES: COUNTRIES,
-    get: get, update: update, reload: reload, adopt: adopt, persist: persist, log: log, reset: function () { cache = seed(); migrateColors(cache); persist(); return cache; },
+    get: get, update: update, reload: reload, adopt: adopt, persist: persist, log: log, reset: reset,
     seed: seed, timeline: timeline, money: money, dayKey: dayKey, sizesOf: sizesOf, totalStock: totalStock, uid: uid,
     defaultColors: defaultColors, colorSlug: colorSlug, hasColors: hasColors, syncStock: syncStock, colorOf: colorOf, adjustStock: adjustStock,
     catalog: catalog, categories: categories, dict: dict, product: product, shipping: shipping, payments: payments, countries: countries,
     vitrine: vitrine, defaultVitrine: defaultVitrine, imgUrl: imgUrl, media: media, setMedia: setMedia,
     defaultInstagram: defaultInstagram, instaConnect: instaConnect, instaSync: instaSync, instaDisconnect: instaDisconnect, instaTiles: instaTiles, instaProfile: instaProfile, applyInstagram: applyInstagram,
-    checkPromo: checkPromo, discountFor: discountFor, placeOrder: placeOrder, reviewsFor: reviewsFor, addReview: addReview, subscribe: subscribe, track: track
+    checkPromo: checkPromo, discountFor: discountFor, placeOrder: placeOrder, reviewsFor: reviewsFor, addReview: addReview, subscribe: subscribe, track: track,
+    sizeGuide: sizeGuide, defaultSizeGuide: defaultSizeGuide, sizeGuideHTML: sizeGuideHTML,
+    checkCart: checkCart, needsChoice: needsChoice, stockFor: stockFor, safeHref: safeHref, defaultStore: defaultStore,
+    remote: REMOTE, ready: ready, auth: auth, loadAll: loadAll, poll: poll, flush: function () { return pushChanges(); }, pending: function () { return pending; },
+    fetchPromo: fetchPromo, refreshPublic: refreshPublic, rpc: rpc
   };
 
-  if (typeof document !== "undefined" && !document.documentElement.hasAttribute("data-admin")) {
+  // storefront: the page scripts wait for the data (RelaxxDB.ready), then the shared parts of the pages are filled in
+  function whenDom(fn) { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn); else fn(); }
+  if (typeof document !== "undefined" && !ADMIN) {
     try { track(); } catch (e) {}
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { try { storefront(); } catch (e) {} });
-    else try { storefront(); } catch (e) {}
-  }
+    if (REMOTE) loadPublic(); else markReady();
+    ready(function () { whenDom(function () { try { storefront(); } catch (e) {} }); });
+  } else markReady();
 })();
