@@ -43,3 +43,14 @@ Les photos et vidéos importées dans le back-office sont dans le bucket public 
   - Support : commandes, clients, avis, stock ;
   - Lecture seule : rien.
 - Un compte Supabase qui n'est pas dans `staff` ne voit rien.
+
+## Protection anti-robots
+
+La commande, l'avis et la newsletter sont vérifiés par la base (`rx_guard_check`) à chaque envoi. Aucun service tiers ni cookie n'est utilisé.
+
+1. **Champ piège** : un champ invisible que seuls les robots remplissent.
+2. **Temps minimum** entre l'affichage du formulaire et l'envoi : 4 s pour une commande, 3 s pour un avis, 1,5 s pour la newsletter. Le navigateur attend lui-même le temps restant : un client rapide n'est jamais refusé.
+3. **Preuve de calcul** : pendant que le visiteur remplit le formulaire, le navigateur cherche un nombre dont le SHA-256 commence par 16 bits à zéro (une fraction de seconde). Chaque preuve est valable 30 minutes et une seule fois : un robot doit refaire ce travail à chaque envoi.
+4. **Limites par connexion**, sur 10 minutes / par jour : 10 / 60 commandes, 6 / 20 avis, 10 / 40 inscriptions. S'y ajoutent 3 commandes au plus en 10 minutes pour une même adresse e-mail. L'adresse IP n'est jamais enregistrée en clair : seulement une empreinte salée, effacée au bout de 48 heures (table privée `rx_guard`).
+
+Si des envois abusifs passent malgré tout, on peut ajouter un captcha (Cloudflare Turnstile) vérifié côté serveur.

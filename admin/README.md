@@ -53,4 +53,4 @@ Aussi : recherche globale (⌘K / Ctrl+K), notifications, affichage mobile, sync
 2. Instagram : déplacer le jeton d'accès et la synchronisation côté serveur (Edge Function planifiée qui interroge `graph.instagram.com/me/media`). Aujourd'hui, la synchronisation se fait quand un administrateur ouvre le back-office, et le jeton est stocké dans les réglages, visibles de l'équipe seulement.
 3. Traduction : passer par une API officielle côté serveur (DeepL ou Google Cloud Translation, avec la clé de la boutique).
 4. Brancher un service d'e-mails (confirmations de commande, notifications, newsletter).
-5. Protection anti-robots (captcha) sur la commande, les avis et la newsletter si des envois abusifs apparaissent.
+5. Si des envois abusifs passent malgré la protection anti-robots actuelle (voir `supabase/README.md`) : ajouter un captcha (Cloudflare Turnstile) vérifié côté serveur.

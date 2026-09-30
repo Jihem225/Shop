@@ -51,4 +51,6 @@ Avant d'enregistrer une commande, la base de données vérifie chaque article (p
 4. Remplacer les contenus d'exemple : avis mis en avant sur l'accueil (« Portés & aimés »), compositions et conseils d'entretien des fiches (communs à toute une catégorie), photos Unsplash, textes de « Notre histoire », stock de départ des produits.
 5. Renseigner le compte Instagram de la boutique (le lien par défaut mène à la page d'accueil d'Instagram) et les autres réseaux.
 
+Les formulaires (commande, avis, newsletter) sont protégés contre les robots, sans service tiers : champ piège, temps minimum, preuve de calcul et limites par connexion, vérifiés par la base de données (voir [supabase/README.md](supabase/README.md)).
+
 Encore à prévoir : un prestataire de paiement en ligne (CinetPay, PayDunya, Wave, Orange Money), un service d'e-mails (confirmations de commande), et la synchronisation Instagram et la traduction automatique côté serveur (voir [admin/README.md](admin/README.md)).

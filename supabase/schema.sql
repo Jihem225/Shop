@@ -127,6 +127,63 @@ begin
   return jsonb_build_object('ok', true, 'code', p->>'code', 'type', p->>'type', 'value', coalesce((p->>'value')::numeric, 0), 'minOrder', coalesce((p->>'minOrder')::numeric, 0));
 end $$;
 
+
+-- ---------------------------------------------------------------------------
+-- anti-robot protection of the public forms (order, review, newsletter)
+-- Checked here, in the database, for every sending:
+--   1. honeypot: a hidden field that only robots fill in
+--   2. time: a form sent too quickly after the page was shown is refused
+--   3. proof of work: the browser computes, while the visitor types, a SHA-256 whose first 16 bits are 0
+--      ("rx1:<action>:<time>:<random>:<nonce>"); each proof is valid 30 minutes and only once
+--   4. limits per connection: the IP address is kept only as a salted hash, for 48 hours
+-- rx_guard is private: no policy, no grant — only the functions below use it.
+-- ---------------------------------------------------------------------------
+create table if not exists public.rx_guard (
+  key text primary key,
+  n int not null default 0,
+  at timestamptz not null default now()
+);
+create index if not exists rx_guard_at on public.rx_guard (at);
+alter table public.rx_guard enable row level security;
+revoke all on public.rx_guard from anon, authenticated;
+
+create or replace function public.rx_guard_check(p_action text, g jsonb) returns text language plpgsql security definer set search_path = public as $$
+declare
+  v_now bigint := public.rx_now_ms();
+  v_min_ms int := case p_action when 'order' then 4000 when 'review' then 3000 else 1500 end;
+  v_lim10 int := case p_action when 'order' then 10 when 'review' then 6 else 10 end;
+  v_limday int := case p_action when 'order' then 60 when 'review' then 20 else 40 end;
+  v_hdr json; v_ip text; v_salt text; v_who text; v_ts bigint; v_rand text; v_h bytea; v_n int;
+begin
+  -- old entries go (proofs and counters are kept 48 hours at most)
+  delete from public.rx_guard where at < now() - interval '48 hours' and key not like 'salt:%';
+  if g is null or jsonb_typeof(g) <> 'object' then return 'bot'; end if;
+  if coalesce(g->>'hp', '') <> '' then return 'bot'; end if;
+  if coalesce((g->>'t0')::bigint, v_now) > v_now - v_min_ms then return 'bot'; end if;
+
+  v_ts := (g#>>'{pow,ts}')::bigint;
+  v_rand := coalesce(g#>>'{pow,rand}', '');
+  if v_ts is null or v_ts < v_now - 1800000 or v_ts > v_now + 120000 or v_rand !~ '^[0-9a-f]{16}$' or coalesce(g#>>'{pow,nonce}', '') !~ '^\d{1,12}$' then return 'bot'; end if;
+  v_h := sha256(convert_to('rx1:' || p_action || ':' || v_ts || ':' || v_rand || ':' || (g#>>'{pow,nonce}'), 'UTF8'));
+  if get_byte(v_h, 0) <> 0 or get_byte(v_h, 1) <> 0 then return 'bot'; end if;
+  insert into public.rx_guard (key) values ('pow:' || v_rand) on conflict (key) do nothing;
+  if not found then return 'bot'; end if; -- proof already used
+
+  -- limits per connection (salted hash of the address, never the address itself)
+  begin v_hdr := nullif(current_setting('request.headers', true), '')::json; exception when others then v_hdr := null; end;
+  v_ip := coalesce(v_hdr->>'cf-connecting-ip', nullif(trim(split_part(coalesce(v_hdr->>'x-forwarded-for', ''), ',', 1)), ''), v_hdr->>'x-real-ip', 'unknown');
+  select (select key from public.rx_guard where key like 'salt:%' limit 1) into v_salt;
+  if v_salt is null then v_salt := 'salt:' || gen_random_uuid(); insert into public.rx_guard (key, at) values (v_salt, now() + interval '100 years'); end if;
+  v_who := encode(sha256(convert_to(v_salt || v_ip, 'UTF8')), 'hex');
+  insert into public.rx_guard as r (key, n) values ('rl:' || p_action || ':' || v_who || ':' || (v_now / 600000), 1)
+    on conflict (key) do update set n = r.n + 1 returning n into v_n;
+  if v_n > v_lim10 then return 'rate'; end if;
+  insert into public.rx_guard as r (key, n) values ('rd:' || p_action || ':' || v_who || ':' || (v_now / 86400000), 1)
+    on conflict (key) do update set n = r.n + 1 returning n into v_n;
+  if v_n > v_limday then return 'rate'; end if;
+  return null;
+end $$;
+
 -- ---------------------------------------------------------------------------
 -- storefront: place an order
 -- Everything is recomputed here from the database: prices, stock, promo code,
@@ -142,7 +199,7 @@ declare
   v_ship_m text; v_pay text; v_op text := ''; v_code text; v_lang text;
   v_sizes text[]; v_size text; v_q int; v_avail int; v_sum int;
   v_sub numeric := 0; v_disc numeric := 0; v_ship numeric := 0; v_total numeric;
-  v_cust_id text; v_order_id text;
+  v_cust_id text; v_order_id text; v_guard text;
 begin
   v_first := left(trim(coalesce(p#>>'{customer,first}', '')), 60);
   v_last := left(trim(coalesce(p#>>'{customer,last}', '')), 60);
@@ -160,6 +217,8 @@ begin
     return jsonb_build_object('error', 'contact');
   end if;
 
+  v_guard := public.rx_guard_check('order', p->'guard');
+  if v_guard is not null then return jsonb_build_object('error', v_guard); end if;
   -- at most 3 orders in 10 minutes for the same e-mail (fake orders would hold stock)
   if (select count(*) from public.rx_docs where coll = 'orders' and lower(data#>>'{customer,email}') = v_email and (data->>'date')::bigint > v_now - 600000) >= 3 then
     return jsonb_build_object('error', 'rate');
@@ -287,7 +346,10 @@ declare
   v_title text := left(trim(coalesce(p->>'title', '')), 80);
   v_text text := left(trim(coalesce(p->>'text', '')), 1000);
   v_name text := left(trim(coalesce(p->>'name', '')), 40);
+  v_guard text;
 begin
+  v_guard := public.rx_guard_check('review', p->'guard');
+  if v_guard is not null then return jsonb_build_object('error', v_guard); end if;
   select data into prod from public.rx_docs where coll = 'products' and key = p_pid::text;
   if prod is null or v_stars < 1 or v_stars > 5 or v_title = '' or length(v_text) < 20 or v_name = '' then return jsonb_build_object('error', 'invalid'); end if;
   select data into st from public.rx_docs where coll = 'settings' and key = 'reviews';
@@ -302,11 +364,14 @@ begin
   return rec;
 end $$;
 
-create or replace function public.rx_subscribe(p_email text, p_lang text, p_source text) returns text language plpgsql security definer set search_path = public as $$
+drop function if exists public.rx_subscribe(text, text, text);
+create or replace function public.rx_subscribe(p_email text, p_lang text, p_source text, p_guard jsonb) returns text language plpgsql security definer set search_path = public as $$
 declare
-  v_email text := lower(left(trim(coalesce(p_email, '')), 120)); s jsonb;
+  v_email text := lower(left(trim(coalesce(p_email, '')), 120)); s jsonb; v_guard text;
 begin
   if v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]{2,}$' then return 'invalid'; end if;
+  v_guard := public.rx_guard_check('newsletter', p_guard);
+  if v_guard is not null then return v_guard; end if;
   select data into s from public.rx_docs where coll = 'subscribers' and key = v_email;
   if s is not null and s->>'status' = 'subscribed' then return 'exists'; end if;
   insert into public.rx_docs (coll, key, data) values ('subscribers', v_email, jsonb_build_object('email', v_email, 'date', public.rx_now_ms(),
@@ -350,10 +415,10 @@ begin
 end $$;
 
 revoke execute on function public.rx_public(), public.rx_check_promo(text), public.rx_place_order(jsonb), public.rx_add_review(int, jsonb),
-  public.rx_subscribe(text, text, text), public.rx_track(boolean), public.rx_me(), public.rx_set_my_name(text),
-  public.rx_role(), public.rx_can_write(text, text) from public;
+  public.rx_subscribe(text, text, text, jsonb), public.rx_track(boolean), public.rx_me(), public.rx_set_my_name(text),
+  public.rx_role(), public.rx_can_write(text, text), public.rx_guard_check(text, jsonb) from public;
 grant execute on function public.rx_public(), public.rx_check_promo(text), public.rx_place_order(jsonb), public.rx_add_review(int, jsonb),
-  public.rx_subscribe(text, text, text), public.rx_track(boolean) to anon, authenticated;
+  public.rx_subscribe(text, text, text, jsonb), public.rx_track(boolean) to anon, authenticated;
 grant execute on function public.rx_me(), public.rx_set_my_name(text), public.rx_role(), public.rx_can_write(text, text) to authenticated;
 
 -- ---------------------------------------------------------------------------

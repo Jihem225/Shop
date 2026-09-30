@@ -757,6 +757,87 @@
     });
   }
 
+  /* ---------- anti-robot protection of the public forms (checked by Supabase: rx_guard_check) ----------
+     A hidden field only robots fill in, the time the form was shown, and a proof of work: while the visitor
+     types, the browser looks for a number whose SHA-256 of "rx1:<action>:<time>:<random>:<number>" starts with
+     16 zero bits (65 000 tries on average, a fraction of a second, done in small slices so the page stays fluid). */
+  var K256 = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+    0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+    0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+    0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+  var SHA_W = new Int32Array(64);
+  // first 32 bits of the SHA-256 of an ASCII string
+  function sha256Head(msg) {
+    var l = msg.length, blocks = ((l + 8) >> 6) + 1, words = new Int32Array(blocks * 16), i, t;
+    for (i = 0; i < l; i++) words[i >> 2] |= msg.charCodeAt(i) << (24 - (i & 3) * 8);
+    words[l >> 2] |= 0x80 << (24 - (l & 3) * 8);
+    words[blocks * 16 - 1] = l * 8;
+    var h0 = 0x6a09e667, h1 = 0xbb67ae85 | 0, h2 = 0x3c6ef372, h3 = 0xa54ff53a | 0, h4 = 0x510e527f, h5 = 0x9b05688c | 0, h6 = 0x1f83d9ab, h7 = 0x5be0cd19, W = SHA_W;
+    for (var bk = 0; bk < blocks; bk++) {
+      for (t = 0; t < 64; t++) {
+        if (t < 16) W[t] = words[bk * 16 + t];
+        else {
+          var x = W[t - 15], y = W[t - 2];
+          W[t] = (((x >>> 7) | (x << 25)) ^ ((x >>> 18) | (x << 14)) ^ (x >>> 3)) + W[t - 16] + (((y >>> 17) | (y << 15)) ^ ((y >>> 19) | (y << 13)) ^ (y >>> 10)) + W[t - 7] | 0;
+        }
+      }
+      var a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+      for (t = 0; t < 64; t++) {
+        var t1 = h + (((e >>> 6) | (e << 26)) ^ ((e >>> 11) | (e << 21)) ^ ((e >>> 25) | (e << 7))) + ((e & f) ^ (~e & g)) + K256[t] + W[t] | 0;
+        var t2 = (((a >>> 2) | (a << 30)) ^ ((a >>> 13) | (a << 19)) ^ ((a >>> 22) | (a << 10))) + ((a & b) ^ (a & c) ^ (b & c)) | 0;
+        h = g; g = f; f = e; e = d + t1 | 0; d = c; c = b; b = a; a = t1 + t2 | 0;
+      }
+      h0 = h0 + a | 0; h1 = h1 + b | 0; h2 = h2 + c | 0; h3 = h3 + d | 0; h4 = h4 + e | 0; h5 = h5 + f | 0; h6 = h6 + g | 0; h7 = h7 + h | 0;
+    }
+    return h0 >>> 0;
+  }
+  var POW_BITS = 16, GUARD_MIN_MS = { order: 4000, review: 3000, newsletter: 1500 }; // same values as rx_guard_check
+  function solveProof(action, done) {
+    var ts = Date.now(), rand = "", nonce = 0;
+    for (var i = 0; i < 16; i++) rand += "0123456789abcdef"[Math.floor(Math.random() * 16)];
+    var prefix = "rx1:" + action + ":" + ts + ":" + rand + ":";
+    (function slice() {
+      for (var end = nonce + 3000; nonce < end; nonce++) {
+        if (sha256Head(prefix + nonce) >>> (32 - POW_BITS) === 0) { done({ ts: ts, rand: rand, nonce: String(nonce) }); return; }
+      }
+      setTimeout(slice, 0);
+    })();
+  }
+  // protect(form, "order" | "review" | "newsletter"): adds the hidden field and prepares the proof;
+  // .value() gives what the database checks (one proof per sending, the next one is prepared right after)
+  function protect(form, action) {
+    var t0 = Date.now(), hp = null, proof = null, solving = false, waiting = [];
+    if (form && form.appendChild) {
+      hp = document.createElement("input");
+      hp.type = "text"; hp.name = "rx_hp"; hp.tabIndex = -1; hp.autocomplete = "off"; hp.value = "";
+      hp.setAttribute("aria-hidden", "true");
+      hp.style.cssText = "position:absolute!important;left:-10000px!important;top:auto!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important";
+      form.appendChild(hp);
+    }
+    function start() {
+      if (!REMOTE || solving || proof) return;
+      solving = true;
+      solveProof(action, function (p) { solving = false; proof = p; waiting.splice(0).forEach(function (fn) { fn(); }); });
+    }
+    if (form && form.addEventListener) form.addEventListener("focusin", start);
+    setTimeout(start, 1200);
+    return {
+      value: function () {
+        if (!REMOTE) return Promise.resolve(null);
+        if (proof && Date.now() - proof.ts > 20 * 60000) proof = null; // valid 30 minutes in the database
+        // the database refuses a form sent sooner than this after the page was shown: a quick visitor just waits the rest
+        var wait = Math.max(0, t0 + (GUARD_MIN_MS[action] || 1500) + 300 - Date.now());
+        return new Promise(function (res) {
+          var give = function () { var p = proof; proof = null; res({ t0: t0, hp: hp ? hp.value : "", pow: p }); setTimeout(start, 0); };
+          setTimeout(function () { if (proof) give(); else { waiting.push(give); start(); } }, wait);
+        });
+      }
+    };
+  }
+  function guardValue(guard) { return guard && guard.value ? guard.value() : Promise.resolve(null); }
+
   /* ---------- storefront API ---------- */
   // product and colour names go into HTML attributes on the pages: straight quotes and angle brackets become typographic ones
   function clean(v) { return String(v == null ? "" : v).replace(/"([^"]*)"/g, "“$1”").replace(/"/g, "”").replace(/</g, "‹").replace(/>/g, "›"); }
@@ -845,12 +926,13 @@
   // order from the checkout: stored, stock and promo usage updated, customer created or updated.
   // No payment is taken on the site: every order starts "pending" until the shop confirms the payment.
   // resolves with the order; rejects with Error("stock") (+ .lines) when the stock changed, or Error(<reason>)
-  function placeOrder(data) {
+  function placeOrder(data, guard) {
     if (REMOTE) {
-      return rpc("rx_place_order", { p: { customer: data.customer, address: data.address, promo: data.promo || null, lang: data.lang || "fr",
+      return guardValue(guard).then(function (g) {
+        return rpc("rx_place_order", { p: { customer: data.customer, address: data.address, promo: data.promo || null, lang: data.lang || "fr",
           items: data.items.map(function (it) { return { pid: it.pid, q: it.q, size: it.size || "", color: it.color || "" }; }),
-          shipping: { method: data.shipping.method }, payment: data.payment } })
-        .then(function (r) {
+          shipping: { method: data.shipping.method }, payment: data.payment, guard: g } });
+      }).then(function (r) {
           if (!r || r.error) { var e = new Error(r ? r.error : "order"); e.lines = r && r.lines; e.max = r && r.max; throw e; }
           refreshPublic().then(function (pub) { cache = fromPublic(pub); }, function () {}); // new stock for the next page
           return r;
@@ -902,10 +984,11 @@
       .map(function (r) { var x = {}; for (var k in r) x[k] = r[k]; x.mine = mine.indexOf(r.id) > -1; return x; });
   }
   // resolves with the saved review (status "pending" when reviews are moderated)
-  function addReview(pid, rv) {
+  function addReview(pid, rv, guard) {
     if (REMOTE) {
-      return rpc("rx_add_review", { p_pid: pid, p: { stars: rv.stars, title: rv.title, text: rv.text, name: rv.name, city: rv.city || "", size: rv.size || "", fit: rv.fit || "", lang: rv.lang || "fr" } })
-        .then(function (rec) {
+      return guardValue(guard).then(function (g) {
+        return rpc("rx_add_review", { p_pid: pid, p: { stars: rv.stars, title: rv.title, text: rv.text, name: rv.name, city: rv.city || "", size: rv.size || "", fit: rv.fit || "", lang: rv.lang || "fr", guard: g } });
+      }).then(function (rec) {
           if (!rec || rec.error) throw new Error(rec ? rec.error : "review");
           try {
             var m = myReviews(); m.unshift(rec.id); localStorage.setItem("relaxx-my-reviews", JSON.stringify(m.slice(0, 200)));
@@ -929,9 +1012,9 @@
     return rec;
   }
 
-  // resolves with "ok", "exists" (already subscribed) or "invalid"
-  function subscribe(email, lang, source) {
-    if (REMOTE) return rpc("rx_subscribe", { p_email: email, p_lang: lang || "fr", p_source: source || "home" });
+  // resolves with "ok", "exists" (already subscribed), "invalid", "rate" (too many sign-ups) or "bot"
+  function subscribe(email, lang, source, guard) {
+    if (REMOTE) return guardValue(guard).then(function (g) { return rpc("rx_subscribe", { p_email: email, p_lang: lang || "fr", p_source: source || "home", p_guard: g }); });
     return Promise.resolve(subscribeLocal(email, lang, source));
   }
   function subscribeLocal(email, lang, source) {
@@ -1315,7 +1398,7 @@
     sizeGuide: sizeGuide, defaultSizeGuide: defaultSizeGuide, sizeGuideHTML: sizeGuideHTML,
     checkCart: checkCart, needsChoice: needsChoice, stockFor: stockFor, safeHref: safeHref, defaultStore: defaultStore,
     remote: REMOTE, ready: ready, auth: auth, loadAll: loadAll, poll: poll, flush: function () { return pushChanges(); }, pending: function () { return pending; },
-    fetchPromo: fetchPromo, refreshPublic: refreshPublic, rpc: rpc
+    fetchPromo: fetchPromo, refreshPublic: refreshPublic, rpc: rpc, protect: protect
   };
 
   // storefront: the page scripts wait for the data (RelaxxDB.ready), then the shared parts of the pages are filled in
