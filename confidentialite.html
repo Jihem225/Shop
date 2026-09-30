@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="fr" data-title-en="Privacy Policy — RELAXX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Politique de confidentialité — RELAXX</title>
+<meta name="description" content="Politique de confidentialité et d'utilisation des cookies du site RELAXX.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js');</script>
+<script>
+/* language: saved choice, else browser language (FR/EN) */
+(function () {
+  var d = document.documentElement, l;
+  try { l = localStorage.getItem("woven-lang"); } catch (e) {}
+  if (l !== "fr" && l !== "en") l = (navigator.language || "").toLowerCase().indexOf("fr") === 0 ? "fr" : "en";
+  d.lang = l; d.setAttribute("data-lang", l);
+  if (l === "fr") { d.classList.add("i18n-pending"); setTimeout(function () { d.classList.remove("i18n-pending"); }, 2000); }
+})();
+</script>
+<script src="relaxx-db.js"></script>
+<style>
+:root{
+  --bg:#fbf8f1;--hero-bg:#dcbba8;--primary:#c89564;--n100:#b0b0b0;--n300:#545454;
+  --serif:Geist,sans-serif;
+  --ease:cubic-bezier(.25,.1,.25,1);--ease-io:cubic-bezier(.42,0,.58,1);--out-quad:cubic-bezier(.25,.46,.45,.94);
+  --pad-x:2vw;
+}
+*{box-sizing:border-box}
+html.lenis{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto}
+.lenis.lenis-stopped{overflow:hidden}
+body{
+  margin:0;background:var(--bg);color:#000;font-family:Geist,sans-serif;font-size:16px;line-height:160%;font-weight:400;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4,h5,h6,p{margin:0}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;vertical-align:middle;display:inline-block;border:0}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+
+/* ---------- RELAXX navbar (dark variant over the banner) ---------- */
+
+/* ---------- page shell ---------- */
+.page{padding:0 15px}
+.container{width:100%;max-width:1170px;height:100%;margin:0 auto}
+
+/* banner */
+.shop-hero{margin-top:15px;border-radius:4px;background:var(--hero-bg);padding-top:80px}
+.shop-hero-block{display:flex;flex-direction:column;justify-content:center;align-items:center;width:100%;height:220px;padding:0 15px}
+.shop-hero-title{font-family:var(--serif);font-size:34px;font-weight:700;line-height:140%;text-transform:uppercase;text-align:center}
+
+/* shop section */
+.shop-section{padding-top:80px;padding-bottom:100px}
+.shop-row{display:flex;justify-content:space-between;align-items:flex-start}
+.shop-intro{margin-bottom:40px;justify-content:flex-start}
+.shop-menu-spacer{flex:none;width:100%;max-width:320px;margin-right:40px}
+.shop-intro-copy{width:100%;max-width:800px;padding-left:20px}
+.shop-title-block{margin-bottom:10px;overflow:hidden}
+.shop-title{font-family:var(--serif);font-size:24px;font-weight:500;line-height:140%;letter-spacing:.5px;text-transform:uppercase}
+.shop-text-block{overflow:hidden}
+
+.shop-menu{
+  position:sticky;top:40px;z-index:2;flex:none;display:flex;flex-direction:column;align-items:center;
+  width:100%;max-width:320px;margin-right:40px;padding:40px 60px;background:#000;
+}
+.shop-tab{
+  display:flex;flex-direction:column;justify-content:center;align-items:center;width:100%;height:50px;padding:0;
+  color:#fff;border-bottom:1px solid var(--n300);background:transparent;transition:background-color .5s;cursor:pointer;
+}
+.shop-tab:hover,.shop-tab.is-current{background:var(--primary)}
+.shop-tab:focus-visible{outline:2px solid #fff;outline-offset:-2px}
+.shop-content{position:relative;z-index:1;width:100%;overflow:hidden}
+.shop-pane{display:none;position:relative}
+.shop-pane.is-active{display:block}
+
+/* product grid + card */
+.product-list{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+.product-post{position:relative;overflow:hidden}
+.product-image-block{position:relative;z-index:1;display:block;overflow:hidden}
+.product-image{display:block;width:100%;aspect-ratio:320/390;object-fit:cover;transform:scale(1);transition:transform .8s var(--ease)}
+.product-post.is-hover .product-image{transform:scale(1.1)}
+.product-content{position:absolute;inset:0;pointer-events:none}
+.product-content > *{pointer-events:auto}
+.product-tag{
+  position:absolute;top:20px;left:20px;z-index:1;padding:8px 14px;border-radius:4px;background:#000;color:#fff;
+  font-size:12px;font-weight:500;line-height:130%;text-transform:uppercase;
+}
+.product-icon{
+  position:absolute;right:30px;bottom:30px;z-index:2;display:flex;justify-content:center;align-items:center;
+  width:42px;height:42px;border-radius:100%;background:#000;color:#fff;cursor:pointer;
+}
+.product-icon svg{width:17px;height:17px}
+.product-card{
+  position:absolute;right:12px;bottom:12px;z-index:3;display:none;flex-direction:column;justify-content:space-between;gap:60px;
+  width:100%;max-width:260px;padding:18px;border-radius:4px;background:#fff;opacity:0;transition:opacity .8s var(--ease);
+}
+.product-card.is-shown{opacity:1}
+.product-text{display:flex;flex-direction:column;align-items:flex-start;padding-right:28px}
+.product-category{color:var(--n300);font-size:12px;font-weight:600;line-height:160%;text-transform:uppercase}
+.product-name{font-size:16px;font-weight:600;line-height:160%}
+.product-price-block{display:flex;justify-content:space-between;align-items:flex-end}
+.product-price{display:flex;align-items:center;gap:5px}
+.price{font-size:18px;font-weight:600;line-height:158%;text-transform:uppercase}
+.price.compare{color:var(--n100);font-weight:500;text-decoration:line-through}
+.product-bag{display:grid;place-items:center;width:42px;height:42px;border-radius:100%;background:#000;color:#fff}
+.product-bag svg{width:20px;height:20px}
+.product-bag.added{animation:bag-pop .4s var(--ease)}
+@keyframes bag-pop{50%{transform:scale(1.12)}}
+.product-card-close{position:absolute;top:18px;right:18px;width:24px;height:24px;color:#000;cursor:pointer}
+.product-card-close svg{display:block;width:100%;height:100%}
+
+.pagination{display:flex;justify-content:flex-start;gap:30px;margin-top:40px}
+.page-btn{
+  display:flex;justify-content:center;align-items:center;gap:20px;padding:10px 20px;border-radius:4px;background:#000;color:#fff;
+  font-size:16px;font-weight:600;line-height:160%;transition:background-color .5s;
+}
+.page-btn:hover{background:var(--n300)}
+.page-btn svg{width:8px;height:15px}
+.page-btn[hidden]{display:none}
+.no-results{grid-column:1/-1;margin:0;padding:40px 0;color:var(--n300)}
+
+/* reveal (IX2 "Slide To Top": y 30px + fade, 800ms outQuad / ease) */
+html.js [data-reveal]{opacity:0;transform:translateY(30px);transition:transform .8s var(--out-quad),opacity .8s var(--ease);transition-delay:var(--d,0ms)}
+html.js [data-reveal].in{opacity:1;transform:none}
+
+/* ---------- RELAXX footer ---------- */
+/* instagram strip: infinite loop (track = 5 tiles + their clone, slides by -50%) */
+.social-marquee{overflow:hidden;--tile:20vw}
+.social-grid{display:flex;align-items:flex-end;width:max-content;animation:social-loop 40s linear infinite;will-change:transform}
+.social-marquee:hover .social-grid{animation-play-state:paused}
+@keyframes social-loop{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.social{position:relative;display:flex;flex:none;width:var(--tile);aspect-ratio:1/1.05;overflow:hidden;cursor:pointer}
+.social-img{width:100%;height:100%;object-fit:cover}
+.social-content{position:absolute;inset:auto 0 0 0;height:100%;display:flex;flex-direction:column;justify-content:space-between;align-items:center}
+.social-icon{width:20%;margin:auto 0}
+.social-icon svg{display:block;width:100%;height:auto}
+.social-cta{width:100%;padding:1rem;background:#000;font-weight:500;text-transform:uppercase;display:flex;justify-content:center}
+@media (min-width:992px){
+  .social-content{opacity:0;transform:translateY(100%) scale(0);transition:transform .4s var(--ease),opacity .4s var(--ease)}
+  .social.is-hover .social-content{opacity:1;transform:translateY(0) scale(1)}
+}
+
+/* ---------- cart drawer ---------- */
+.cart-overlay{
+  position:fixed;inset:0;z-index:100000001;display:flex;justify-content:flex-end;align-items:stretch;
+  background:rgba(0,0,0,.8);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#000;font-family:Geist,sans-serif;
+  opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .3s;
+}
+.cart-overlay.open{opacity:1;visibility:visible;transition:opacity .3s}
+.cart-panel{
+  display:flex;flex-direction:column;width:100%;min-width:320px;max-width:480px;background:#fff;overflow:auto;
+  box-shadow:0 5px 25px rgba(0,0,0,.25);transform:translateX(100%);transition:transform .3s var(--ease);
+}
+.cart-overlay.open .cart-panel{transform:none}
+.cart-head{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #e6e6e6}
+.cart-head h4{font-size:18px;line-height:24px;font-weight:700}
+.cart-close{width:16px;height:16px}
+.cart-body{flex:1;display:flex;flex-direction:column}
+.cart-empty{flex:1;display:flex;justify-content:center;align-items:center;padding:100px 0}
+.cart-list{list-style:none;margin:0;padding:12px 24px;display:flex;flex-direction:column;gap:12px}
+.cart-item{display:flex;gap:16px;align-items:center}
+.cart-item img{width:60px;height:72px;object-fit:cover}
+.cart-item-info{flex:1;display:flex;flex-direction:column}
+.cart-item-name{font-weight:600}
+.cart-item-var{font-size:.8rem;color:#777}
+.cart-remove{font-size:.8rem;text-decoration:underline;align-self:flex-start}
+.cart-foot{padding:16px 24px;border-top:1px solid #e6e6e6;display:flex;flex-direction:column;gap:16px}
+.cart-sub{display:flex;justify-content:space-between}
+.cart-checkout{display:block;text-align:center;padding:9px 15px;border:1px solid #06030a;color:#06030a;transition:all .3s}
+.cart-checkout:hover{background:#000;color:#fff}
+
+/* ---------- breakpoints (mirroring the source template) ---------- */
+@media (min-width:1280px){
+  .shop-hero{padding-top:90px}
+  .shop-hero-block{height:270px;padding:0}
+  .product-list{grid-template-columns:1fr 1fr 1fr}
+  .product-tag{font-size:14px}
+}
+@media (min-width:1440px){
+  .container{max-width:1320px}
+  .shop-hero-title{font-size:42px}
+  .shop-title{font-size:32px}
+  .shop-section{padding-top:100px;padding-bottom:130px}
+  .shop-menu,.shop-menu-spacer{max-width:350px}
+  .shop-menu{top:60px}
+  .pagination{margin-top:60px}
+  .shop-title-block{margin-bottom:15px}
+}
+@media (min-width:1920px){
+  body{font-size:18px}
+  .container{max-width:1560px}
+  .shop-hero{padding-top:100px}
+  .shop-hero-block{height:320px}
+  .shop-hero-title{font-size:58px}
+  .shop-title{font-size:42px}
+  .shop-section{padding-top:100px;padding-bottom:160px}
+  .product-list{gap:40px}
+  .shop-intro{margin-bottom:60px}
+  .shop-menu,.shop-menu-spacer{max-width:420px}
+  .shop-menu{padding:50px 80px;top:80px}
+  .shop-tab{height:60px}
+  .pagination{margin-top:80px}
+  .page-btn{font-size:18px}
+  .shop-title-block{margin-bottom:20px}
+  .shop-intro-copy{max-width:900px}
+}
+@media (max-width:991px){
+  :root{--pad-x:4vw}
+  .tab-hide{display:none!important}
+  .shop-hero{padding-top:78px}
+  .shop-hero-title{font-size:30px}
+  .shop-title{font-size:24px}
+  .product-list{grid-template-columns:1fr;gap:20px}
+  .shop-section{padding-top:60px;padding-bottom:80px}
+  .shop-menu{max-width:220px;margin-right:30px;padding:30px;top:20px}
+  .shop-menu-spacer{display:none}
+  .page-btn{gap:10px}
+  .shop-intro-copy{padding-left:0}
+  .social-marquee{--tile:33.3333vw}
+}
+@media (max-width:767px){
+  body{font-size:16px}
+  .container{max-width:630px}
+  .shop-hero{padding-top:66px}
+  .shop-hero-block{height:170px}
+  .shop-hero-title{font-size:26px}
+  .shop-title{font-size:22px}
+  .product-icon{width:35px;height:35px;right:25px;bottom:25px}
+  .product-tag{top:10px;left:10px}
+  .product-card{padding:15px;right:10px;bottom:10px}
+  .price{font-size:16px}
+  .product-bag{width:35px;height:35px}
+  .product-card-close{top:15px;right:15px}
+  .shop-section{padding-top:40px;padding-bottom:60px}
+  .shop-row.shop-tabs{flex-direction:column}
+  .shop-menu{position:static;max-width:100%;margin-right:0;margin-bottom:30px}
+  .pagination{justify-content:center;gap:20px}
+}
+@media (max-width:479px){
+  .mob-hide{display:none!important}
+  .social-marquee{--tile:50vw}
+}
+@media (prefers-reduced-motion:reduce){html.js [data-reveal]{opacity:1;transform:none;transition:none}.social-grid{animation-play-state:paused}}
+
+/* ======================================================================
+   NAVBAR — layout & motion after AZ Milano (IX2 timings), RELAXX content
+   ====================================================================== */
+html.mn-lock{overflow:hidden}
+.mn-bar{
+  position:fixed;top:0;left:0;z-index:100000;width:100%;height:70px;color:#fff;font-family:Geist,sans-serif;
+  opacity:0;transition:opacity .7s var(--ease),background-color .4s,color .4s;
+}
+.mn-bar[data-theme="dark"]{color:#1a1a1a}
+.mn-bar.is-in{opacity:1}
+.mn-bar.is-settled{transition:opacity .3s var(--ease),background-color .4s,color .4s}
+.mn-bar.is-in.is-hidden{opacity:0}
+.mn-bar.is-solid{background:#fff;color:#1a1a1a}
+.mn-bar.menu-open{background:transparent;color:#1a1a1a}
+.mn-inner{position:relative;height:100%;padding:0 40px;display:flex;justify-content:space-between;align-items:center}
+.mn-left,.mn-right{display:flex;align-items:center}
+.mn-right{gap:24px}
+.mn-brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:3rem;line-height:1;font-weight:500;color:inherit}
+.mn-burger{position:relative;width:32px;height:32px;padding:0;color:inherit}
+.mn-burger span{position:absolute;left:4px;width:24px;height:1.6px;background:currentColor;border-radius:2px;transition:transform .8s cubic-bezier(.77,0,.18,1),opacity .4s}
+.mn-burger span:nth-child(1){top:9px}
+.mn-burger span:nth-child(2){top:15.2px}
+.mn-burger span:nth-child(3){top:21.4px}
+.mn-burger.is-open span:nth-child(1){transform:translateY(6.2px) rotate(45deg)}
+.mn-burger.is-open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.mn-burger.is-open span:nth-child(3){transform:translateY(-6.2px) rotate(-45deg)}
+.mn-search{position:relative;display:flex;justify-content:flex-end;align-items:center}
+.mn-search-toggle{position:relative;z-index:1;width:32px;height:32px;display:grid;place-items:center;color:inherit}
+.mn-search-toggle > span{position:absolute;inset:4px;transition:opacity .5s,transform .5s}
+.mn-search-toggle svg{display:block;width:100%;height:100%}
+.mn-search-toggle .i-close{opacity:0;transform:rotate(-90deg)}
+.mn-search.is-open .mn-search-toggle{color:#1a1a1a}
+.mn-search.is-open .i-search{opacity:0;transform:rotate(90deg)}
+.mn-search.is-open .i-close{opacity:1;transform:none}
+.mn-search-popup{
+  position:absolute;right:-12px;display:flex;align-items:center;width:0;height:50px;padding:0;overflow:hidden;
+  background:rgba(255,255,255,0);border:2px solid rgba(235,235,235,0);border-radius:6px;
+  transition:width .6s var(--ease),background-color .6s var(--ease),border-color .6s var(--ease);
+}
+.mn-search.is-open .mn-search-popup{
+  width:420px;background:#fff;border-color:#ebebeb;
+  transition:width 1s var(--ease),border-color 1s var(--ease),background-color .5s linear;
+}
+.mn-search-form{display:flex;align-items:center;padding:12px;margin:0}
+.mn-search-submit{flex:none;width:24px;height:24px;color:#8a8a8a}
+.mn-search-submit svg{display:block;width:100%;height:100%}
+.mn-search-input{width:300px;margin-left:12px;padding:0;border:0;outline:0;background:transparent;color:#2e2e2e;font:inherit;font-size:16px;-webkit-appearance:none}
+.mn-search-input::placeholder{color:#555}
+.mn-search-input::-webkit-search-cancel-button{-webkit-appearance:none}
+.mn-cart{position:relative;display:grid;place-items:center;width:37px;height:40px;padding:0;color:inherit}
+.mn-cart svg{width:24px;height:24px}
+.mn-badge{position:absolute;top:0;right:0;display:flex;justify-content:center;align-items:center;min-width:20px;height:20px;padding:0 4px;border-radius:9px;background:#bf8c4e;color:#fff;font-size:12px;line-height:1}
+
+/* full-screen menu: height grows from the top, links flip up one by one, image opens on the right */
+.mn-menu{
+  position:fixed;inset:0;z-index:99999;display:none;width:100vw;height:0;overflow:hidden;
+  background:#e1dedb;color:#1a1a1a;font-family:Geist,sans-serif;font-weight:600;line-height:1.2;
+}
+.mn-menu.is-open{height:150vw;transition:height 1.2s var(--ease)}
+.mn-menu.is-closing{height:0;transition:height 1.2s var(--ease)}
+.mn-mask{width:100vw;height:100vh}
+.mn-holder{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;max-width:1170px;height:100%;margin:0 auto;padding:9em 2em 0}
+.mn-link{display:flex;align-items:flex-end;margin:20px 0;padding:11px 10px;color:#1a1a1a;transition:color .4s}
+.mn-link:hover,.mn-link:focus-visible{color:#bf8c4e}
+.mn-link-p{perspective:1000px}
+.mn-link-inner{
+  display:flex;align-items:flex-end;gap:4px;opacity:0;transform:translateY(30px) rotateX(-90deg);
+  transition:opacity 1s linear var(--cd,0ms),transform 1s linear var(--cd,0ms);
+}
+.mn-menu.is-open .mn-link-inner{opacity:1;transform:none;transition:opacity .8s var(--ease) var(--od,300ms),transform .8s var(--ease) var(--od,300ms)}
+.mn-num{font-size:14px}
+.mn-label{font-size:64px;font-weight:400;line-height:.8}
+.mn-img{position:absolute;top:0;right:0;bottom:0;z-index:0;width:0;height:100vh;min-height:100vh;overflow:hidden;transition:width 1s linear}
+.mn-img img{position:absolute;top:0;right:0;width:50vw;min-width:50vw;max-width:50vw;height:100%;object-fit:cover;filter:grayscale(1)}
+.mn-link-img{z-index:1;opacity:0;transition:width 1s linear,opacity .7s var(--ease)}
+.mn-menu.is-open .mn-img{width:50vw;transition:width 1s var(--ease) .5s}
+.mn-menu.is-open .mn-link-img{transition:width 1s var(--ease) .5s,opacity .7s var(--ease)}
+.mn-menu.is-open .mn-link.is-hover .mn-link-img{opacity:1}
+.mn-foot{position:relative;z-index:40;width:100%;margin-bottom:12px;transform:translateY(100%);transition:transform 1s linear}
+.mn-menu.is-open .mn-foot{transform:none;transition:transform .8s var(--ease)}
+.mn-foot-line{width:100%;height:1px;background:#000}
+.mn-foot-row{display:flex;justify-content:space-between;align-items:center;margin-top:13px;padding-bottom:12px}
+.mn-contacts{display:flex;gap:80px}
+.mn-contacts a{font-size:16px;transition:color .35s}
+.mn-contacts a:hover{color:#bf8c4e}
+.mn-accent{color:#bf8c4e}
+.mn-socials{display:flex;gap:12px}
+.mn-social{display:block;width:24px;height:24px;color:#bf8c4e;transition:filter .2s}
+.mn-social:hover{filter:grayscale(1)}
+.mn-social svg{display:block;width:100%;height:100%}
+
+/* ======================================================================
+   FOOTER — layout & motion after AZ Milano, RELAXX content
+   ====================================================================== */
+.mfoot{position:relative;z-index:2;background:var(--bg);display:flex;align-items:center;padding:170px 0;overflow:hidden;color:#fff;font-family:Geist,sans-serif;font-size:14px;line-height:1.2}
+.mf-bg-color{position:absolute;left:0;right:0;bottom:0;height:94%;background:#1a1a1a}
+.mf-bg{position:absolute;z-index:1;top:4%;bottom:0;left:0;width:35%}
+.mf-bg img{width:100%;height:100%;object-fit:cover}
+.mf-overlay{position:absolute;inset:0;background:rgba(0,0,0,.75)}
+.mf-banner{position:absolute;z-index:2;top:2%;left:0;right:0;overflow:hidden;background:#e4e1de;color:#1a1a1a;transform:rotate(1deg)}
+.mf-banner-track{display:flex;width:max-content;animation:mf-loop 35s linear infinite}
+.mf-banner-group{display:flex;align-items:center;gap:40px;padding-right:40px}
+.mf-banner-item{display:flex;align-items:center}
+.mf-banner-logo{display:block;width:50px}
+.mf-banner-logo svg{display:block;width:100%;height:auto}
+.mf-dot-wrap{padding:0 35px}
+.mf-dot{display:block;width:12px;height:12px;border-radius:30px;background:#000}
+.mf-banner-text{font-size:3vw;font-weight:400;line-height:1.2;text-transform:uppercase}
+@keyframes mf-loop{to{transform:translateX(-50%)}}
+.mf-container{position:relative;z-index:2;width:100%;max-width:1170px;margin:200px auto 0;padding:0 1em}
+.mf-grid{display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr .5fr;gap:30px 70px;text-align:left}
+.mf-shops{padding-right:40px}
+.mf-mark{position:relative;top:-133px;display:block;width:64px;height:64px;margin-top:-64px;color:#fff}
+.mf-mark svg{display:block;width:100%;height:100%}
+.mf-pin{width:24px;height:24px;margin-top:-50px;color:#c9c9c9}
+.mf-pin svg{display:block;width:100%;height:100%}
+.mf-shops-title{margin:20px 0 10px;color:#fff;font-size:36px;font-weight:200;line-height:1.2}
+.mf-shops-cta{margin-top:3em}
+.mf-btn{display:inline-block;padding:9px 32px;border:2px solid #fff;border-radius:4px;color:#fff;font-size:12px;font-weight:500;transition:border-color .5s}
+.mf-btn:hover{border-color:#bf8c4e}
+.mf-heading{margin:0 0 20px;color:#fff;font-size:14px;font-weight:300;line-height:1.5;text-transform:uppercase}
+.mf-link{display:inline-block;padding:2px 0;color:#888;font-size:16px;font-weight:200;transition:color .4s}
+.mf-link:hover{color:#fff}
+.mf-socials{display:flex;flex-direction:column;gap:8px;padding-top:35px}
+.mf-social{display:block;width:24px;height:24px;color:#9a9a9a;transition:filter .3s}
+.mf-social:hover{filter:brightness(200%)}
+.mf-social svg{display:block;width:100%;height:100%}
+.mf-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:2.5em;color:#888;font-size:16px;font-weight:200}
+.mf-legal{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px}
+.mf-legal a{color:#888;transition:color .4s}
+.mf-legal a:hover{color:#fff}
+html.js [data-reveal="fm"]{opacity:0;transform:translateY(25px);transition:opacity 1s var(--ease) .1s,transform 1s var(--ease) .1s}
+html.js [data-reveal="fm"].in{opacity:1;transform:none}
+
+@media (max-width:991px){
+  .mn-brand{font-size:2.5rem}
+  .mfoot{padding:170px 20px 20px}
+  .mf-container{margin-top:0}
+  .mf-grid{grid-template-columns:1fr 1fr}
+  .mf-mark{display:none}
+  .mf-pin{margin-top:22px}
+  .mf-bg{width:100%;height:380px;top:4%;bottom:auto}
+}
+@media (max-width:767px){
+  .mn-inner{padding:0 20px}
+  .mn-brand{font-size:2rem}
+  .mn-menu.is-open{height:100%}
+  .mn-img{height:260px;min-height:260px;bottom:auto;left:0}
+  .mn-img img{width:100%;min-width:100%;max-width:100%}
+  .mn-menu.is-open .mn-img{width:100%}
+  .mn-links{margin-top:141px}
+  .mn-label{font-size:40px}
+  .mn-foot-row{flex-direction:column;align-items:flex-start;gap:18px}
+  .mf-bg{height:370px}
+  .mf-overlay{background:linear-gradient(to top,#1a1a1a,rgba(26,26,26,0))}
+  .mn-search.is-open .mn-search-popup{width:min(420px,calc(100vw - 96px))}
+  .mn-search-input{width:calc(100% - 36px)}
+}
+@media (max-width:479px){
+  .mn-inner{padding:0 12px}
+  .mn-right{gap:11px}
+  .mn-mask{display:flex;flex-direction:column-reverse}
+  .mn-holder{width:100%;height:auto;padding-top:0}
+  .mn-links{margin-top:0}
+  .mn-img-main{position:relative;flex:1;height:auto;min-height:0;padding-top:67px}
+  .mn-img-main img{position:relative;height:100%}
+  .mn-link-img{display:none}
+  .mn-label{font-size:30px}
+  .mn-contacts{flex-direction:column;gap:20px}
+  .mfoot{padding:110px 5px 5px}
+  .mf-grid{display:flex;flex-direction:column}
+  .mf-heading{margin-top:20px}
+  .mf-bg{height:230px}
+  .mf-banner-item{padding:10px 0}
+  .mf-banner-logo{width:40px}
+  .mf-banner-text{font-size:20px}
+  .mf-bottom{flex-direction:column;align-items:flex-start;gap:8px}
+}
+@media (prefers-reduced-motion:reduce){.mf-banner-track{animation-play-state:paused}}
+
+/* ======================================================================
+   CUSTOM CURSOR — vanilla port of the CustomCursor React component
+   (16px dot → 48px translucent ring over links/buttons, .375s, ease [.625,.05,0,1])
+   ====================================================================== */
+.cc-cursor{
+  position:fixed;top:0;left:0;z-index:2147483646;box-sizing:border-box;pointer-events:none;
+  width:16px;height:16px;border:1px solid var(--cc-color);border-radius:9999px;background-color:var(--cc-color);
+  opacity:0;will-change:transform;
+  transition:width .375s cubic-bezier(.625,.05,0,1),height .375s cubic-bezier(.625,.05,0,1),
+    background-color .375s cubic-bezier(.625,.05,0,1),border-color .375s cubic-bezier(.625,.05,0,1),opacity .2s linear;
+}
+.cc-cursor.is-active{opacity:1}
+.cc-cursor.is-hover{width:48px;height:48px;background-color:var(--cc-fill)}
+.cc-cursor.is-active.is-muted{opacity:0}
+
+/* ======================================================================
+   LEGAL PAGES
+   ====================================================================== */
+:root{--bg:#fff}
+body{background:#fff;font-family:Geist,sans-serif}
+.lg-page{max-width:1320px;margin:0 auto;padding:150px 24px 110px}
+.lg-head{max-width:860px;margin-bottom:64px}
+.lg-kicker{margin:0 0 14px;color:#8a857c;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.lg-head h1{margin:0;font-size:56px;font-weight:500;line-height:1.05;letter-spacing:-.02em}
+.lg-date{margin:18px 0 0;color:#77736c;font-size:15px}
+.lg-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:80px;align-items:start}
+.lg-toc{position:sticky;top:100px;font-size:14px}
+.lg-toc-title{margin:0 0 14px;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.lg-toc ol{margin:0;padding:0;list-style:none;counter-reset:toc;border-left:1px solid #e6e2da}
+.lg-toc li{counter-increment:toc}
+.lg-toc a{display:block;padding:7px 0 7px 16px;margin-left:-1px;border-left:1px solid transparent;color:#77736c;line-height:1.35;transition:color .3s,border-color .3s}
+.lg-toc a::before{content:counter(toc) ". "}
+.lg-toc a:hover,.lg-toc a.is-current{color:#000;border-left-color:#000}
+.lg-other{margin-top:28px;padding-top:20px;border-top:1px solid #e6e2da}
+.lg-other a{display:block;padding:5px 0;color:#77736c;transition:color .3s}
+.lg-other a:hover{color:#000}
+.lg-other a[aria-current="page"]{color:#000;font-weight:600}
+.lg-body{max-width:780px;color:#2d2b28;font-size:16px;line-height:1.75}
+.lg-body section{scroll-margin-top:100px;padding-top:8px}
+.lg-body section + section{margin-top:44px}
+.lg-body h2{margin:0 0 14px;color:#000;font-size:24px;font-weight:600;line-height:1.3}
+.lg-body h3{margin:24px 0 8px;color:#000;font-size:17px;font-weight:600}
+.lg-body p{margin:0 0 14px}
+.lg-body ul{margin:0 0 14px;padding-left:20px}
+.lg-body li{margin:4px 0}
+.lg-body a{color:#000;text-decoration:underline;text-underline-offset:3px}
+.lg-body table{width:100%;margin:8px 0 18px;border-collapse:collapse;font-size:15px}
+.lg-body th,.lg-body td{padding:12px 12px 12px 0;border-bottom:1px solid #e6e2da;text-align:left;vertical-align:top}
+.lg-body th{color:#000;font-weight:600}
+.lg-form{margin-top:10px;padding:24px 28px;border:1px solid #e6e2da;border-radius:6px;background:#faf9f6}
+.lg-form p{margin:0 0 10px}
+.ph{padding:0 3px;border-radius:3px;background:#fff1c7;color:#6b4e00}
+@media (max-width:991px){
+  .lg-grid{grid-template-columns:1fr;gap:40px}
+  .lg-toc{position:static}
+  .lg-head h1{font-size:42px}
+}
+@media (max-width:479px){
+  .lg-page{padding:120px 16px 80px}
+  .lg-head h1{font-size:34px}
+  .lg-body h2{font-size:21px}
+  .lg-body table{display:block;overflow-x:auto}
+}
+html[data-lang="fr"] .lg-page[data-lang="en"],html[data-lang="en"] .lg-page[data-lang="fr"]{display:none}
+
+/* language switch */
+html.i18n-pending body{visibility:hidden}
+.mn-lang{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;letter-spacing:.06em}
+.mn-lang button{padding:4px 1px;color:inherit;opacity:.45;transition:opacity .3s}
+.mn-lang button:hover{opacity:.8}
+.mn-lang button[aria-pressed="true"]{opacity:1;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px}
+.mn-lang span{opacity:.35}
+@media (max-width:479px){.mn-lang{font-size:12px}.mn-lang span,.mn-lang button[aria-pressed="true"]{display:none}.mn-brand{font-size:1.5rem}}
+
+/* sharp corners: every button (and button-like tag / panel) is square */
+button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
+.mw-button,.mf-btn,.page-btn,.st-btn,.nl-btn,.product-icon,.product-bag,.product-card,.product-tag,.trend-tag,
+.arrow,.mn-search-popup,.shop-hero,.pd-guide,.co-pill,.lg-form{border-radius:0!important}
+</style>
+</head>
+<body>
+<!-- NAV (layout + motion after AZ Milano, RELAXX content) -->
+<div class="mn-bar" data-theme="dark">
+  <div class="mn-inner">
+    <div class="mn-left">
+      <button class="mn-burger" type="button" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+    <a href="index.html" class="mn-brand" aria-label="RELAXX home">RELAXX</a>
+    <div class="mn-right">
+      <div class="mn-lang" role="group" aria-label="Language"><button type="button" data-set-lang="fr" aria-pressed="false" lang="fr">FR</button><span aria-hidden="true">/</span><button type="button" data-set-lang="en" aria-pressed="false" lang="en">EN</button></div>
+      <div class="mn-search">
+        <button class="mn-search-toggle" type="button" aria-label="Open search" aria-expanded="false"><span class="i-search"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="i-close"><svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span></button>
+        <div class="mn-search-popup">
+          <form class="mn-search-form" action="shop.html" method="get" role="search">
+            <button type="submit" class="mn-search-submit" aria-label="Search"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+            <input class="mn-search-input" type="search" name="q" placeholder="Search…" aria-label="Search products" required>
+          </form>
+        </div>
+      </div>
+      <button class="mn-cart" type="button" data-cart-open aria-label="Open cart"><svg viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1 12H6L5 8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="mn-badge cart-qty">0</span></button>
+    </div>
+  </div>
+</div>
+<nav class="mn-menu" aria-label="Main menu" aria-hidden="true">
+  <div class="mn-mask">
+    <div class="mn-holder">
+      <div class="mn-links">
+        <a class="mn-link" href="shop.html#outerwear" style="--od:300ms;--cd:400ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">01.</span><span class="mn-label">Outerwear</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1613915617430-8ab0fd7c6baf?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
+        <a class="mn-link" href="shop.html#knitwear" style="--od:400ms;--cd:300ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">02.</span><span class="mn-label">Knitwear</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1515511624704-b8916dcc30ea?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
+        <a class="mn-link" href="shop.html#dresses" style="--od:500ms;--cd:200ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">03.</span><span class="mn-label">Dresses</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1635760057387-36eedcc8123f?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
+        <a class="mn-link" href="shop.html#shirts" style="--od:600ms;--cd:100ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">04.</span><span class="mn-label">Shirts</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1713881842156-3d9ef36418cc?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
+        <a class="mn-link" href="shop.html#accessories" style="--od:700ms;--cd:0ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">05.</span><span class="mn-label">Accessories</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
+      </div>
+      <div class="mn-foot">
+        <div class="mn-foot-line"></div>
+        <div class="mn-foot-row">
+          <div class="mn-contacts">
+            <a href="mailto:hello@relaxx.example"><span class="mn-accent">E:</span> hello@relaxx.example</a>
+            <a href="tel:+000123456789"><span class="mn-accent">T:</span> +00 (0) 123 456 789</a>
+          </div>
+          <div class="mn-socials"><a href="#" class="mn-social" aria-label="Instagram" data-cms-social="instagram"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg></a><a href="#" class="mn-social" aria-label="Facebook" data-cms-social="facebook"><svg viewBox="0 0 24 24" fill="none"><path d="M14 8h2V5h-2.5C11 5 10 6.6 10 8.7V11H8v3h2v6h3v-6h2.3l.5-3H13V9c0-.6.4-1 1-1Z" fill="currentColor"/></svg></a><a href="#" class="mn-social" aria-label="YouTube" data-cms-social="youtube"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 9.5v5l4.2-2.5-4.2-2.5Z" fill="currentColor"/></svg></a><a href="#" class="mn-social" aria-label="TikTok" data-cms-social="tiktok"><svg viewBox="0 0 24 24" fill="none"><path d="M14 4v10a3.5 3.5 0 1 1-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M14 4c.5 2.4 2.1 3.9 4.5 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="mn-img mn-img-main" aria-hidden="true"><img src="https://images.unsplash.com/photo-1785927984870-79d4e5129e88?w=1600&q=80&auto=format&fit=crop" alt="" loading="lazy"></div>
+  </div>
+</nav>
+
+<main class="lg-page" data-lang="fr" data-no-i18n>
+  <header class="lg-head">
+    <p class="lg-kicker">Informations légales</p>
+    <h1>Politique de confidentialité</h1>
+    <p class="lg-date">Dernière mise à jour : 30 septembre 2026</p>
+  </header>
+  <div class="lg-grid">
+    <nav class="lg-toc" aria-label="Sommaire">
+      <p class="lg-toc-title">Sommaire</p>
+      <ol><li><a href="#responsable">Qui est responsable de vos données ?</a></li><li><a href="#donnees">Quelles données collectons-nous ?</a></li><li><a href="#finalites">Pourquoi et sur quel fondement ?</a></li><li><a href="#destinataires">Qui a accès à vos données ?</a></li><li><a href="#transferts">Transferts hors de l'Union européenne</a></li><li><a href="#conservation">Combien de temps sont-elles conservées ?</a></li><li><a href="#droits">Vos droits</a></li><li><a href="#cookies">Cookies et stockage local</a></li><li><a href="#securite">Sécurité</a></li><li><a href="#mineurs">Mineurs</a></li><li><a href="#modifications">Modifications</a></li></ol>
+      <div class="lg-other"><a href="cgv.html">Conditions générales de vente</a><a href="cgu.html">Conditions générales d'utilisation</a><a href="confidentialite.html" aria-current="page">Politique de confidentialité</a></div>
+    </nav>
+    <article class="lg-body">
+      <section id="responsable">
+        <h2>Qui est responsable de vos données ?</h2>
+        <p>Le responsable du traitement est <span class="ph">[Raison sociale]</span>, <span class="ph">[forme juridique]</span> au capital de <span class="ph">[montant]</span> €, immatriculée au RCS de <span class="ph">[ville]</span> sous le numéro <span class="ph">[SIREN]</span>, dont le siège social est situé <span class="ph">[adresse complète]</span>.</p>
+        <p>Pour toute question relative à vos données, vous pouvez écrire à <span class="ph">[adresse e-mail dédiée]</span> ou, le cas échéant, à notre délégué à la protection des données : <span class="ph">[coordonnées du DPO]</span>.</p>
+      </section>
+      <section id="donnees">
+        <h2>Quelles données collectons-nous ?</h2>
+        <ul>
+          <li>Données d'identification et de contact : nom, prénom, adresse e-mail, téléphone.</li>
+          <li>Données de livraison et de facturation : adresses postales.</li>
+          <li>Données de commande : produits achetés, montants, historique, retours.</li>
+          <li>Données de paiement : traitées directement par notre prestataire de paiement ; nous ne conservons qu'une référence de transaction.</li>
+          <li>Données de navigation : adresse IP, type d'appareil et de navigateur, pages consultées, selon vos choix en matière de cookies.</li>
+          <li>Échanges avec le service client, abonnements à la newsletter et avis publiés.</li>
+        </ul>
+      </section>
+      <section id="finalites">
+        <h2>Pourquoi et sur quel fondement ?</h2>
+        <table>
+          <thead><tr><th>Finalité</th><th>Base légale</th></tr></thead>
+          <tbody>
+            <tr><td>Traitement, livraison et suivi des commandes, retours et remboursements</td><td>Exécution du contrat</td></tr>
+            <tr><td>Gestion du compte client et du service client</td><td>Exécution du contrat, intérêt légitime</td></tr>
+            <tr><td>Facturation et obligations comptables</td><td>Obligation légale</td></tr>
+            <tr><td>Prévention de la fraude et sécurisation des paiements</td><td>Intérêt légitime</td></tr>
+            <tr><td>Envoi de la newsletter</td><td>Consentement</td></tr>
+            <tr><td>Offres sur des produits similaires adressées aux clients</td><td>Intérêt légitime, avec droit d'opposition à tout moment</td></tr>
+            <tr><td>Mesure d'audience et personnalisation</td><td>Consentement</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section id="destinataires">
+        <h2>Qui a accès à vos données ?</h2>
+        <p>Vos données sont accessibles aux seules personnes habilitées de RELAXX et à nos prestataires, dans la limite de ce qui est nécessaire à leur mission : hébergement du Site, paiement, transport, envoi d'e-mails et outils du service client. Ces prestataires agissent sur nos instructions, dans le cadre de contrats conformes à la réglementation.</p>
+        <p>Vos données peuvent être communiquées aux autorités lorsque la loi l'exige. Elles ne sont jamais vendues.</p>
+      </section>
+      <section id="transferts">
+        <h2>Transferts hors de l'Union européenne</h2>
+        <p>Lorsque l'un de nos prestataires traite des données en dehors de l'Union européenne, ce transfert est encadré par des garanties appropriées, telles qu'une décision d'adéquation de la Commission européenne ou des clauses contractuelles types. Vous pouvez en obtenir le détail sur demande.</p>
+      </section>
+      <section id="conservation">
+        <h2>Combien de temps sont-elles conservées ?</h2>
+        <table>
+          <thead><tr><th>Données</th><th>Durée de conservation</th></tr></thead>
+          <tbody>
+            <tr><td>Compte client</td><td>Jusqu'à sa suppression ; supprimé après 3 ans d'inactivité</td></tr>
+            <tr><td>Commandes et échanges avec le service client</td><td>Durée de la relation commerciale, puis 5 ans (prescription)</td></tr>
+            <tr><td>Factures et pièces comptables</td><td>10 ans</td></tr>
+            <tr><td>Prospects et abonnés à la newsletter</td><td>3 ans à compter du dernier contact ou jusqu'au désabonnement</td></tr>
+            <tr><td>Cookies soumis à consentement</td><td>13 mois maximum</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section id="droits">
+        <h2>Vos droits</h2>
+        <p>Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition (notamment à la prospection, à tout moment) et de portabilité de vos données, ainsi que du droit de retirer votre consentement et de définir des directives relatives au sort de vos données après votre décès.</p>
+        <p>Pour exercer ces droits, écrivez à <span class="ph">[adresse e-mail dédiée]</span> ou à <span class="ph">[adresse postale]</span>. Nous répondons dans un délai d'un mois. Une pièce justificative pourra vous être demandée en cas de doute raisonnable sur votre identité.</p>
+        <p>Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une réclamation auprès de la CNIL (<a href="https://www.cnil.fr" rel="noopener">www.cnil.fr</a>).</p>
+      </section>
+      <section id="cookies">
+        <h2>Cookies et stockage local</h2>
+        <p>Le Site utilise des traceurs strictement nécessaires à son fonctionnement, qui ne requièrent pas votre consentement. Votre panier et votre liste d'envies sont ainsi enregistrés dans le stockage local de votre navigateur, afin de retrouver vos articles d'une visite à l'autre ; ces informations ne sont pas transmises à nos serveurs.</p>
+        <p>Les traceurs de mesure d'audience et de personnalisation ne sont déposés qu'avec votre accord, recueilli via le bandeau affiché lors de votre première visite. Refuser est aussi simple qu'accepter, et vous pouvez modifier vos choix à tout moment <span class="ph">[lien « Gérer les cookies »]</span>.</p>
+      </section>
+      <section id="securite">
+        <h2>Sécurité</h2>
+        <p>Nous mettons en œuvre des mesures techniques et organisationnelles adaptées pour protéger vos données : chiffrement des échanges, contrôle des accès, sauvegardes et sélection de prestataires présentant des garanties suffisantes.</p>
+      </section>
+      <section id="mineurs">
+        <h2>Mineurs</h2>
+        <p>Nos services ne s'adressent pas aux enfants de moins de 15 ans. Si vous pensez qu'un mineur nous a transmis des données sans autorisation, contactez-nous afin que nous les supprimions.</p>
+      </section>
+      <section id="modifications">
+        <h2>Modifications</h2>
+        <p>Cette politique peut évoluer. En cas de changement important, nous vous en informerons par un message sur le Site ou par e-mail. La date de dernière mise à jour figure en haut de cette page.</p>
+      </section>
+    </article>
+  </div>
+</main>
+<main class="lg-page" data-lang="en" data-no-i18n>
+  <header class="lg-head">
+    <p class="lg-kicker">Legal information</p>
+    <h1>Privacy Policy</h1>
+    <p class="lg-date">Last updated: 30 September 2026 · This English version is provided for convenience; in case of discrepancy, the French version prevails.</p>
+  </header>
+  <div class="lg-grid">
+    <nav class="lg-toc" aria-label="Contents">
+      <p class="lg-toc-title">Contents</p>
+      <ol><li><a href="#en-responsable">Who is responsible for your data?</a></li><li><a href="#en-donnees">What data do we collect?</a></li><li><a href="#en-finalites">Why, and on what legal basis?</a></li><li><a href="#en-destinataires">Who can access your data?</a></li><li><a href="#en-transferts">Transfers outside the European Union</a></li><li><a href="#en-conservation">How long is it kept?</a></li><li><a href="#en-droits">Your rights</a></li><li><a href="#en-cookies">Cookies and local storage</a></li><li><a href="#en-securite">Security</a></li><li><a href="#en-mineurs">Minors</a></li><li><a href="#en-modifications">Changes</a></li></ol>
+      <div class="lg-other"><a href="cgv.html">Terms of Sale</a><a href="cgu.html">Terms of Use</a><a href="confidentialite.html" aria-current="page">Privacy Policy</a></div>
+    </nav>
+    <article class="lg-body">
+      <section id="en-responsable">
+        <h2>Who is responsible for your data?</h2>
+        <p>The data controller is <span class="ph">[Company name]</span>, a <span class="ph">[legal form]</span> with a share capital of €<span class="ph">[amount]</span>, registered with the <span class="ph">[city]</span> Trade and Companies Register under number <span class="ph">[SIREN]</span>, whose registered office is at <span class="ph">[full address]</span>.</p>
+        <p>For any question about your data, you can write to <span class="ph">[dedicated email address]</span> or, where applicable, to our data protection officer: <span class="ph">[DPO contact details]</span>.</p>
+      </section>
+      <section id="en-donnees">
+        <h2>What data do we collect?</h2>
+        <ul>
+          <li>Identity and contact details: first name, last name, email address, phone number.</li>
+          <li>Delivery and billing details: postal addresses.</li>
+          <li>Order data: products bought, amounts, history, returns.</li>
+          <li>Payment data: processed directly by our payment provider; we only keep a transaction reference.</li>
+          <li>Browsing data: IP address, device and browser type, pages viewed, depending on your cookie choices.</li>
+          <li>Exchanges with customer service, newsletter subscriptions and published reviews.</li>
+        </ul>
+      </section>
+      <section id="en-finalites">
+        <h2>Why, and on what legal basis?</h2>
+        <table>
+          <thead><tr><th>Purpose</th><th>Legal basis</th></tr></thead>
+          <tbody>
+            <tr><td>Processing, delivering and tracking orders, returns and refunds</td><td>Performance of the contract</td></tr>
+            <tr><td>Managing customer accounts and customer service</td><td>Performance of the contract, legitimate interest</td></tr>
+            <tr><td>Invoicing and accounting obligations</td><td>Legal obligation</td></tr>
+            <tr><td>Fraud prevention and payment security</td><td>Legitimate interest</td></tr>
+            <tr><td>Sending the newsletter</td><td>Consent</td></tr>
+            <tr><td>Offers on similar products sent to customers</td><td>Legitimate interest, with a right to object at any time</td></tr>
+            <tr><td>Audience measurement and personalisation</td><td>Consent</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section id="en-destinataires">
+        <h2>Who can access your data?</h2>
+        <p>Your data is accessible only to authorised RELAXX staff and to our service providers, to the extent needed for their work: website hosting, payment, shipping, email delivery and customer service tools. These providers act on our instructions under contracts that comply with the regulations.</p>
+        <p>Your data may be disclosed to the authorities where required by law. It is never sold.</p>
+      </section>
+      <section id="en-transferts">
+        <h2>Transfers outside the European Union</h2>
+        <p>Where one of our providers processes data outside the European Union, the transfer is covered by appropriate safeguards, such as a European Commission adequacy decision or standard contractual clauses. Details are available on request.</p>
+      </section>
+      <section id="en-conservation">
+        <h2>How long is it kept?</h2>
+        <table>
+          <thead><tr><th>Data</th><th>Retention period</th></tr></thead>
+          <tbody>
+            <tr><td>Customer account</td><td>Until deleted; deleted after 3 years of inactivity</td></tr>
+            <tr><td>Orders and customer service exchanges</td><td>Length of the business relationship, then 5 years (limitation period)</td></tr>
+            <tr><td>Invoices and accounting records</td><td>10 years</td></tr>
+            <tr><td>Prospects and newsletter subscribers</td><td>3 years from the last contact or until unsubscribing</td></tr>
+            <tr><td>Cookies requiring consent</td><td>13 months maximum</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section id="en-droits">
+        <h2>Your rights</h2>
+        <p>You have the right to access, rectify and erase your data, to restrict or object to its processing (including direct marketing, at any time) and to data portability, as well as the right to withdraw your consent and to give instructions about what happens to your data after your death.</p>
+        <p>To exercise these rights, write to <span class="ph">[dedicated email address]</span> or <span class="ph">[postal address]</span>. We reply within one month. We may ask for proof of identity if there is reasonable doubt about who you are.</p>
+        <p>If you believe your rights have not been respected, you can lodge a complaint with the CNIL (<a href="https://www.cnil.fr" rel="noopener">www.cnil.fr</a>).</p>
+      </section>
+      <section id="en-cookies">
+        <h2>Cookies and local storage</h2>
+        <p>The Site uses trackers that are strictly necessary for it to work and do not require your consent. Your bag, wishlist and language choice are saved in your browser's local storage so they are still there on your next visit; this information is not sent to our servers.</p>
+        <p>Audience measurement and personalisation trackers are only set with your consent, collected through the banner shown on your first visit. Refusing is as easy as accepting, and you can change your choices at any time <span class="ph">["Manage cookies" link]</span>.</p>
+      </section>
+      <section id="en-securite">
+        <h2>Security</h2>
+        <p>We apply appropriate technical and organisational measures to protect your data: encrypted connections, access control, backups and the selection of providers offering sufficient guarantees.</p>
+      </section>
+      <section id="en-mineurs">
+        <h2>Minors</h2>
+        <p>Our services are not intended for children under 15. If you believe a minor has sent us data without permission, contact us so that we can delete it.</p>
+      </section>
+      <section id="en-modifications">
+        <h2>Changes</h2>
+        <p>This policy may change. If there is a significant change, we will let you know through a message on the Site or by email. The date of the last update is shown at the top of this page.</p>
+      </section>
+    </article>
+  </div>
+</main>
+<!-- FOOTER (layout + motion after AZ Milano, RELAXX content) -->
+<footer class="mfoot">
+  <div class="mf-banner" aria-hidden="true"><div class="mf-banner-track"><div class="mf-banner-group"><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div></div><div class="mf-banner-group"><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div><div class="mf-banner-item"><span class="mf-banner-logo"><svg viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="3" fill="currentColor"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="#e4e1de" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">RELAXX</span></div></div></div></div>
+  <div class="mf-container">
+    <div class="mf-grid">
+      <div data-reveal="fm">
+        <div class="mf-shops">
+          <a href="shop.html" class="mf-mark" aria-label="Shop RELAXX"><svg viewBox="0 0 64 64" fill="none"><rect x="1.5" y="1.5" width="61" height="61" rx="2" stroke="currentColor" stroke-width="3"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+          <div class="mf-pin"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" stroke-width="1.5"/></svg></div>
+          <h3 class="mf-shops-title" data-cms="footer.shops.title">Try the latest pieces in one of our stores</h3>
+          <div class="mf-shops-cta"><a href="#" class="mf-btn" data-cms="footer.shops.button" data-cms-href="footer.shops.link">FIND A STORE</a></div>
+        </div>
+      </div>
+        <div data-reveal="fm">
+          <h2 class="mf-heading">Categories</h2>
+          <div data-reveal="fm"><a href="shop.html#outerwear" class="mf-link">Outerwear</a></div>
+          <div data-reveal="fm"><a href="shop.html#knitwear" class="mf-link">Knitwear</a></div>
+          <div data-reveal="fm"><a href="shop.html#dresses" class="mf-link">Dresses</a></div>
+          <div data-reveal="fm"><a href="shop.html#shirts" class="mf-link">Shirts</a></div>
+          <div data-reveal="fm"><a href="shop.html#accessories" class="mf-link">Accessories</a></div>
+        </div>
+        <div data-reveal="fm">
+          <h2 class="mf-heading">Company</h2>
+          <div data-reveal="fm"><a href="histoire.html" class="mf-link">About</a></div>
+          <div data-reveal="fm"><a href="index.html#journal" class="mf-link" data-cms="footer.link.journal" data-cms-href="footer.link.journal.href">Journal</a></div>
+          <div data-reveal="fm"><a href="shop.html" class="mf-link">Shop</a></div>
+          <div data-reveal="fm"><a href="mailto:hello@relaxx.example" class="mf-link">Contact</a></div>
+          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.shipping" data-cms-href="footer.link.shipping.href">Shipping</a></div>
+        </div>
+        <div data-reveal="fm">
+          <h2 class="mf-heading">Help</h2>
+          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.returns" data-cms-href="footer.link.returns.href">Returns</a></div>
+          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.sizeguide" data-cms-href="footer.link.sizeguide.href">Size Guide</a></div>
+          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.care" data-cms-href="footer.link.care.href">Care</a></div>
+          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.faq" data-cms-href="footer.link.faq.href">FAQ</a></div>
+        </div>
+      <div data-reveal="fm"><div class="mf-socials"><a href="#" class="mf-social" aria-label="Instagram" data-cms-social="instagram"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg></a><a href="#" class="mf-social" aria-label="Facebook" data-cms-social="facebook"><svg viewBox="0 0 24 24" fill="none"><path d="M14 8h2V5h-2.5C11 5 10 6.6 10 8.7V11H8v3h2v6h3v-6h2.3l.5-3H13V9c0-.6.4-1 1-1Z" fill="currentColor"/></svg></a><a href="#" class="mf-social" aria-label="YouTube" data-cms-social="youtube"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 9.5v5l4.2-2.5-4.2-2.5Z" fill="currentColor"/></svg></a><a href="#" class="mf-social" aria-label="TikTok" data-cms-social="tiktok"><svg viewBox="0 0 24 24" fill="none"><path d="M14 4v10a3.5 3.5 0 1 1-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M14 4c.5 2.4 2.1 3.9 4.5 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a></div></div>
+    </div>
+    <div class="mf-bottom">
+      <div class="mf-legal"><span data-cms="footer.copyright">© 2025 RELAXX. All rights reserved.</span><a href="cgv.html">Terms of Sale</a><a href="cgu.html">Terms of Use</a><a href="confidentialite.html">Privacy Policy</a></div>
+      <div data-cms="footer.tagline">Designed &amp; made in small batches</div>
+    </div>
+  </div>
+  <div class="mf-bg" aria-hidden="true"><img data-cms="footer.image" data-cms-type="img" src="https://images.unsplash.com/photo-1629299342971-6ee572a039b5?w=1200&q=80&auto=format&fit=crop" alt="" loading="lazy"><div class="mf-overlay"></div></div>
+  <div class="mf-bg-color" aria-hidden="true"></div>
+</footer>
+
+<!-- CART -->
+<div class="cart-overlay" aria-hidden="true">
+  <div class="cart-panel" role="dialog" aria-label="Your cart">
+    <div class="cart-head">
+      <h4>Your Cart</h4>
+      <button class="cart-close" type="button" aria-label="Close cart"><svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3 3 13" stroke="#000" stroke-width="1.5"/></svg></button>
+    </div>
+    <div class="cart-body"></div>
+  </div>
+</div>
+
+<script>
+/* FR / EN: the site is written in English; French comes from this dictionary. Static text is translated on load,
+   and anything the page scripts add later (products, cart, messages) is translated as it appears. */
+(function () {
+  "use strict";
+  var d = document.documentElement, lang = d.getAttribute("data-lang") || "en";
+  var DICT = {"Open menu":"Ouvrir le menu","Close menu":"Fermer le menu","RELAXX home":"Accueil RELAXX","Open search":"Ouvrir la recherche","Close search":"Fermer la recherche","Search":"Rechercher","Search…":"Rechercher…","Search products":"Rechercher des produits","Open cart":"Ouvrir le panier","Main menu":"Menu principal","Language":"Langue","Outerwear":"Manteaux","Knitwear":"Maille","Dresses":"Robes","Shirts":"Chemises","Trousers":"Pantalons","Accessories":"Accessoires","All":"Tout","Your cart":"Votre panier","Your Cart":"Votre panier","Close cart":"Fermer le panier","No items found.":"Votre panier est vide.","Remove":"Retirer","Subtotal":"Sous-total","Continue to Checkout":"Passer la commande","Visit Socials":"Nos réseaux","Shop RELAXX":"Boutique RELAXX","Try the latest pieces in one of our stores":"Essayez nos dernières pièces dans l'une de nos boutiques","FIND A STORE":"TROUVER UNE BOUTIQUE","Categories":"Catégories","Company":"Entreprise","About":"À propos","Journal":"Journal","Shop":"Boutique","Contact":"Contact","Shipping":"Livraison","Help":"Aide","Returns":"Retours","Size Guide":"Guide des tailles","Care":"Entretien","FAQ":"FAQ","© 2025 RELAXX. All rights reserved.":"© 2025 RELAXX. Tous droits réservés.","Terms of Sale":"CGV","Terms of Use":"CGU","Privacy Policy":"Confidentialité","Designed & made in small batches":"Conçu et fabriqué en petites séries","RELAXX — Fashion Store":"RELAXX — Boutique de mode","Product":"Produit","Checkout":"Commande","Woven to":"Tissé pour","awaken":"éveiller","shop now":"découvrir","© 2025 relaxx collection":"© 2025 collection relaxx","scroll":"défiler","Trending":"Tendance","Woman in a long dark coat":"Femme en manteau long sombre","Woman in a soft knit sweater":"Femme en pull en maille douce","Woman in a red dress":"Femme en robe rouge","Shop the trending outerwear edit":"Les manteaux tendance à découvrir","Shop the trending knitwear edit":"La maille tendance à découvrir","Shop the trending dresses edit":"Les robes tendance à découvrir","Collection categories":"Catégories de la collection","Chosen With Care, Made to Be Worn":"Choisis avec soin, faits pour être portés","View All Collections":"Voir toutes les collections","Portrait in sunglasses":"Portrait avec lunettes de soleil","Minimal portrait":"Portrait minimaliste","Where Style":"Là où le style","Meets Substance":"rencontre l'essentiel","Every RELAXX garment begins with one simple question: will this still feel right in ten years? We start from honest fibres like organic cotton, washed linen and responsibly sourced wool, then cut in small runs so nothing is made without a reason. Each seam is finished with care by the same small workshops we have partnered with since day one. The result is a wardrobe that works quietly in the background of a full life: pieces that soften with wear, pair with everything you already own and carry intention rather than excess. Fewer, better things, made to be kept, repaired and worn for many years to come.":"Chaque vêtement RELAXX commence par une question simple : sera-t-il toujours juste dans dix ans ? Nous partons de fibres honnêtes comme le coton biologique, le lin lavé et la laine d'origine responsable, puis nous produisons en petites séries pour que rien ne soit fabriqué sans raison. Chaque couture est finie avec soin par les mêmes petits ateliers qui nous accompagnent depuis le premier jour. Le résultat : une garde-robe qui accompagne discrètement une vie bien remplie, des pièces qui s'adoucissent au fil du temps, s'accordent avec tout ce que vous possédez déjà et portent une intention plutôt qu'un excès. Moins de choses, mais de meilleures, faites pour être gardées, réparées et portées pendant de longues années.","learn more about us":"en savoir plus sur nous","what our clients say":"ce que disent nos clients","About Us":"À propos","Testimonials":"Témoignages","Previous slide":"Diapositive précédente","Next slide":"Diapositive suivante","“ The fit is quiet and exact. Nothing shouts, yet everything feels considered. My RELAXX coat is the thing I reach for first. ”":"« La coupe est discrète et précise. Rien ne crie, et pourtant tout semble pensé. Mon manteau RELAXX est la première pièce que j'attrape. »","“ I love knowing where my clothes come from. The fabrics are beautiful and still look new after a full year of wear. ”":"« J'aime savoir d'où viennent mes vêtements. Les tissus sont magnifiques et semblent encore neufs après une année entière. »","“ Each drop feels like a small, careful edit instead of a flood of product. Choosing is easy, and wearing is even easier. ”":"« Chaque collection ressemble à une petite sélection soignée plutôt qu'à un déluge de produits. Choisir est simple, porter l'est encore plus. »","“ Clean lines, soft textures and no compromise on comfort. RELAXX has quietly become the backbone of my wardrobe. ”":"« Des lignes nettes, des matières douces et aucun compromis sur le confort. RELAXX est discrètement devenu la base de ma garde-robe. »","“ You can feel the hand finishing in every detail. These are clothes that ask to be kept, mended and worn again. ”":"« On sent la finition à la main dans chaque détail. Ce sont des vêtements qu'on a envie de garder, de réparer et de porter encore. »","our blog":"notre blog","From the Journal":"Le Journal","journal":"journal","materials":"matières","style":"style","lifestyle":"art de vivre","Portrait in red light":"Portrait en lumière rouge","Designers at work in a studio":"Créatrices au travail dans un atelier","Outdoor fashion portrait":"Portrait de mode en extérieur","Perfume bottle":"Flacon de parfum","The Quiet Luxury of Getting Dressed Slowly":"Le luxe discret de s'habiller lentement","What Natural Fibres Did for My Wardrobe":"Ce que les fibres naturelles ont changé dans ma garde-robe","Beyond Trends: Building a Personal Uniform":"Au-delà des tendances : construire son uniforme","Scent, Memory and the Clothes We Keep":"Parfum, mémoire et vêtements que l'on garde","read more":"lire la suite","Best Selling":"Meilleure vente","On Sale":"Promo","New Collection":"Nouvelle collection","Close":"Fermer","Previous":"Précédent","Next":"Suivant","Explore the RELAXX Collection":"Découvrez la collection RELAXX","Pieces for every day and every season, cut in small runs from honest fibres. Browse by category or see everything at once.":"Des pièces pour chaque jour et chaque saison, produites en petites séries à partir de fibres honnêtes. Parcourez par catégorie ou voyez tout d'un coup d'œil.","1 product matches your search.":"1 produit correspond à votre recherche.","Camel Wrap Coat":"Manteau portefeuille camel","Double-Breasted Coat":"Manteau croisé","Belted Trench":"Trench ceinturé","Wool Overcoat":"Pardessus en laine","Cropped Jacket":"Veste courte","Longline Coat":"Manteau long","Cable Knit Sweater":"Pull torsadé","Merino Crewneck":"Pull col rond en mérinos","Ribbed Turtleneck":"Col roulé côtelé","Chunky Cardigan":"Gilet en grosse maille","Mohair Pullover":"Pull en mohair","Cashmere V-Neck":"Pull col V en cachemire","Silk Slip Dress":"Robe nuisette en soie","Wrap Midi Dress":"Robe portefeuille midi","Pleated Maxi Dress":"Robe longue plissée","Satin Evening Dress":"Robe de soirée en satin","Linen Shirt Dress":"Robe chemise en lin","Knit Column Dress":"Robe colonne en maille","Oversized Linen Shirt":"Chemise oversize en lin","Poplin Button-Down":"Chemise en popeline","Relaxed Oxford Shirt":"Chemise Oxford décontractée","Wide-Leg Trousers":"Pantalon large","Pleated Wool Trousers":"Pantalon à pinces en laine","Tailored Straight Pants":"Pantalon droit tailleur","Leather Tote":"Cabas en cuir","Mini Shoulder Bag":"Mini sac porté épaule","Structured Top-Handle":"Sac structuré à anse","More images":"Autres images","Product images":"Images du produit","Choose image":"Choisir une image","Breadcrumb":"Fil d'Ariane","Quantity":"Quantité","Decrease quantity":"Diminuer la quantité","Increase quantity":"Augmenter la quantité","Add to wishlist":"Ajouter à la liste d'envies","Close size guide":"Fermer le guide des tailles","Color —":"Couleur —","Size":"Taille","Size guide →":"Guide des tailles →","Please choose a size.":"Veuillez choisir une taille.","In stock — ships within 2–4 business days":"En stock — expédié sous 2 à 4 jours ouvrés","Free returns within 30 days":"Retours gratuits sous 30 jours","You may also like":"Vous aimerez aussi","Size guide":"Guide des tailles","Body measurements in centimetres. Between two sizes? Take the larger one for a relaxed fit.":"Mesures du corps en centimètres. Entre deux tailles ? Choisissez la plus grande pour une coupe plus ample.","Measurements of the bag, taken flat.":"Dimensions du sac, mesurées à plat.","Chest":"Tour de poitrine","Waist":"Tour de taille","Hips":"Tour de hanches","Dimensions":"Dimensions","Strap drop":"Hauteur de bandoulière","Weight":"Poids","22–55 cm, adjustable":"22–55 cm, réglable","One size":"Taille unique","Added ✓":"Ajouté ✓","Fabric & Fit":"Matière & coupe","Care Instructions":"Entretien","Shipping & Returns":"Livraison & retours","Available colours":"Couleurs disponibles","Camel":"Camel","Charcoal":"Anthracite","Ink":"Encre","Stone":"Pierre","Oat":"Avoine","Ecru":"Écru","Sage":"Sauge","Black":"Noir","Taupe":"Taupe","Sand":"Sable","White":"Blanc","Sky":"Ciel","Olive":"Olive","Cognac":"Cognac","Chocolate":"Chocolat","Bone":"Ivoire","A clean, structured shape in a dense wool blend that holds its line all season. Fully lined, with deep pockets and tonal buttons, cut to layer easily over knitwear.":"Une ligne nette et structurée dans un mélange de laine dense qui garde sa tenue toute la saison. Entièrement doublé, avec des poches profondes et des boutons ton sur ton, coupé pour se porter facilement sur la maille.","80% wool, 20% recycled polyamide; lining 100% viscose. Relaxed fit, true to size — the model is 176 cm and wears size S.":"80 % laine, 20 % polyamide recyclé ; doublure 100 % viscose. Coupe ample, taille normalement — le mannequin mesure 176 cm et porte une taille S.","Dry clean only. Brush gently after wearing, hang on a shaped hanger and store in a breathable garment bag.":"Nettoyage à sec uniquement. Brossez délicatement après chaque port, suspendez sur un cintre épaulé et rangez dans une housse respirante.","Knitted in a soft, springy yarn with a relaxed shoulder and ribbed trims. Warm without the weight, easy on its own or under a coat.":"Tricoté dans un fil doux et élastique, avec une épaule décontractée et des finitions côtelées. Chaud sans être lourd, à porter seul ou sous un manteau.","70% merino wool, 30% recycled cashmere. Relaxed fit — size down for a closer shape. The model wears size S.":"70 % laine mérinos, 30 % cachemire recyclé. Coupe ample — prenez une taille en dessous pour un tombé plus ajusté. Le mannequin porte une taille S.","Hand wash cold or use a wool cycle. Dry flat in shape, away from direct heat. Do not tumble dry.":"Lavage à la main à froid ou programme laine. Séchez à plat en remettant en forme, loin d'une source de chaleur. Pas de sèche-linge.","A fluid silhouette that moves with the body, finished with a concealed back zip and a soft lining. Designed to go from day to evening.":"Une silhouette fluide qui accompagne le mouvement, finie par une fermeture invisible au dos et une doublure douce. Pensée pour passer du jour au soir.","70% silk, 30% wool, fully lined. True to size — the model is 175 cm and wears size S.":"70 % soie, 30 % laine, entièrement doublée. Taille normalement — le mannequin mesure 175 cm et porte une taille S.","Dry clean recommended. Cool iron on the reverse if needed and store on a hanger.":"Nettoyage à sec recommandé. Repassez à fer doux sur l'envers si besoin et rangez sur un cintre.","An easy, slightly oversized shirt with a soft collar and dropped shoulders. Light and breathable, it only gets better with every wash.":"Une chemise facile, légèrement oversize, avec un col souple et des épaules tombantes. Légère et respirante, elle s'embellit à chaque lavage.","100% organic cotton. Oversized fit — take your usual size. The model wears size S.":"100 % coton biologique. Coupe oversize — prenez votre taille habituelle. Le mannequin porte une taille S.","Machine wash at 30°C with similar colours. Line dry and iron while slightly damp.":"Lavage en machine à 30 °C avec des couleurs similaires. Séchez sur un fil et repassez encore légèrement humide.","High-waisted with a pressed front crease and a long, wide leg. Slanted side pockets and a hook-and-bar fastening keep the line clean.":"Taille haute, pli marqué sur le devant et jambe longue et large. Poches latérales en biais et fermeture à crochet pour une ligne nette.","54% wool, 44% recycled polyester, 2% elastane. High rise, full length — the model is 176 cm and wears size S.":"54 % laine, 44 % polyester recyclé, 2 % élasthanne. Taille haute, longueur complète — le mannequin mesure 176 cm et porte une taille S.","Dry clean or gentle hand wash. Steam to refresh the crease and hang to store.":"Nettoyage à sec ou lavage délicat à la main. Défroissez à la vapeur pour raviver le pli et rangez suspendu.","Shaped in smooth full-grain leather with a clean, minimal outline. Room for the essentials, an inner zip pocket and a detachable strap.":"Façonné dans un cuir pleine fleur lisse aux lignes nettes et minimales. De la place pour l'essentiel, une poche intérieure zippée et une bandoulière amovible.","100% full-grain leather, cotton lining. 30 × 22 × 11 cm, strap drop 22–55 cm.":"100 % cuir pleine fleur, doublure coton. 30 × 22 × 11 cm, hauteur de bandoulière 22–55 cm.","Wipe with a soft dry cloth. Keep away from heavy rain and direct sunlight, and store filled in its dust bag.":"Essuyez avec un chiffon doux et sec. Protégez-le des fortes pluies et du soleil direct, et rangez-le rembourré dans sa housse.","Free standard delivery on orders over CFA100,000, dispatched within 2–4 business days; express delivery is offered at checkout. Returns are free within 30 days of delivery — see our":"Livraison standard offerte dès 100 000 FCFA d'achat, expédiée sous 2 à 4 jours ouvrés ; la livraison express est proposée au moment du paiement. Les retours sont gratuits sous 30 jours après la livraison — consultez nos","terms of sale":"conditions générales de vente","privacy policy":"politique de confidentialité","Delivery":"Livraison","Step 1 / 2":"Étape 1 / 2","Step 2 / 2":"Étape 2 / 2","First name":"Prénom","Last name":"Nom","Email":"E-mail","Phone number":"Téléphone","Shipping address":"Adresse de livraison","Country / Region":"Pays / Région","City":"Ville","Address":"Adresse","Zip / Postal code":"Code postal","Delivery method":"Mode de livraison","Standard delivery":"Livraison standard","Delivered within 2–4 business days":"Livrée sous 2 à 4 jours ouvrés","Free":"Offerte","Express delivery":"Livraison express","Delivered within 1–2 business days":"Livrée sous 1 à 2 jours ouvrés","Payment":"Paiement","Payment method":"Moyen de paiement","Credit card":"Carte bancaire","Card number":"Numéro de carte","Cardholder name":"Titulaire de la carte","Expiration date (MM/YY)":"Date d'expiration (MM/AA)","You will be redirected to PayPal to complete your payment.":"Vous serez redirigé vers PayPal pour finaliser votre paiement.","Confirm the payment with Apple Pay on your device.":"Confirmez le paiement avec Apple Pay sur votre appareil.","I have read and accept the":"J'ai lu et j'accepte les","and the":"et la","Order summary":"Récapitulatif de commande","Promo code":"Code promo","Apply":"Appliquer","Discount":"Remise","Total:":"Total :","Size:":"Taille :","Color:":"Couleur :","Quantity:":"Quantité :","Your bag is empty.":"Votre panier est vide.","Continue shopping":"Continuer mes achats","Required field":"Champ obligatoire","Enter a valid email address":"Saisissez une adresse e-mail valide","Enter a valid phone number":"Saisissez un numéro de téléphone valide","Enter a valid card number":"Saisissez un numéro de carte valide","Enter a valid date (MM/YY)":"Saisissez une date valide (MM/AA)","Enter a valid CVV":"Saisissez un CVV valide","Please accept the terms to continue":"Veuillez accepter les conditions pour continuer","Code applied — 10% off":"Code appliqué — 10 % de remise","This code is not valid.":"Ce code n'est pas valide.","Order number":"Numéro de commande","Thank you for your order":"Merci pour votre commande","A confirmation email will be sent to":"Un e-mail de confirmation sera envoyé à","Back to the shop":"Retour à la boutique","Belgium":"Belgique","Switzerland":"Suisse","Germany":"Allemagne","Italy":"Italie","Spain":"Espagne","Netherlands":"Pays-Bas","United Kingdom":"Royaume-Uni","United States":"États-Unis"};
+  if (window.RelaxxDB) { try { var DX = RelaxxDB.dict(); for (var dk in DX) DICT[dk] = DX[dk]; } catch (e) {} }
+  var has = Object.prototype.hasOwnProperty;
+  function tr(s) {
+    if (lang !== "fr" || !s) return s;
+    var k = s.replace(/\s+/g, " ").trim();
+    if (!k) return s;
+    var out = has.call(DICT, k) ? DICT[k] : null;
+    if (out === null) {
+      for (var i = 0; i < PATTERNS.length; i++) { var m = k.match(PATTERNS[i][0]); if (m) { out = PATTERNS[i][1](m); break; } }
+    }
+    if (out === null) return s;
+    return s.match(/^\s*/)[0] + out + s.match(/\s*$/)[0];
+  }
+  var PATTERNS = [
+    [/^Add to bag — (.+)$/, function (m) { return "Ajouter au panier — " + m[1]; }],
+    [/^Order with obligation to pay — (.+)$/, function (m) { return "Commander avec obligation de paiement — " + m[1]; }],
+    [/^(\d(?:\.\d)?) \((\d+) reviews\)$/, function (m) { return m[1].replace(".", ",") + " (" + m[2] + " avis)"; }],
+    [/^In stock — ships within 2–4 business days \((.+) sold out\)$/, function (m) { return "En stock — expédié sous 2 à 4 jours ouvrés (" + m[1] + " épuisé)"; }],
+    [/^(.+) — sold out$/, function (m) { return m[1] + " — épuisé"; }],
+    [/^(.+) — detail (\d+)$/, function (m) { return tr(m[1]) + " — détail " + m[2]; }],
+    [/^(.+) — RELAXX$/, function (m) { return tr(m[1]) + " — RELAXX"; }],
+    [/^Image (\d+) of (\d+)$/, function (m) { return "Image " + m[1] + " sur " + m[2]; }],
+    [/^Show image (\d+)$/, function (m) { return "Afficher l'image " + m[1]; }],
+    [/^Quick view (.+)$/, function (m) { return "Aperçu rapide : " + tr(m[1]); }],
+    [/^Add (.+) to (?:cart|bag)$/, function (m) { return "Ajouter « " + tr(m[1]) + " » au panier"; }],
+    [/^Add (.+) to wishlist$/, function (m) { return "Ajouter « " + tr(m[1]) + " » à la liste d'envies"; }],
+    [/^Results for “(.+)”$/, function (m) { return "Résultats pour « " + m[1] + " »"; }],
+    [/^(\d+) products match your search\.$/, function (m) { return m[1] + " produits correspondent à votre recherche."; }],
+    [/^No products match “(.+)”\.$/, function (m) { return "Aucun produit ne correspond à « " + m[1] + " »."; }],
+    [/^Shopping Bag \((\d+)\)$/, function (m) { return "Panier (" + m[1] + ")"; }],
+    [/^(.+) · (.+)$/, function (m) { return tr(m[1]) + " · " + tr(m[2]); }]
+  ];
+  window.wovenT = tr;
+
+  var ATTRS = ["placeholder", "aria-label", "alt", "title"];
+  function skip(el) { return !el || el.closest && el.closest("script,style,[data-no-i18n]"); }
+  function text(node) { if (skip(node.parentElement)) return; var t = tr(node.nodeValue); if (t !== node.nodeValue) node.nodeValue = t; }
+  function attrs(el) {
+    if (skip(el)) return;
+    for (var i = 0; i < ATTRS.length; i++) {
+      var v = el.getAttribute(ATTRS[i]);
+      if (v) { var t = tr(v); if (t !== v) el.setAttribute(ATTRS[i], t); }
+    }
+  }
+  function walk(root) {
+    if (root.nodeType === 3) { text(root); return; }
+    if (root.nodeType !== 1) return;
+    attrs(root);
+    $$all(root, "[placeholder],[aria-label],[alt],[title]").forEach(attrs);
+    var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), n, list = [];
+    while ((n = w.nextNode())) list.push(n);
+    list.forEach(text);
+  }
+  function $$all(r, q) { return Array.prototype.slice.call(r.querySelectorAll(q)); }
+
+  // the switch
+  $$all(document, "[data-set-lang]").forEach(function (b) {
+    b.setAttribute("aria-pressed", b.getAttribute("data-set-lang") === lang ? "true" : "false");
+    b.addEventListener("click", function () {
+      var l = b.getAttribute("data-set-lang");
+      if (l === lang) return;
+      try { localStorage.setItem("woven-lang", l); } catch (e) {}
+      document.body.style.transition = "opacity .25s"; document.body.style.opacity = "0";
+      setTimeout(function () { location.reload(); }, 250);
+    });
+  });
+
+  if (lang === "en") {
+    var te = d.getAttribute("data-title-en"); if (te) document.title = te;
+    d.classList.remove("i18n-pending");
+    return;
+  }
+  walk(document.body);
+  document.title = tr(document.title);
+  d.classList.remove("i18n-pending");
+  new MutationObserver(function (list) {
+    list.forEach(function (m) {
+      if (m.type === "childList") { for (var i = 0; i < m.addedNodes.length; i++) walk(m.addedNodes[i]); }
+      else if (m.type === "characterData") text(m.target);
+      else if (m.type === "attributes") attrs(m.target);
+    });
+    if (document.title !== tr(document.title)) document.title = tr(document.title);
+  }).observe(d, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.23/bundled/lenis.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  var IMG = function (id, w) { if (/^media:/.test(id)) return "media/" + id.slice(6); if (/^(https?:|data:|blob:)/.test(id)) return id; return "https://images.unsplash.com/" + id + "?w=" + (w || 700) + "&q=80&auto=format&fit=crop"; };
+
+  /* ---------- catalogue (images: Unsplash, free licence) ---------- */
+  var CATS = [
+    { key: "outerwear", label: "Outerwear" },
+    { key: "knitwear", label: "Knitwear" },
+    { key: "dresses", label: "Dresses" },
+    { key: "shirts", label: "Shirts" },
+    { key: "trousers", label: "Trousers" },
+    { key: "accessories", label: "Accessories" }
+  ];
+  var P = [
+    ["outerwear", "Camel Wrap Coat", 115000, 0, "Best Selling", "photo-1632149877166-f75d49000351"],
+    ["outerwear", "Double-Breasted Coat", 130000, 0, "Best Selling", "photo-1589278042662-e60081fcb3d8"],
+    ["outerwear", "Belted Trench", 100000, 0, "", "photo-1607624333627-98090c0992c6"],
+    ["outerwear", "Wool Overcoat", 120000, 150000, "On Sale", "photo-1601762319935-963f5b1869ad"],
+    ["outerwear", "Cropped Jacket", 75000, 0, "", "photo-1715951630125-a79ad3c5de19"],
+    ["outerwear", "Longline Coat", 135000, 0, "New Collection", "photo-1699877902199-49e09649e458"],
+    ["knitwear", "Cable Knit Sweater", 60000, 0, "", "photo-1580331451062-99ff652288d7"],
+    ["knitwear", "Merino Crewneck", 55000, 70000, "On Sale", "photo-1589359425603-dfe010cf3ffa"],
+    ["knitwear", "Ribbed Turtleneck", 45000, 0, "", "photo-1634499913011-86108564b787"],
+    ["knitwear", "Chunky Cardigan", 70000, 0, "", "photo-1515511624704-b8916dcc30ea"],
+    ["knitwear", "Mohair Pullover", 75000, 0, "New Collection", "photo-1608975321561-176c1b187d24"],
+    ["knitwear", "Cashmere V-Neck", 90000, 0, "", "photo-1765915481891-28d11ac65740"],
+    ["dresses", "Silk Slip Dress", 85000, 0, "Best Selling", "photo-1704627363852-484e95695411"],
+    ["dresses", "Wrap Midi Dress", 70000, 0, "", "photo-1702017634883-8392c239ea2c"],
+    ["dresses", "Pleated Maxi Dress", 95000, 115000, "On Sale", "photo-1785436859380-f22f139cc212"],
+    ["dresses", "Satin Evening Dress", 105000, 0, "", "photo-1783013953094-249d033e3cf9"],
+    ["dresses", "Linen Shirt Dress", 65000, 0, "New Collection", "photo-1771620955230-6a730e187158"],
+    ["dresses", "Knit Column Dress", 75000, 0, "", "photo-1768818590457-94bc4479bdbb"],
+    ["shirts", "Oversized Linen Shirt", 45000, 0, "Best Selling", "photo-1713881842156-3d9ef36418cc"],
+    ["shirts", "Poplin Button-Down", 40000, 55000, "On Sale", "photo-1713881676551-b16f22ce4719"],
+    ["shirts", "Relaxed Oxford Shirt", 45000, 0, "", "photo-1629299342971-6ee572a039b5"],
+    ["trousers", "Wide-Leg Trousers", 60000, 0, "New Collection", "photo-1687825515654-23620796760c"],
+    ["trousers", "Pleated Wool Trousers", 70000, 0, "", "photo-1762343291713-0d7f83e6c2e9"],
+    ["trousers", "Tailored Straight Pants", 55000, 75000, "On Sale", "photo-1750857739910-81dda820b067"],
+    ["accessories", "Leather Tote", 90000, 0, "Best Selling", "photo-1594223274512-ad4803739b7c"],
+    ["accessories", "Mini Shoulder Bag", 60000, 0, "", "photo-1560891958-68bb1fe7fb78"],
+    ["accessories", "Structured Top-Handle", 75000, 0, "", "photo-1571254165288-99dd71f0e352"]
+  ].map(function (r, i) { return { id: i, cat: r[0], name: r[1], price: r[2], compare: r[3], tag: r[4], img: r[5] }; });
+  // back office: live catalogue (prices, stock, status, new products) and visible categories
+  if (window.RelaxxDB) { try { P = RelaxxDB.catalog(P); CATS = RelaxxDB.categories(CATS); } catch (e) {} }
+  var PV = P.filter(function (p) { return !p.hidden; });
+  var PER_PAGE = 12;
+  var money = function (n) { return "CFA" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+  var labelOf = function (k) { for (var i = 0; i < CATS.length; i++) if (CATS[i].key === k) return CATS[i].label; return k; };
+
+  var ICON_PLUS = '<svg viewBox="0 0 17 17" fill="none"><path d="M8.5 1v15M1 8.5h15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  var ICON_BAG = '<svg viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1 12H6L5 8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  var ICON_CLOSE = '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  var ICON_NEXT = '<svg viewBox="0 0 8 15" fill="none"><path d="m1 1.5 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var ICON_PREV = '<svg viewBox="0 0 8 15" fill="none"><path d="m7 1.5-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function card(p) {
+    return '<div class="product-post" data-hover>' +
+      '<a href="product.html?id=' + p.id + '" class="product-image-block" aria-label="' + p.name + '"><img class="product-image" loading="lazy" alt="' + p.name + '" src="' + IMG(p.img) + '"></a>' +
+      '<div class="product-content">' +
+        (p.tag ? '<div class="product-tag">' + p.tag + '</div>' : '') +
+        '<div class="product-card" role="dialog" aria-label="' + p.name + '">' +
+          '<div class="product-text"><div class="product-category">' + labelOf(p.cat) + '</div><a href="product.html?id=' + p.id + '" class="product-name">' + p.name + '</a></div>' +
+          '<div class="product-price-block"><div class="product-price"><div class="price">' + money(p.price) + '</div>' +
+            (p.compare ? '<div class="price compare">' + money(p.compare) + '</div>' : '') + '</div>' +
+            '<button type="button" class="product-bag" data-add="' + p.id + '" aria-label="Add ' + p.name + ' to cart">' + ICON_BAG + '</button></div>' +
+          '<button type="button" class="product-card-close" aria-label="Close">' + ICON_CLOSE + '</button>' +
+        '</div>' +
+        '<button type="button" class="product-icon" aria-label="Quick view ' + p.name + '">' + ICON_PLUS + '</button>' +
+      '</div></div>';
+  }
+
+  /* ---------- legal pages: table of contents (one per language) ---------- */
+  (function () {
+    var tocs = $$(".lg-toc");
+    if (!tocs.length) return;
+    tocs.forEach(function (toc) {
+      toc.addEventListener("click", function (e) {
+        var a = e.target.closest('a[href^="#"]'); if (!a) return;
+        var t = document.querySelector(a.getAttribute("href")); if (!t) return;
+        e.preventDefault();
+        if (lenis) lenis.scrollTo(t, { offset: -90 }); else t.scrollIntoView({ behavior: "smooth" });
+        history.replaceState(null, "", a.getAttribute("href"));
+      });
+    });
+    // deep links (e.g. cgv.html#retractation) also work on the English version
+    var h = location.hash.slice(1);
+    if (h && document.documentElement.getAttribute("data-lang") === "en" && h.indexOf("en-") !== 0) {
+      var t = document.getElementById("en-" + h);
+      if (t) {
+        var jump = function () {
+          var y = Math.max(0, t.getBoundingClientRect().top + scrollY - 90);
+          if (lenis) lenis.scrollTo(y, { immediate: true }); else scrollTo(0, y);
+        };
+        if (document.readyState === "complete") setTimeout(jump, 50);
+        else addEventListener("load", function () { setTimeout(jump, 50); });
+      }
+    }
+    if (!("IntersectionObserver" in window)) return;
+    var links = $$(".lg-toc ol a");
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (l) { l.classList.toggle("is-current", l.getAttribute("href") === "#" + en.target.id); });
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    $$(".lg-body section").forEach(function (s) { obs.observe(s); });
+  })();
+
+  /* ---------- cart ---------- */
+  var cart = [];
+  try { cart = JSON.parse(localStorage.getItem("woven-cart") || "[]"); } catch (err) { cart = []; }
+  var overlay = $(".cart-overlay");
+  function saveCart() { try { localStorage.setItem("woven-cart", JSON.stringify(cart)); } catch (err) {} }
+  function renderCart() {
+    var qty = cart.reduce(function (s, l) { return s + l.q; }, 0);
+    $(".cart-qty").textContent = qty;
+    var body = $(".cart-body");
+    if (!cart.length) { body.innerHTML = '<div class="cart-empty">No items found.</div>'; return; }
+    var total = 0;
+    body.innerHTML = '<ul class="cart-list">' + cart.map(function (l, i) {
+      var p = P[l.id]; total += p.price * l.q;
+      return '<li class="cart-item"><img alt="" src="' + IMG(((p.colors || []).filter(function (c) { return c.name === l.c; })[0] || {}).img || p.img, 200) + '"><div class="cart-item-info"><span class="cart-item-name">' + p.name + '</span>' + (l.c || l.s ? '<span class="cart-item-var">' + [l.c, l.s].filter(Boolean).join(" · ") + '</span>' : '') + '<span>' + money(p.price) + ' × ' + l.q + '</span><button type="button" class="cart-remove" data-remove="' + i + '">Remove</button></div></li>';
+    }).join("") + '</ul><div class="cart-foot"><div class="cart-sub"><span>Subtotal</span><strong>' + money(total) + '</strong></div><a href="checkout.html" class="cart-checkout">Continue to Checkout</a></div>';
+  }
+  function addToCart(id, qty, c, s) {
+    qty = qty || 1;
+    var line = cart.filter(function (l) { return l.id === id && (l.c || "") === (c || "") && (l.s || "") === (s || ""); })[0];
+    line ? line.q += qty : cart.push(c || s ? { id: id, q: qty, c: c, s: s } : { id: id, q: qty });
+    saveCart(); renderCart(); setCart(true);
+  }
+  function setCart(open) {
+    overlay.classList.toggle("open", open); overlay.setAttribute("aria-hidden", open ? "false" : "true");
+    if (lenis) open ? lenis.stop() : lenis.start();
+  }
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay || e.target.closest(".cart-close")) setCart(false);
+    var r = e.target.closest("[data-remove]");
+    if (r) { cart.splice(+r.dataset.remove, 1); saveCart(); renderCart(); }
+  });
+  $("[data-cart-open]").addEventListener("click", function () { setCart(true); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") setCart(false); });
+
+  /* ---------- smooth scroll ---------- */
+  var lenis = null;
+  if (window.Lenis) {
+    lenis = new Lenis({ lerp: 0, wheelMultiplier: 0.8, infinite: false, gestureOrientation: "vertical", normalizeWheel: false, smoothTouch: false });
+    (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(performance.now());
+  }
+  renderCart();
+
+  /* ---------- nav + footer hovers ---------- */
+  $$("[data-hover]:not(.product-post)").forEach(function (el) {
+    el.addEventListener("mouseenter", function () { el.classList.add("is-hover"); });
+    el.addEventListener("mouseleave", function () { el.classList.remove("is-hover"); });
+  });
+
+  /* ---------- reveals ---------- */
+  var io = "IntersectionObserver" in window ? new IntersectionObserver(function (en, obs) {
+    en.forEach(function (x) { if (x.isIntersecting) { x.target.classList.add("in"); obs.unobserve(x.target); } });
+  }, { threshold: 0 }) : null;
+  $$("[data-reveal]").forEach(function (el) { io ? io.observe(el) : el.classList.add("in"); });
+
+  /* ---------- navbar (after AZ Milano): burger menu, search, cart, hide on scroll ---------- */
+  var setMenu = function () {};
+  (function () {
+    var bar = $(".mn-bar"), menu = $(".mn-menu"), burger = $(".mn-burger");
+    if (!bar) return;
+    var open = false, closeT = 0, hideT = 0, lastY = scrollY;
+    // on load: fade in after 1s over 700ms, then switch to the 300ms show/hide timing
+    setTimeout(function () { bar.classList.add("is-in"); setTimeout(function () { bar.classList.add("is-settled"); }, 750); }, 1000);
+    function paint() { bar.classList.toggle("is-solid", scrollY > 10 && !open); }
+    function hide() {
+      if (bar.classList.contains("is-hidden")) return;
+      bar.classList.add("is-hidden");
+      clearTimeout(hideT); hideT = setTimeout(function () { bar.style.visibility = "hidden"; }, 750);
+    }
+    function show() { clearTimeout(hideT); bar.style.visibility = ""; bar.classList.remove("is-hidden"); }
+    addEventListener("scroll", function () {
+      var y = scrollY;
+      if (!open && !searchOpen && Math.abs(y - lastY) > 2) { if (y > lastY && y > 70) hide(); else if (y < lastY) show(); }
+      lastY = y; paint();
+    }, { passive: true });
+    paint();
+
+    setMenu = function (v) {
+      if (v === open) return;
+      open = v;
+      burger.classList.toggle("is-open", v);
+      burger.setAttribute("aria-expanded", v ? "true" : "false");
+      burger.setAttribute("aria-label", v ? "Close menu" : "Open menu");
+      bar.classList.toggle("menu-open", v);
+      menu.setAttribute("aria-hidden", v ? "false" : "true");
+      clearTimeout(closeT);
+      if (v) {
+        show();
+        menu.classList.remove("is-closing");
+        menu.style.display = "flex"; menu.offsetWidth;
+        menu.classList.add("is-open");
+        document.documentElement.classList.add("mn-lock");
+        if (lenis) lenis.stop();
+      } else {
+        menu.classList.remove("is-open"); menu.classList.add("is-closing");
+        closeT = setTimeout(function () { menu.classList.remove("is-closing"); menu.style.display = ""; }, 1400);
+        document.documentElement.classList.remove("mn-lock");
+        if (lenis) lenis.start();
+      }
+      paint();
+    };
+    burger.addEventListener("click", function () { setMenu(!open); });
+    $$(".mn-link", menu).forEach(function (a) {
+      a.addEventListener("mouseenter", function () { a.classList.add("is-hover"); });
+      a.addEventListener("mouseleave", function () { a.classList.remove("is-hover"); });
+      a.addEventListener("click", function () { setMenu(false); });
+    });
+
+    var sWrap = $(".mn-search"), sBtn = $(".mn-search-toggle"), sInput = $(".mn-search-input"), searchOpen = false;
+    function setSearch(v) {
+      searchOpen = v;
+      sWrap.classList.toggle("is-open", v);
+      sBtn.setAttribute("aria-expanded", v ? "true" : "false");
+      sBtn.setAttribute("aria-label", v ? "Close search" : "Open search");
+      if (v) setTimeout(function () { sInput.focus(); }, 300); else sInput.blur();
+    }
+    sBtn.addEventListener("click", function () { setSearch(!searchOpen); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") { setMenu(false); setSearch(false); } });
+  })();
+
+  document.documentElement.classList.add("ix-ready");
+})();
+</script>
+<script>
+/* Custom cursor — vanilla port of the CustomCursor React component.
+   A dot follows the pointer on a spring (stiffness 150, damping 22, mass .8) and grows
+   into a ring over links and buttons. Disabled for coarse pointers and reduced motion. */
+(function () {
+  "use strict";
+  var COLOR = "#ff4c24", STIFFNESS = 150, DAMPING = 22, MASS = 0.8;
+  var TARGETS = 'a[href], button, [role="button"], [role="tab"], select, summary, label[for], input[type="submit"], .product-post';
+  var MUTED = ".trend-card"; // the Trending cards already show their own cursor badge
+
+  function rgba(hex, a) {
+    var n = hex.replace("#", "");
+    if (n.length !== 6) return "rgba(255, 76, 36, " + a + ")";
+    return "rgba(" + parseInt(n.slice(0, 2), 16) + ", " + parseInt(n.slice(2, 4), 16) + ", " + parseInt(n.slice(4, 6), 16) + ", " + a + ")";
+  }
+
+  var coarse = matchMedia("(pointer: coarse)"), reduced = matchMedia("(prefers-reduced-motion: reduce)");
+  var el = null, raf = 0, last = 0, seen = false, tx = 0, ty = 0, x = 0, y = 0, vx = 0, vy = 0;
+
+  function render() { el.style.transform = "translate(" + x.toFixed(2) + "px," + y.toFixed(2) + "px) translate(-50%,-50%)"; }
+  function step(t) {
+    var dt = Math.min((t - (last || t)) / 1000, 0.064);
+    last = t;
+    // damped spring, integrated in small sub-steps so it stays stable at any frame rate
+    var n = Math.max(1, Math.ceil(dt / 0.004)), h = dt / n;
+    for (var i = 0; i < n; i++) {
+      vx += ((-STIFFNESS * (x - tx) - DAMPING * vx) / MASS) * h; x += vx * h;
+      vy += ((-STIFFNESS * (y - ty) - DAMPING * vy) / MASS) * h; y += vy * h;
+    }
+    render();
+    var resting = Math.abs(x - tx) < 0.01 && Math.abs(y - ty) < 0.01 && Math.abs(vx) < 0.01 && Math.abs(vy) < 0.01;
+    raf = resting ? 0 : requestAnimationFrame(step);
+  }
+  function kick() { if (!raf) { last = 0; raf = requestAnimationFrame(step); } }
+
+  function onMove(e) {
+    if (e.pointerType === "touch") return;
+    tx = e.clientX; ty = e.clientY;
+    if (!seen) { seen = true; x = tx; y = ty; vx = vy = 0; render(); el.classList.add("is-active"); }
+    kick();
+  }
+  function onOver(e) {
+    var t = e.target instanceof Element ? e.target : null;
+    el.classList.toggle("is-hover", !!(t && t.closest(TARGETS)));
+    el.classList.toggle("is-muted", !!(t && t.closest(MUTED)));
+  }
+  function onOut(e) { if (!e.relatedTarget) { seen = false; el.classList.remove("is-active"); } } // pointer left the window
+
+  function enable() {
+    if (el) return;
+    el = document.createElement("div");
+    el.className = "cc-cursor";
+    el.setAttribute("aria-hidden", "true");
+    el.style.setProperty("--cc-color", COLOR);
+    el.style.setProperty("--cc-fill", rgba(COLOR, 0.3));
+    document.body.appendChild(el);
+    addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerover", onOver);
+    document.addEventListener("pointerout", onOut);
+  }
+  function disable() {
+    if (!el) return;
+    cancelAnimationFrame(raf); raf = 0; seen = false;
+    removeEventListener("pointermove", onMove);
+    document.removeEventListener("pointerover", onOver);
+    document.removeEventListener("pointerout", onOut);
+    el.remove(); el = null;
+  }
+  function sync() { (coarse.matches || reduced.matches) ? disable() : enable(); }
+  sync();
+  coarse.addEventListener("change", sync);
+  reduced.addEventListener("change", sync);
+})();
+</script>
+</body>
+</html>
