@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Conditions générales de vente — RELAXX</title>
 <meta name="description" content="Conditions générales de vente du site RELAXX.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0e0e0e">
+<meta property="og:site_name" content="RELAXX">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Conditions générales de vente — RELAXX">
+<meta property="og:description" content="Conditions générales de vente du site RELAXX.">
+<meta property="og:image" content="https://images.unsplash.com/photo-1785927984870-79d4e5129e88?w=1200&q=80&auto=format&fit=crop">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -13,10 +20,10 @@
 /* language: saved choice, else browser language (FR/EN) */
 (function () {
   var d = document.documentElement, l;
-  try { l = localStorage.getItem("woven-lang"); } catch (e) {}
+  try { l = localStorage.getItem("relaxx-lang") || localStorage.getItem("woven-lang"); } catch (e) {}
   if (l !== "fr" && l !== "en") l = (navigator.language || "").toLowerCase().indexOf("fr") === 0 ? "fr" : "en";
   d.lang = l; d.setAttribute("data-lang", l);
-  if (l === "fr") { d.classList.add("i18n-pending"); setTimeout(function () { d.classList.remove("i18n-pending"); }, 2000); }
+  if (l === "fr") { d.classList.add("i18n-pending"); setTimeout(function () { d.classList.remove("i18n-pending"); }, 4000); }
 })();
 </script>
 <script src="relaxx-db.js"></script>
@@ -28,6 +35,7 @@
   --pad-x:2vw;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html.lenis{height:auto}
 .lenis.lenis-smooth{scroll-behavior:auto}
 .lenis.lenis-stopped{overflow:hidden}
@@ -170,6 +178,7 @@ html.js [data-reveal].in{opacity:1;transform:none}
 .cart-sub{display:flex;justify-content:space-between}
 .cart-checkout{display:block;text-align:center;padding:9px 15px;border:1px solid #06030a;color:#06030a;transition:all .3s}
 .cart-checkout:hover{background:#000;color:#fff}
+.cart-item.is-off img{opacity:.45}.cart-item-note{font-size:.8rem;color:#b3261e}.cart-item-note a{text-decoration:underline}
 
 /* ---------- breakpoints (mirroring the source template) ---------- */
 @media (min-width:1280px){
@@ -455,7 +464,7 @@ body{background:#fff;font-family:Geist,sans-serif}
 .lg-toc ol{margin:0;padding:0;list-style:none;counter-reset:toc;border-left:1px solid #e6e2da}
 .lg-toc li{counter-increment:toc}
 .lg-toc a{display:block;padding:7px 0 7px 16px;margin-left:-1px;border-left:1px solid transparent;color:#77736c;line-height:1.35;transition:color .3s,border-color .3s}
-.lg-toc a::before{content:counter(toc) ". "}
+.lg-toc ol a::before{content:counter(toc) ". "}
 .lg-toc a:hover,.lg-toc a.is-current{color:#000;border-left-color:#000}
 .lg-other{margin-top:28px;padding-top:20px;border-top:1px solid #e6e2da}
 .lg-other a{display:block;padding:5px 0;color:#77736c;transition:color .3s}
@@ -502,6 +511,17 @@ html.i18n-pending body{visibility:hidden}
 button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
 .mw-button,.mf-btn,.page-btn,.st-btn,.nl-btn,.product-icon,.product-bag,.product-card,.product-tag,.trend-tag,
 .arrow,.mn-search-popup,.shop-hero,.pd-guide,.co-pill,.lg-form{border-radius:0!important}
+
+/* footer on phones: no category list, "Company" and "Help" side by side */
+@media (max-width:767px){
+  .mf-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 24px}
+  .mf-grid > [data-cat-list]{display:none}
+  .mf-grid > :first-child,.mf-grid > :last-child{grid-column:1/-1}
+  .mf-socials{flex-direction:row;gap:18px;padding-top:24px}
+}
+
+/* footer: less empty space under the last line on large screens */
+@media (min-width:992px){.mfoot{padding-bottom:64px}}
 </style>
 </head>
 <body>
@@ -535,14 +555,15 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
         <a class="mn-link" href="shop.html#knitwear" style="--od:400ms;--cd:300ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">02.</span><span class="mn-label">Knitwear</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1515511624704-b8916dcc30ea?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
         <a class="mn-link" href="shop.html#dresses" style="--od:500ms;--cd:200ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">03.</span><span class="mn-label">Dresses</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1635760057387-36eedcc8123f?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
         <a class="mn-link" href="shop.html#shirts" style="--od:600ms;--cd:100ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">04.</span><span class="mn-label">Shirts</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1713881842156-3d9ef36418cc?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
-        <a class="mn-link" href="shop.html#accessories" style="--od:700ms;--cd:0ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">05.</span><span class="mn-label">Accessories</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
+        <a class="mn-link" href="shop.html#trousers" style="--od:700ms;--cd:100ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">05.</span><span class="mn-label">Trousers</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1687825515654-23620796760c?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
+        <a class="mn-link" href="shop.html#accessories" style="--od:800ms;--cd:0ms"><span class="mn-link-p"><span class="mn-link-inner"><span class="mn-num">06.</span><span class="mn-label">Accessories</span></span></span><span class="mn-img mn-link-img" aria-hidden="true"><img src="https://images.unsplash.com/photo-1594223274512-ad4803739b7c?w=1400&q=80&auto=format&fit=crop" alt="" loading="lazy"></span></a>
       </div>
       <div class="mn-foot">
         <div class="mn-foot-line"></div>
         <div class="mn-foot-row">
           <div class="mn-contacts">
-            <a href="mailto:hello@relaxx.example"><span class="mn-accent">E:</span> hello@relaxx.example</a>
-            <a href="tel:+000123456789"><span class="mn-accent">T:</span> +00 (0) 123 456 789</a>
+            <a href="mailto:hello@relaxx.example" data-store-link="email"><span class="mn-accent">E:</span> <span data-store="email">hello@relaxx.example</span></a>
+            <a href="tel:+2250700000000" data-store-link="phone"><span class="mn-accent">T:</span> <span data-store="phone">+225 07 00 00 00 00</span></a>
           </div>
           <div class="mn-socials"><a href="#" class="mn-social" aria-label="Instagram" data-cms-social="instagram"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg></a><a href="#" class="mn-social" aria-label="Facebook" data-cms-social="facebook"><svg viewBox="0 0 24 24" fill="none"><path d="M14 8h2V5h-2.5C11 5 10 6.6 10 8.7V11H8v3h2v6h3v-6h2.3l.5-3H13V9c0-.6.4-1 1-1Z" fill="currentColor"/></svg></a><a href="#" class="mn-social" aria-label="YouTube" data-cms-social="youtube"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 9.5v5l4.2-2.5-4.2-2.5Z" fill="currentColor"/></svg></a><a href="#" class="mn-social" aria-label="TikTok" data-cms-social="tiktok"><svg viewBox="0 0 24 24" fill="none"><path d="M14 4v10a3.5 3.5 0 1 1-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M14 4c.5 2.4 2.1 3.9 4.5 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a></div>
         </div>
@@ -561,90 +582,93 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
   <div class="lg-grid">
     <nav class="lg-toc" aria-label="Sommaire">
       <p class="lg-toc-title">Sommaire</p>
-      <ol><li><a href="#objet">Objet et champ d'application</a></li><li><a href="#vendeur">Identification du vendeur</a></li><li><a href="#produits">Produits</a></li><li><a href="#prix">Prix</a></li><li><a href="#commande">Commande</a></li><li><a href="#paiement">Paiement</a></li><li><a href="#livraison">Livraison</a></li><li><a href="#retractation">Droit de rétractation et retours</a></li><li><a href="#garanties">Garanties légales</a></li><li><a href="#responsabilite">Responsabilité</a></li><li><a href="#donnees">Données personnelles</a></li><li><a href="#litiges">Service client, médiation et litiges</a></li><li><a href="#droit">Droit applicable</a></li><li><a href="#annexe">Annexe — Formulaire de rétractation</a></li></ol>
-      <div class="lg-other"><a href="cgv.html" aria-current="page">Conditions générales de vente</a><a href="cgu.html">Conditions générales d'utilisation</a><a href="confidentialite.html">Politique de confidentialité</a></div>
+      <ol><li><a href="#objet">Objet et champ d'application</a></li><li><a href="#vendeur">Identification du vendeur</a></li><li><a href="#produits">Produits</a></li><li><a href="#prix">Prix</a></li><li><a href="#commande">Commande</a></li><li><a href="#paiement">Paiement</a></li><li><a href="#livraison">Livraison</a></li><li><a href="#retractation">Retours et rétractation</a></li><li><a href="#garanties">Garanties légales</a></li><li><a href="#responsabilite">Responsabilité</a></li><li><a href="#donnees">Données personnelles</a></li><li><a href="#litiges">Service client et litiges</a></li><li><a href="#droit">Droit applicable</a></li><li><a href="#annexe">Annexe — Formulaire de rétractation</a></li></ol>
+      <div class="lg-other"><a href="aide.html">Aide &amp; FAQ</a><a href="cgv.html" aria-current="page">Conditions générales de vente</a><a href="cgu.html">Conditions générales d'utilisation</a><a href="confidentialite.html">Politique de confidentialité</a></div>
     </nav>
     <article class="lg-body">
       <section id="objet">
         <h2>Objet et champ d'application</h2>
         <p>Les présentes conditions générales de vente (les « CGV ») régissent les ventes de vêtements et d'accessoires conclues à distance sur le site RELAXX (le « Site ») entre le vendeur désigné à l'article 2 et toute personne physique agissant à des fins non professionnelles (le « Client »).</p>
-        <p>Le Client déclare avoir lu et accepté les CGV avant de valider sa commande ; cette acceptation est matérialisée par une case à cocher lors du paiement. Les CGV applicables sont celles en vigueur à la date de la commande. Elles peuvent être consultées, enregistrées et imprimées à tout moment depuis le pied de page du Site.</p>
+        <p>Le Client déclare avoir lu et accepté les CGV avant de valider sa commande ; cette acceptation est matérialisée par une case à cocher au moment de la commande. Les CGV applicables sont celles en vigueur à la date de la commande. Elles peuvent être consultées, enregistrées et imprimées à tout moment depuis le pied de page du Site.</p>
       </section>
       <section id="vendeur">
         <h2>Identification du vendeur</h2>
-        <p>Le Site est exploité par <span class="ph">[Raison sociale]</span>, <span class="ph">[forme juridique]</span> au capital de <span class="ph">[montant]</span> €, immatriculée au RCS de <span class="ph">[ville]</span> sous le numéro <span class="ph">[SIREN]</span>, dont le siège social est situé <span class="ph">[adresse complète]</span>.</p>
+        <p>Le Site est exploité par <span class="ph" data-store="legalName">[Raison sociale]</span>, <span class="ph" data-store="legalForm">[forme juridique]</span> au capital de <span class="ph" data-store="capital">[montant]</span> FCFA, immatriculée au Registre du commerce et du crédit mobilier (RCCM) sous le numéro <span class="ph" data-store="rccm">[numéro RCCM]</span>, numéro de compte contribuable (NCC) <span class="ph" data-store="ncc">[NCC]</span>, dont le siège social est situé <span class="ph" data-store="address">[adresse complète]</span>, <span class="ph" data-store="countryName">[pays]</span>.</p>
         <ul>
-          <li>Numéro de TVA intracommunautaire : <span class="ph">[numéro de TVA]</span></li>
-          <li>Service client : <span class="ph">[adresse e-mail]</span> — <span class="ph">[numéro de téléphone]</span>, du lundi au vendredi de <span class="ph">[horaires]</span></li>
+          <li>Service client : <span class="ph" data-store="email">[adresse e-mail]</span> — <span class="ph" data-store="phone">[téléphone]</span>, <span class="ph" data-store="hours">[horaires]</span></li>
         </ul>
       </section>
       <section id="produits">
         <h2>Produits</h2>
-        <p>Les caractéristiques essentielles de chaque produit (matière, coupe, coloris, tailles disponibles, conseils d'entretien) sont présentées sur sa fiche. Un guide des tailles est accessible depuis chaque fiche produit.</p>
-        <p>Les photographies sont aussi fidèles que possible ; de légères variations de teinte peuvent toutefois apparaître selon le paramétrage de l'écran utilisé. Les offres sont valables dans la limite des stocks disponibles. Si un produit devient indisponible après la commande, le Client en est informé sans délai et remboursé au plus tard dans les quatorze (14) jours suivant le paiement.</p>
+        <p>Les caractéristiques essentielles de chaque produit (matière, coupe, coloris, tailles disponibles, conseils d'entretien) sont présentées sur sa fiche. Un guide des tailles est accessible depuis chaque fiche produit et sur la page <a href="aide.html#tailles">Aide</a>.</p>
+        <p>Les photographies sont aussi fidèles que possible ; de légères variations de teinte peuvent toutefois apparaître selon l'écran utilisé. Les offres sont valables dans la limite des stocks disponibles, indiqués sur chaque fiche. Si un produit devient indisponible après la commande, le Client en est informé sans délai et, s'il a déjà payé, remboursé au plus tard dans les quatorze (14) jours.</p>
       </section>
       <section id="prix">
         <h2>Prix</h2>
-        <p>Les prix sont indiqués dans la devise affichée sur le Site, toutes taxes comprises, hors frais de livraison. Les frais de livraison applicables sont indiqués au Client avant la validation définitive de la commande.</p>
+        <p>Les prix sont indiqués en francs CFA (FCFA), toutes taxes comprises, hors frais de livraison. Les frais de livraison et, le cas échéant, la remise d'un code promo sont indiqués au Client avant la validation de la commande.</p>
         <p>Le vendeur peut modifier ses prix à tout moment ; le prix facturé est celui affiché au moment de la validation de la commande.</p>
       </section>
       <section id="commande">
         <h2>Commande</h2>
-        <p>Pour passer commande, le Client :</p>
+        <p>Les commandes se passent sans création de compte. Pour commander, le Client :</p>
         <ul>
           <li>sélectionne les produits, leur coloris, leur taille et leur quantité, puis les ajoute au panier ;</li>
-          <li>s'identifie ou poursuit en tant qu'invité, et renseigne ses adresses de livraison et de facturation ;</li>
-          <li>choisit son mode de livraison ;</li>
+          <li>renseigne ses coordonnées (nom, e-mail, téléphone) et son adresse de livraison ;</li>
+          <li>choisit son mode de livraison et son moyen de paiement ;</li>
           <li>vérifie le récapitulatif de sa commande et corrige, le cas échéant, les erreurs de saisie ;</li>
-          <li>accepte les CGV puis confirme sa commande par un clic sur le bouton de paiement, qui vaut obligation de paiement.</li>
+          <li>accepte les CGV puis confirme sa commande par un clic sur le bouton « Commander avec obligation de paiement ».</li>
         </ul>
-        <p>Le contrat est formé à la réception du paiement. Un e-mail de confirmation récapitulant la commande est adressé au Client. Le vendeur peut refuser une commande en cas de litige antérieur non résolu avec le Client ou de soupçon légitime de fraude.</p>
+        <p>Un numéro de commande s'affiche dès la validation. Le vendeur contacte ensuite le Client par e-mail, SMS ou téléphone pour confirmer la commande et les modalités de son paiement. Le vendeur peut refuser une commande en cas de litige antérieur non résolu avec le Client ou de soupçon légitime de fraude.</p>
       </section>
       <section id="paiement">
         <h2>Paiement</h2>
-        <p>Le paiement s'effectue en ligne par carte bancaire (CB, Visa, Mastercard) <span class="ph">[et/ou autres moyens de paiement proposés]</span>. Le montant est débité lors de la validation de la commande.</p>
-        <p>Les paiements sont traités par <span class="ph">[nom du prestataire de paiement]</span> au moyen d'un protocole chiffré ; le vendeur n'a jamais accès aux données complètes de la carte. Les produits restent la propriété du vendeur jusqu'à complet paiement du prix.</p>
+        <p>Les moyens de paiement acceptés sont les suivants : <span class="ph" data-shop="payments">[moyens de paiement]</span>.</p>
+        <p>Aucune donnée de carte bancaire n'est saisie ni conservée sur le Site. Pour un paiement en ligne (Mobile Money, carte bancaire, PayPal ou Apple Pay), le Client reçoit après sa commande une demande de paiement sur son téléphone ou un lien de paiement sécurisé, traité par un prestataire de paiement agréé. La commande est préparée dès réception du paiement.</p>
+        <p><span data-shop="codBlock">Le paiement à la livraison se fait en espèces à la remise du colis<span data-shop="codMaxBlock">, pour les commandes d'un montant maximal de <span class="ph" data-shop="codMax">[montant]</span></span>.</span> Les produits restent la propriété du vendeur jusqu'au complet paiement du prix.</p>
       </section>
       <section id="livraison">
         <h2>Livraison</h2>
-        <p>Les produits sont livrés à l'adresse indiquée par le Client, dans les zones suivantes : <span class="ph">[zones de livraison]</span>. Les commandes sont expédiées sous 2 à 4 jours ouvrés ; les délais de transport propres à chaque mode de livraison sont indiqués avant la validation de la commande. La livraison standard est offerte à partir de <span class="ph">[montant]</span> d'achat.</p>
-        <p>À défaut d'indication d'un délai, la livraison intervient au plus tard trente (30) jours après la conclusion du contrat. En cas de retard, le Client peut, après avoir enjoint le vendeur de livrer dans un délai supplémentaire raisonnable resté sans effet, résoudre le contrat et obtenir le remboursement des sommes versées.</p>
-        <p>Les risques de perte ou d'endommagement des produits sont transférés au Client au moment où il en prend physiquement possession. Le Client est invité à vérifier l'état du colis à réception et à signaler toute anomalie au service client.</p>
+        <p>Les produits sont livrés à l'adresse indiquée par le Client, dans les pays suivants : <span class="ph" data-shop="countries">[pays desservis]</span>.</p>
+        <ul>
+          <li><span data-shop="standard">Livraison standard : <span class="ph" data-shop="stdDays">[délai]</span> jours ouvrés, <span class="ph" data-shop="stdPrice">[tarif]</span><span data-shop="freeOverBlock"> ; offerte à partir de <span class="ph" data-shop="freeOver">[montant]</span> d'achat</span>.</span></li>
+          <li><span data-shop="express">Livraison express : <span class="ph" data-shop="expDays">[délai]</span> jours ouvrés, <span class="ph" data-shop="expPrice">[tarif]</span>.</span></li>
+        </ul>
+        <p>Les délais courent à compter de la confirmation de la commande et, pour un paiement en ligne, de la réception du paiement. En cas de retard important, le Client peut annuler sa commande et obtenir le remboursement des sommes versées.</p>
+        <p>Les risques de perte ou d'endommagement des produits sont transférés au Client au moment où il en prend physiquement possession. Le Client est invité à vérifier l'état du colis à la réception et à signaler toute anomalie au service client.</p>
       </section>
       <section id="retractation">
-        <h2>Droit de rétractation et retours</h2>
-        <p>Le Client dispose d'un délai de quatorze (14) jours à compter de la réception des produits pour exercer son droit de rétractation, sans avoir à se justifier. À titre commercial, RELAXX étend ce délai à trente (30) jours et prend en charge les frais de retour.</p>
-        <p>Pour se rétracter, le Client adresse au service client (<span class="ph">[adresse e-mail]</span>) une déclaration dénuée d'ambiguïté, ou le formulaire figurant en annexe. Les produits doivent être renvoyés au plus tard quatorze (14) jours après cette notification, non portés, non lavés et munis de leurs étiquettes.</p>
-        <p>Le vendeur rembourse la totalité des sommes versées, y compris les frais de livraison standard, au plus tard quatorze (14) jours après avoir été informé de la décision de rétractation, en utilisant le même moyen de paiement que celui de la commande. Ce remboursement peut être différé jusqu'à la récupération des produits ou jusqu'à la preuve de leur expédition. La responsabilité du Client peut être engagée en cas de dépréciation des produits résultant de manipulations autres que celles nécessaires pour en établir la nature, les caractéristiques et le bon fonctionnement.</p>
+        <h2>Retours et rétractation</h2>
+        <p>Le Client dispose d'un délai de trente (30) jours à compter de la réception des produits pour se rétracter et les retourner, sans avoir à se justifier. Les frais de retour sont pris en charge par RELAXX. Ce délai inclut, pour les Clients qui en bénéficient selon la loi de leur pays de résidence, le droit légal de rétractation de quatorze (14) jours.</p>
+        <p>Pour se rétracter, le Client adresse au service client (<span class="ph" data-store="email">[adresse e-mail]</span>) une déclaration dénuée d'ambiguïté, ou le formulaire figurant en annexe. Les produits doivent être renvoyés au plus tard quatorze (14) jours après cette notification, non portés, non lavés et munis de leurs étiquettes.</p>
+        <p>Le vendeur rembourse la totalité des sommes versées, y compris les frais de livraison standard, au plus tard quatorze (14) jours après la réception des produits retournés, par le moyen de paiement utilisé pour la commande ; une commande payée à la livraison est remboursée par Mobile Money ou virement.</p>
       </section>
       <section id="garanties">
         <h2>Garanties légales</h2>
-        <p>Indépendamment de toute garantie commerciale, le vendeur est tenu de la garantie légale de conformité prévue par le Code de la consommation et de la garantie des vices cachés prévue par les articles 1641 et suivants du Code civil.</p>
-        <p>Au titre de la garantie de conformité, le Client dispose de deux (2) ans à compter de la délivrance du produit pour agir ; il peut obtenir la réparation ou le remplacement du produit, ou à défaut une réduction du prix ou la résolution du contrat. Au titre des vices cachés, le Client dispose de deux (2) ans à compter de la découverte du vice.</p>
-        <p><span class="ph">[Insérer ici l'encadré d'information réglementaire relatif aux garanties légales]</span></p>
+        <p>Indépendamment des retours prévus à l'article précédent, le vendeur est tenu de la garantie de conformité des produits et de la garantie des vices cachés, dans les conditions prévues par la loi n° 2016-412 du 15 juin 2016 relative à la consommation et par le Code civil.</p>
+        <p>Le Client qui constate un défaut de conformité ou un vice caché contacte le service client ; selon le cas, le produit est réparé, échangé ou remboursé, sans frais pour le Client.</p>
       </section>
       <section id="responsabilite">
         <h2>Responsabilité</h2>
-        <p>Le vendeur est responsable de plein droit de la bonne exécution des obligations résultant du contrat. Il peut toutefois s'exonérer de tout ou partie de sa responsabilité en apportant la preuve que l'inexécution est imputable au Client, au fait imprévisible et insurmontable d'un tiers au contrat, ou à un cas de force majeure.</p>
+        <p>Le vendeur est responsable de la bonne exécution des obligations résultant du contrat. Il peut toutefois s'exonérer de tout ou partie de sa responsabilité en apportant la preuve que l'inexécution est imputable au Client, au fait imprévisible et insurmontable d'un tiers au contrat, ou à un cas de force majeure.</p>
       </section>
       <section id="donnees">
         <h2>Données personnelles</h2>
         <p>Les données collectées lors d'une commande sont nécessaires à son traitement. Leur utilisation et les droits dont dispose le Client sont décrits dans notre <a href="confidentialite.html">politique de confidentialité</a>.</p>
       </section>
       <section id="litiges">
-        <h2>Service client, médiation et litiges</h2>
-        <p>Pour toute question ou réclamation, le Client peut contacter le service client à l'adresse <span class="ph">[adresse e-mail]</span>. Le vendeur s'engage à apporter une réponse dans les meilleurs délais.</p>
-        <p>En cas de litige non résolu après une réclamation écrite, le Client peut recourir gratuitement au médiateur de la consommation dont relève le vendeur : <span class="ph">[nom et coordonnées du médiateur]</span>.</p>
+        <h2>Service client et litiges</h2>
+        <p>Pour toute question ou réclamation, le Client peut contacter le service client à l'adresse <span class="ph" data-store="email">[adresse e-mail]</span> ou au <span class="ph" data-store="phone">[téléphone]</span>. Le vendeur s'engage à répondre dans les meilleurs délais.</p>
+        <p>En cas de litige, le Client et le vendeur rechercheront en priorité une solution amiable. Le Client peut également se faire assister par une association de consommateurs ou saisir l'administration chargée de la protection du consommateur.</p>
       </section>
       <section id="droit">
         <h2>Droit applicable</h2>
-        <p>Les CGV sont soumises au droit français. À défaut de résolution amiable, tout litige relève des juridictions compétentes dans les conditions de droit commun ; le Client consommateur peut notamment saisir la juridiction du lieu où il demeurait au moment de la conclusion du contrat.</p>
+        <p>Les CGV sont soumises au droit ivoirien, notamment à la loi n° 2016-412 du 15 juin 2016 relative à la consommation et à la loi n° 2013-546 du 30 juillet 2013 relative aux transactions électroniques. À défaut de résolution amiable, tout litige relève des tribunaux compétents d'Abidjan. Le Client résidant hors de Côte d'Ivoire conserve le bénéfice des dispositions impératives de la loi de son pays de résidence qui le protègent.</p>
       </section>
       <section id="annexe">
         <h2>Annexe — Formulaire de rétractation</h2>
         <div class="lg-form">
           <p>À compléter et renvoyer uniquement si vous souhaitez vous rétracter.</p>
-          <p>À l'attention de <span class="ph">[Raison sociale]</span>, <span class="ph">[adresse complète]</span>, <span class="ph">[adresse e-mail]</span> :</p>
+          <p>À l'attention de <span class="ph" data-store="legalName">[Raison sociale]</span>, <span class="ph" data-store="address">[adresse complète]</span>, <span class="ph" data-store="email">[adresse e-mail]</span> :</p>
           <p>Je vous notifie par la présente ma rétractation du contrat portant sur la vente des biens ci-dessous :</p>
           <p>Commandé le : ………… / Reçu le : …………</p>
           <p>Numéro de commande : …………</p>
@@ -666,8 +690,8 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
   <div class="lg-grid">
     <nav class="lg-toc" aria-label="Contents">
       <p class="lg-toc-title">Contents</p>
-      <ol><li><a href="#en-objet">Purpose and scope</a></li><li><a href="#en-vendeur">Seller details</a></li><li><a href="#en-produits">Products</a></li><li><a href="#en-prix">Prices</a></li><li><a href="#en-commande">Orders</a></li><li><a href="#en-paiement">Payment</a></li><li><a href="#en-livraison">Delivery</a></li><li><a href="#en-retractation">Right of withdrawal and returns</a></li><li><a href="#en-garanties">Legal guarantees</a></li><li><a href="#en-responsabilite">Liability</a></li><li><a href="#en-donnees">Personal data</a></li><li><a href="#en-litiges">Customer service, mediation and disputes</a></li><li><a href="#en-droit">Governing law</a></li><li><a href="#en-annexe">Appendix — Withdrawal form</a></li></ol>
-      <div class="lg-other"><a href="cgv.html" aria-current="page">Terms of Sale</a><a href="cgu.html">Terms of Use</a><a href="confidentialite.html">Privacy Policy</a></div>
+      <ol><li><a href="#en-objet">Purpose and scope</a></li><li><a href="#en-vendeur">Seller details</a></li><li><a href="#en-produits">Products</a></li><li><a href="#en-prix">Prices</a></li><li><a href="#en-commande">Orders</a></li><li><a href="#en-paiement">Payment</a></li><li><a href="#en-livraison">Delivery</a></li><li><a href="#en-retractation">Returns and withdrawal</a></li><li><a href="#en-garanties">Legal guarantees</a></li><li><a href="#en-responsabilite">Liability</a></li><li><a href="#en-donnees">Personal data</a></li><li><a href="#en-litiges">Customer service and disputes</a></li><li><a href="#en-droit">Governing law</a></li><li><a href="#en-annexe">Appendix — Withdrawal form</a></li></ol>
+      <div class="lg-other"><a href="aide.html">Help &amp; FAQ</a><a href="cgv.html" aria-current="page">Terms of Sale</a><a href="cgu.html">Terms of Use</a><a href="confidentialite.html">Privacy Policy</a></div>
     </nav>
     <article class="lg-body">
       <section id="en-objet">
@@ -677,85 +701,88 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
       </section>
       <section id="en-vendeur">
         <h2>Seller details</h2>
-        <p>The Site is operated by <span class="ph">[Company name]</span>, a <span class="ph">[legal form]</span> with a share capital of €<span class="ph">[amount]</span>, registered with the <span class="ph">[city]</span> Trade and Companies Register under number <span class="ph">[SIREN]</span>, whose registered office is at <span class="ph">[full address]</span>.</p>
+        <p>The Site is operated by <span class="ph" data-store="legalName">[Company name]</span>, a <span class="ph" data-store="legalForm">[legal form]</span> with a share capital of <span class="ph" data-store="capital">[amount]</span> CFA francs, registered with the Trade and Personal Property Credit Register (RCCM) under number <span class="ph" data-store="rccm">[RCCM number]</span>, taxpayer number (NCC) <span class="ph" data-store="ncc">[NCC]</span>, whose registered office is at <span class="ph" data-store="address">[full address]</span>, <span class="ph" data-store="countryName">[country]</span>.</p>
         <ul>
-          <li>EU VAT number: <span class="ph">[VAT number]</span></li>
-          <li>Customer service: <span class="ph">[email address]</span> — <span class="ph">[phone number]</span>, Monday to Friday, <span class="ph">[opening hours]</span></li>
+          <li>Customer service: <span class="ph" data-store="email">[e-mail address]</span> — <span class="ph" data-store="phone">[phone number]</span></li>
         </ul>
       </section>
       <section id="en-produits">
         <h2>Products</h2>
-        <p>The essential characteristics of each product (fabric, fit, colours, available sizes, care advice) are set out on its product page, together with a size guide.</p>
-        <p>Photographs are as faithful as possible; slight colour differences may appear depending on the screen used. Offers are valid while stocks last. If a product becomes unavailable after an order, the Customer is informed without delay and refunded within fourteen (14) days of payment at the latest.</p>
+        <p>The essential characteristics of each product (fabric, fit, colours, available sizes, care advice) are set out on its product page. A size guide is available on each product page and on the <a href="aide.html#tailles">Help</a> page.</p>
+        <p>Photographs are as faithful as possible; slight colour differences may appear depending on the screen used. Offers are valid while stocks last, as shown on each product page. If a product becomes unavailable after an order, the Customer is informed without delay and, if already paid, refunded within fourteen (14) days at the latest.</p>
       </section>
       <section id="en-prix">
         <h2>Prices</h2>
-        <p>Prices are shown in the currency displayed on the Site, including all taxes and excluding delivery costs. Applicable delivery costs are shown to the Customer before the order is confirmed.</p>
+        <p>Prices are shown in CFA francs (FCFA), all taxes included, excluding delivery. Delivery costs and any promo code discount are shown to the Customer before the order is confirmed.</p>
         <p>The seller may change its prices at any time; the price charged is the one displayed when the order is confirmed.</p>
       </section>
       <section id="en-commande">
         <h2>Orders</h2>
-        <p>To place an order, the Customer:</p>
+        <p>Orders are placed without creating an account. To order, the Customer:</p>
         <ul>
           <li>selects the products, their colour, size and quantity, and adds them to the bag;</li>
-          <li>enters contact details and delivery and billing addresses;</li>
-          <li>chooses a delivery method;</li>
+          <li>enters their contact details (name, e-mail, phone) and delivery address;</li>
+          <li>chooses a delivery method and a payment method;</li>
           <li>checks the order summary and corrects any input errors;</li>
-          <li>accepts the Terms and confirms the order by clicking the payment button, which constitutes an obligation to pay.</li>
+          <li>accepts the Terms and confirms the order by clicking the "Order with obligation to pay" button.</li>
         </ul>
-        <p>The contract is formed once payment is received. A confirmation email summarising the order is sent to the Customer. The seller may refuse an order in the event of an unresolved prior dispute with the Customer or a legitimate suspicion of fraud.</p>
+        <p>An order number is displayed as soon as the order is confirmed. The seller then contacts the Customer by e-mail, text message or phone to confirm the order and how it is paid. The seller may refuse an order in the event of an unresolved previous dispute with the Customer or a legitimate suspicion of fraud.</p>
       </section>
       <section id="en-paiement">
         <h2>Payment</h2>
-        <p>Payment is made online by card (CB, Visa, Mastercard) <span class="ph">[and/or other payment methods offered]</span>. The amount is charged when the order is confirmed.</p>
-        <p>Payments are processed by <span class="ph">[payment provider]</span> using an encrypted protocol; the seller never has access to full card details. Products remain the property of the seller until the price has been paid in full.</p>
+        <p>The following payment methods are accepted: <span class="ph" data-shop="payments">[payment methods]</span>.</p>
+        <p>No card details are entered or stored on the Site. For an online payment (Mobile Money, bank card, PayPal or Apple Pay), the Customer receives after the order a payment request on their phone or a secure payment link, processed by an approved payment provider. The order is prepared as soon as the payment is received.</p>
+        <p><span data-shop="codBlock">Cash on delivery is paid in cash when the parcel is handed over<span data-shop="codMaxBlock">, for orders of up to <span class="ph" data-shop="codMax">[amount]</span></span>.</span> The products remain the property of the seller until the price has been paid in full.</p>
       </section>
       <section id="en-livraison">
         <h2>Delivery</h2>
-        <p>Products are delivered to the address given by the Customer, in the following areas: <span class="ph">[delivery areas]</span>. Orders are dispatched within 2 to 4 business days; transit times for each delivery method are shown before the order is confirmed. Standard delivery is free on orders over <span class="ph">[amount]</span>.</p>
-        <p>If no delivery date is specified, delivery takes place no later than thirty (30) days after the contract is concluded. In the event of a delay, the Customer may, after asking the seller to deliver within a reasonable additional period that has not been met, terminate the contract and obtain a refund of the sums paid.</p>
-        <p>The risk of loss or damage passes to the Customer when they take physical possession of the products. The Customer is asked to check the parcel on receipt and to report any problem to customer service.</p>
+        <p>Products are delivered to the address given by the Customer, in the following countries: <span class="ph" data-shop="countries">[countries served]</span>.</p>
+        <ul>
+          <li><span data-shop="standard">Standard delivery: <span class="ph" data-shop="stdDays">[time]</span> business days, <span class="ph" data-shop="stdPrice">[price]</span><span data-shop="freeOverBlock">; free on orders over <span class="ph" data-shop="freeOver">[amount]</span></span>.</span></li>
+          <li><span data-shop="express">Express delivery: <span class="ph" data-shop="expDays">[time]</span> business days, <span class="ph" data-shop="expPrice">[price]</span>.</span></li>
+        </ul>
+        <p>Delivery times run from the confirmation of the order and, for an online payment, from receipt of the payment. In the event of a significant delay, the Customer may cancel the order and obtain a refund of the sums paid.</p>
+        <p>The risk of loss or damage passes to the Customer when they take physical possession of the products. The Customer is invited to check the parcel on receipt and to report any problem to customer service.</p>
       </section>
       <section id="en-retractation">
-        <h2>Right of withdrawal and returns</h2>
-        <p>The Customer has fourteen (14) days from receipt of the products to withdraw from the contract, without giving any reason. As a commercial gesture, RELAXX extends this period to thirty (30) days and covers return shipping costs.</p>
-        <p>To withdraw, the Customer sends customer service (<span class="ph">[email address]</span>) an unambiguous statement, or the form set out in the appendix. Products must be returned no later than fourteen (14) days after this notice, unworn, unwashed and with their labels attached.</p>
-        <p>The seller refunds all sums paid, including standard delivery costs, within fourteen (14) days of being informed of the withdrawal, using the payment method used for the order. The refund may be withheld until the products have been received or proof of dispatch has been provided. The Customer may be liable for any loss in value resulting from handling beyond what is needed to establish the nature, characteristics and functioning of the products.</p>
+        <h2>Returns and withdrawal</h2>
+        <p>The Customer has thirty (30) days from receipt of the products to withdraw and return them, without giving any reason. Return costs are paid by RELAXX. This period includes, for Customers entitled to it under the law of their country of residence, the fourteen (14) day statutory right of withdrawal.</p>
+        <p>To withdraw, the Customer sends customer service (<span class="ph" data-store="email">[e-mail address]</span>) an unambiguous statement, or the form in the appendix. The products must be sent back no later than fourteen (14) days after this notification, unworn, unwashed and with their labels.</p>
+        <p>The seller refunds all sums paid, including standard delivery costs, no later than fourteen (14) days after receiving the returned products, using the payment method of the order; an order paid on delivery is refunded by Mobile Money or bank transfer.</p>
       </section>
       <section id="en-garanties">
         <h2>Legal guarantees</h2>
-        <p>Independently of any commercial guarantee, the seller is bound by the legal guarantee of conformity under the French Consumer Code and by the guarantee against hidden defects under articles 1641 et seq. of the French Civil Code.</p>
-        <p>Under the guarantee of conformity, the Customer has two (2) years from delivery to take action and may obtain the repair or replacement of the product or, failing that, a price reduction or termination of the contract. Under the guarantee against hidden defects, the Customer has two (2) years from discovery of the defect.</p>
-        <p><span class="ph">[Insert the mandatory information box on legal guarantees here]</span></p>
+        <p>In addition to the returns set out in the previous article, the seller is bound by the guarantee of conformity of the products and the guarantee against hidden defects, under the conditions laid down by Law no. 2016-412 of 15 June 2016 on consumer protection and the Civil Code.</p>
+        <p>A Customer who finds a lack of conformity or a hidden defect contacts customer service; depending on the case, the product is repaired, exchanged or refunded, at no cost to the Customer.</p>
       </section>
       <section id="en-responsabilite">
         <h2>Liability</h2>
-        <p>The seller is fully liable for the proper performance of its contractual obligations. It may however be released from all or part of this liability by showing that the failure is due to the Customer, to the unforeseeable and insurmountable act of a third party, or to force majeure.</p>
+        <p>The seller is liable for the proper performance of its contractual obligations. It may, however, be released from all or part of its liability by proving that the failure is attributable to the Customer, to the unforeseeable and insurmountable act of a third party, or to force majeure.</p>
       </section>
       <section id="en-donnees">
         <h2>Personal data</h2>
-        <p>The data collected when an order is placed is needed to process it. How it is used and the Customer's rights are described in our <a href="confidentialite.html">privacy policy</a>.</p>
+        <p>The data collected when an order is placed is necessary to process it. How it is used and the Customer's rights are described in our <a href="confidentialite.html">privacy policy</a>.</p>
       </section>
       <section id="en-litiges">
-        <h2>Customer service, mediation and disputes</h2>
-        <p>For any question or complaint, the Customer can contact customer service at <span class="ph">[email address]</span>. The seller undertakes to reply as quickly as possible.</p>
-        <p>If a dispute cannot be resolved after a written complaint, the Customer may refer it free of charge to the consumer mediator the seller belongs to: <span class="ph">[mediator name and contact details]</span>.</p>
+        <h2>Customer service and disputes</h2>
+        <p>For any question or complaint, the Customer can contact customer service at <span class="ph" data-store="email">[e-mail address]</span> or on <span class="ph" data-store="phone">[phone number]</span>. The seller undertakes to reply as quickly as possible.</p>
+        <p>In the event of a dispute, the Customer and the seller will first seek an amicable solution. The Customer may also be assisted by a consumer association or refer the matter to the administration in charge of consumer protection.</p>
       </section>
       <section id="en-droit">
         <h2>Governing law</h2>
-        <p>The Terms are governed by French law. Failing an amicable settlement, disputes fall under the jurisdiction of the competent courts under ordinary rules; consumers may in particular bring proceedings before the court of the place where they lived when the contract was concluded.</p>
+        <p>These Terms are governed by Ivorian law, in particular Law no. 2016-412 of 15 June 2016 on consumer protection and Law no. 2013-546 of 30 July 2013 on electronic transactions. Failing an amicable settlement, any dispute falls within the jurisdiction of the competent courts of Abidjan. A Customer residing outside Côte d'Ivoire keeps the benefit of the mandatory consumer protection rules of their country of residence.</p>
       </section>
       <section id="en-annexe">
         <h2>Appendix — Withdrawal form</h2>
         <div class="lg-form">
           <p>Complete and return this form only if you wish to withdraw from the contract.</p>
-          <p>To <span class="ph">[Company name]</span>, <span class="ph">[full address]</span>, <span class="ph">[email address]</span>:</p>
-          <p>I hereby give notice that I withdraw from the contract for the sale of the goods below:</p>
+          <p>To <span class="ph" data-store="legalName">[Company name]</span>, <span class="ph" data-store="address">[full address]</span>, <span class="ph" data-store="email">[e-mail address]</span>:</p>
+          <p>I hereby give notice that I withdraw from my contract for the sale of the following goods:</p>
           <p>Ordered on: ………… / Received on: …………</p>
           <p>Order number: …………</p>
-          <p>Customer name: …………</p>
-          <p>Customer address: …………</p>
-          <p>Customer signature (only if this form is sent on paper): …………</p>
+          <p>Name of customer: …………</p>
+          <p>Address of customer: …………</p>
+          <p>Signature of customer (only if this form is notified on paper): …………</p>
           <p>Date: …………</p>
         </div>
       </section>
@@ -771,37 +798,37 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
         <div class="mf-shops">
           <a href="shop.html" class="mf-mark" aria-label="Shop RELAXX"><svg viewBox="0 0 64 64" fill="none"><rect x="1.5" y="1.5" width="61" height="61" rx="2" stroke="currentColor" stroke-width="3"/><path d="M23 48V16h12.5a8.5 8.5 0 0 1 0 17H23M34 33l11 15" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
           <div class="mf-pin"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="10" r="2.3" stroke="currentColor" stroke-width="1.5"/></svg></div>
-          <h3 class="mf-shops-title" data-cms="footer.shops.title">Try the latest pieces in one of our stores</h3>
-          <div class="mf-shops-cta"><a href="#" class="mf-btn" data-cms="footer.shops.button" data-cms-href="footer.shops.link">FIND A STORE</a></div>
+          <h3 class="mf-shops-title" data-cms="footer.shops.title">Try the latest pieces at our store</h3>
+          <div class="mf-shops-cta"><a href="aide.html#boutique" class="mf-btn" data-cms="footer.shops.button" data-cms-href="footer.shops.link">FIND THE STORE</a></div>
         </div>
       </div>
-        <div data-reveal="fm">
+        <div data-reveal="fm" data-cat-list>
           <h2 class="mf-heading">Categories</h2>
           <div data-reveal="fm"><a href="shop.html#outerwear" class="mf-link">Outerwear</a></div>
           <div data-reveal="fm"><a href="shop.html#knitwear" class="mf-link">Knitwear</a></div>
           <div data-reveal="fm"><a href="shop.html#dresses" class="mf-link">Dresses</a></div>
           <div data-reveal="fm"><a href="shop.html#shirts" class="mf-link">Shirts</a></div>
+          <div data-reveal="fm"><a href="shop.html#trousers" class="mf-link">Trousers</a></div>
           <div data-reveal="fm"><a href="shop.html#accessories" class="mf-link">Accessories</a></div>
         </div>
         <div data-reveal="fm">
           <h2 class="mf-heading">Company</h2>
           <div data-reveal="fm"><a href="histoire.html" class="mf-link">About</a></div>
-          <div data-reveal="fm"><a href="index.html#journal" class="mf-link" data-cms="footer.link.journal" data-cms-href="footer.link.journal.href">Journal</a></div>
           <div data-reveal="fm"><a href="shop.html" class="mf-link">Shop</a></div>
-          <div data-reveal="fm"><a href="mailto:hello@relaxx.example" class="mf-link">Contact</a></div>
-          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.shipping" data-cms-href="footer.link.shipping.href">Shipping</a></div>
+          <div data-reveal="fm"><a href="aide.html#contact" class="mf-link">Contact</a></div>
+          <div data-reveal="fm"><a href="aide.html#livraison" class="mf-link" data-cms="footer.link.shipping" data-cms-href="footer.link.shipping.href">Shipping</a></div>
         </div>
         <div data-reveal="fm">
           <h2 class="mf-heading">Help</h2>
-          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.returns" data-cms-href="footer.link.returns.href">Returns</a></div>
-          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.sizeguide" data-cms-href="footer.link.sizeguide.href">Size Guide</a></div>
-          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.care" data-cms-href="footer.link.care.href">Care</a></div>
-          <div data-reveal="fm"><a href="#" class="mf-link" data-cms="footer.link.faq" data-cms-href="footer.link.faq.href">FAQ</a></div>
+          <div data-reveal="fm"><a href="aide.html#retours" class="mf-link" data-cms="footer.link.returns" data-cms-href="footer.link.returns.href">Returns</a></div>
+          <div data-reveal="fm"><a href="aide.html#tailles" class="mf-link" data-cms="footer.link.sizeguide" data-cms-href="footer.link.sizeguide.href">Size Guide</a></div>
+          <div data-reveal="fm"><a href="aide.html#entretien" class="mf-link" data-cms="footer.link.care" data-cms-href="footer.link.care.href">Care</a></div>
+          <div data-reveal="fm"><a href="aide.html#faq" class="mf-link" data-cms="footer.link.faq" data-cms-href="footer.link.faq.href">FAQ</a></div>
         </div>
       <div data-reveal="fm"><div class="mf-socials"><a href="#" class="mf-social" aria-label="Instagram" data-cms-social="instagram"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="17" height="17" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.8" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor"/></svg></a><a href="#" class="mf-social" aria-label="Facebook" data-cms-social="facebook"><svg viewBox="0 0 24 24" fill="none"><path d="M14 8h2V5h-2.5C11 5 10 6.6 10 8.7V11H8v3h2v6h3v-6h2.3l.5-3H13V9c0-.6.4-1 1-1Z" fill="currentColor"/></svg></a><a href="#" class="mf-social" aria-label="YouTube" data-cms-social="youtube"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="3.5" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 9.5v5l4.2-2.5-4.2-2.5Z" fill="currentColor"/></svg></a><a href="#" class="mf-social" aria-label="TikTok" data-cms-social="tiktok"><svg viewBox="0 0 24 24" fill="none"><path d="M14 4v10a3.5 3.5 0 1 1-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M14 4c.5 2.4 2.1 3.9 4.5 4.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a></div></div>
     </div>
     <div class="mf-bottom">
-      <div class="mf-legal"><span data-cms="footer.copyright">© 2025 RELAXX. All rights reserved.</span><a href="cgv.html">Terms of Sale</a><a href="cgu.html">Terms of Use</a><a href="confidentialite.html">Privacy Policy</a></div>
+      <div class="mf-legal"><span data-cms="footer.copyright">© 2026 RELAXX. All rights reserved.</span><a href="cgv.html">Terms of Sale</a><a href="cgu.html">Terms of Use</a><a href="confidentialite.html">Privacy Policy</a></div>
       <div data-cms="footer.tagline">Designed &amp; made in small batches</div>
     </div>
   </div>
@@ -821,12 +848,13 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
 </div>
 
 <script>
+RelaxxDB.ready(function () {
 /* FR / EN: the site is written in English; French comes from this dictionary. Static text is translated on load,
    and anything the page scripts add later (products, cart, messages) is translated as it appears. */
 (function () {
   "use strict";
   var d = document.documentElement, lang = d.getAttribute("data-lang") || "en";
-  var DICT = {"Open menu":"Ouvrir le menu","Close menu":"Fermer le menu","RELAXX home":"Accueil RELAXX","Open search":"Ouvrir la recherche","Close search":"Fermer la recherche","Search":"Rechercher","Search…":"Rechercher…","Search products":"Rechercher des produits","Open cart":"Ouvrir le panier","Main menu":"Menu principal","Language":"Langue","Outerwear":"Manteaux","Knitwear":"Maille","Dresses":"Robes","Shirts":"Chemises","Trousers":"Pantalons","Accessories":"Accessoires","All":"Tout","Your cart":"Votre panier","Your Cart":"Votre panier","Close cart":"Fermer le panier","No items found.":"Votre panier est vide.","Remove":"Retirer","Subtotal":"Sous-total","Continue to Checkout":"Passer la commande","Visit Socials":"Nos réseaux","Shop RELAXX":"Boutique RELAXX","Try the latest pieces in one of our stores":"Essayez nos dernières pièces dans l'une de nos boutiques","FIND A STORE":"TROUVER UNE BOUTIQUE","Categories":"Catégories","Company":"Entreprise","About":"À propos","Journal":"Journal","Shop":"Boutique","Contact":"Contact","Shipping":"Livraison","Help":"Aide","Returns":"Retours","Size Guide":"Guide des tailles","Care":"Entretien","FAQ":"FAQ","© 2025 RELAXX. All rights reserved.":"© 2025 RELAXX. Tous droits réservés.","Terms of Sale":"CGV","Terms of Use":"CGU","Privacy Policy":"Confidentialité","Designed & made in small batches":"Conçu et fabriqué en petites séries","RELAXX — Fashion Store":"RELAXX — Boutique de mode","Product":"Produit","Checkout":"Commande","Woven to":"Tissé pour","awaken":"éveiller","shop now":"découvrir","© 2025 relaxx collection":"© 2025 collection relaxx","scroll":"défiler","Trending":"Tendance","Woman in a long dark coat":"Femme en manteau long sombre","Woman in a soft knit sweater":"Femme en pull en maille douce","Woman in a red dress":"Femme en robe rouge","Shop the trending outerwear edit":"Les manteaux tendance à découvrir","Shop the trending knitwear edit":"La maille tendance à découvrir","Shop the trending dresses edit":"Les robes tendance à découvrir","Collection categories":"Catégories de la collection","Chosen With Care, Made to Be Worn":"Choisis avec soin, faits pour être portés","View All Collections":"Voir toutes les collections","Portrait in sunglasses":"Portrait avec lunettes de soleil","Minimal portrait":"Portrait minimaliste","Where Style":"Là où le style","Meets Substance":"rencontre l'essentiel","Every RELAXX garment begins with one simple question: will this still feel right in ten years? We start from honest fibres like organic cotton, washed linen and responsibly sourced wool, then cut in small runs so nothing is made without a reason. Each seam is finished with care by the same small workshops we have partnered with since day one. The result is a wardrobe that works quietly in the background of a full life: pieces that soften with wear, pair with everything you already own and carry intention rather than excess. Fewer, better things, made to be kept, repaired and worn for many years to come.":"Chaque vêtement RELAXX commence par une question simple : sera-t-il toujours juste dans dix ans ? Nous partons de fibres honnêtes comme le coton biologique, le lin lavé et la laine d'origine responsable, puis nous produisons en petites séries pour que rien ne soit fabriqué sans raison. Chaque couture est finie avec soin par les mêmes petits ateliers qui nous accompagnent depuis le premier jour. Le résultat : une garde-robe qui accompagne discrètement une vie bien remplie, des pièces qui s'adoucissent au fil du temps, s'accordent avec tout ce que vous possédez déjà et portent une intention plutôt qu'un excès. Moins de choses, mais de meilleures, faites pour être gardées, réparées et portées pendant de longues années.","learn more about us":"en savoir plus sur nous","what our clients say":"ce que disent nos clients","About Us":"À propos","Testimonials":"Témoignages","Previous slide":"Diapositive précédente","Next slide":"Diapositive suivante","“ The fit is quiet and exact. Nothing shouts, yet everything feels considered. My RELAXX coat is the thing I reach for first. ”":"« La coupe est discrète et précise. Rien ne crie, et pourtant tout semble pensé. Mon manteau RELAXX est la première pièce que j'attrape. »","“ I love knowing where my clothes come from. The fabrics are beautiful and still look new after a full year of wear. ”":"« J'aime savoir d'où viennent mes vêtements. Les tissus sont magnifiques et semblent encore neufs après une année entière. »","“ Each drop feels like a small, careful edit instead of a flood of product. Choosing is easy, and wearing is even easier. ”":"« Chaque collection ressemble à une petite sélection soignée plutôt qu'à un déluge de produits. Choisir est simple, porter l'est encore plus. »","“ Clean lines, soft textures and no compromise on comfort. RELAXX has quietly become the backbone of my wardrobe. ”":"« Des lignes nettes, des matières douces et aucun compromis sur le confort. RELAXX est discrètement devenu la base de ma garde-robe. »","“ You can feel the hand finishing in every detail. These are clothes that ask to be kept, mended and worn again. ”":"« On sent la finition à la main dans chaque détail. Ce sont des vêtements qu'on a envie de garder, de réparer et de porter encore. »","our blog":"notre blog","From the Journal":"Le Journal","journal":"journal","materials":"matières","style":"style","lifestyle":"art de vivre","Portrait in red light":"Portrait en lumière rouge","Designers at work in a studio":"Créatrices au travail dans un atelier","Outdoor fashion portrait":"Portrait de mode en extérieur","Perfume bottle":"Flacon de parfum","The Quiet Luxury of Getting Dressed Slowly":"Le luxe discret de s'habiller lentement","What Natural Fibres Did for My Wardrobe":"Ce que les fibres naturelles ont changé dans ma garde-robe","Beyond Trends: Building a Personal Uniform":"Au-delà des tendances : construire son uniforme","Scent, Memory and the Clothes We Keep":"Parfum, mémoire et vêtements que l'on garde","read more":"lire la suite","Best Selling":"Meilleure vente","On Sale":"Promo","New Collection":"Nouvelle collection","Close":"Fermer","Previous":"Précédent","Next":"Suivant","Explore the RELAXX Collection":"Découvrez la collection RELAXX","Pieces for every day and every season, cut in small runs from honest fibres. Browse by category or see everything at once.":"Des pièces pour chaque jour et chaque saison, produites en petites séries à partir de fibres honnêtes. Parcourez par catégorie ou voyez tout d'un coup d'œil.","1 product matches your search.":"1 produit correspond à votre recherche.","Camel Wrap Coat":"Manteau portefeuille camel","Double-Breasted Coat":"Manteau croisé","Belted Trench":"Trench ceinturé","Wool Overcoat":"Pardessus en laine","Cropped Jacket":"Veste courte","Longline Coat":"Manteau long","Cable Knit Sweater":"Pull torsadé","Merino Crewneck":"Pull col rond en mérinos","Ribbed Turtleneck":"Col roulé côtelé","Chunky Cardigan":"Gilet en grosse maille","Mohair Pullover":"Pull en mohair","Cashmere V-Neck":"Pull col V en cachemire","Silk Slip Dress":"Robe nuisette en soie","Wrap Midi Dress":"Robe portefeuille midi","Pleated Maxi Dress":"Robe longue plissée","Satin Evening Dress":"Robe de soirée en satin","Linen Shirt Dress":"Robe chemise en lin","Knit Column Dress":"Robe colonne en maille","Oversized Linen Shirt":"Chemise oversize en lin","Poplin Button-Down":"Chemise en popeline","Relaxed Oxford Shirt":"Chemise Oxford décontractée","Wide-Leg Trousers":"Pantalon large","Pleated Wool Trousers":"Pantalon à pinces en laine","Tailored Straight Pants":"Pantalon droit tailleur","Leather Tote":"Cabas en cuir","Mini Shoulder Bag":"Mini sac porté épaule","Structured Top-Handle":"Sac structuré à anse","More images":"Autres images","Product images":"Images du produit","Choose image":"Choisir une image","Breadcrumb":"Fil d'Ariane","Quantity":"Quantité","Decrease quantity":"Diminuer la quantité","Increase quantity":"Augmenter la quantité","Add to wishlist":"Ajouter à la liste d'envies","Close size guide":"Fermer le guide des tailles","Color —":"Couleur —","Size":"Taille","Size guide →":"Guide des tailles →","Please choose a size.":"Veuillez choisir une taille.","In stock — ships within 2–4 business days":"En stock — expédié sous 2 à 4 jours ouvrés","Free returns within 30 days":"Retours gratuits sous 30 jours","You may also like":"Vous aimerez aussi","Size guide":"Guide des tailles","Body measurements in centimetres. Between two sizes? Take the larger one for a relaxed fit.":"Mesures du corps en centimètres. Entre deux tailles ? Choisissez la plus grande pour une coupe plus ample.","Measurements of the bag, taken flat.":"Dimensions du sac, mesurées à plat.","Chest":"Tour de poitrine","Waist":"Tour de taille","Hips":"Tour de hanches","Dimensions":"Dimensions","Strap drop":"Hauteur de bandoulière","Weight":"Poids","22–55 cm, adjustable":"22–55 cm, réglable","One size":"Taille unique","Added ✓":"Ajouté ✓","Fabric & Fit":"Matière & coupe","Care Instructions":"Entretien","Shipping & Returns":"Livraison & retours","Available colours":"Couleurs disponibles","Camel":"Camel","Charcoal":"Anthracite","Ink":"Encre","Stone":"Pierre","Oat":"Avoine","Ecru":"Écru","Sage":"Sauge","Black":"Noir","Taupe":"Taupe","Sand":"Sable","White":"Blanc","Sky":"Ciel","Olive":"Olive","Cognac":"Cognac","Chocolate":"Chocolat","Bone":"Ivoire","A clean, structured shape in a dense wool blend that holds its line all season. Fully lined, with deep pockets and tonal buttons, cut to layer easily over knitwear.":"Une ligne nette et structurée dans un mélange de laine dense qui garde sa tenue toute la saison. Entièrement doublé, avec des poches profondes et des boutons ton sur ton, coupé pour se porter facilement sur la maille.","80% wool, 20% recycled polyamide; lining 100% viscose. Relaxed fit, true to size — the model is 176 cm and wears size S.":"80 % laine, 20 % polyamide recyclé ; doublure 100 % viscose. Coupe ample, taille normalement — le mannequin mesure 176 cm et porte une taille S.","Dry clean only. Brush gently after wearing, hang on a shaped hanger and store in a breathable garment bag.":"Nettoyage à sec uniquement. Brossez délicatement après chaque port, suspendez sur un cintre épaulé et rangez dans une housse respirante.","Knitted in a soft, springy yarn with a relaxed shoulder and ribbed trims. Warm without the weight, easy on its own or under a coat.":"Tricoté dans un fil doux et élastique, avec une épaule décontractée et des finitions côtelées. Chaud sans être lourd, à porter seul ou sous un manteau.","70% merino wool, 30% recycled cashmere. Relaxed fit — size down for a closer shape. The model wears size S.":"70 % laine mérinos, 30 % cachemire recyclé. Coupe ample — prenez une taille en dessous pour un tombé plus ajusté. Le mannequin porte une taille S.","Hand wash cold or use a wool cycle. Dry flat in shape, away from direct heat. Do not tumble dry.":"Lavage à la main à froid ou programme laine. Séchez à plat en remettant en forme, loin d'une source de chaleur. Pas de sèche-linge.","A fluid silhouette that moves with the body, finished with a concealed back zip and a soft lining. Designed to go from day to evening.":"Une silhouette fluide qui accompagne le mouvement, finie par une fermeture invisible au dos et une doublure douce. Pensée pour passer du jour au soir.","70% silk, 30% wool, fully lined. True to size — the model is 175 cm and wears size S.":"70 % soie, 30 % laine, entièrement doublée. Taille normalement — le mannequin mesure 175 cm et porte une taille S.","Dry clean recommended. Cool iron on the reverse if needed and store on a hanger.":"Nettoyage à sec recommandé. Repassez à fer doux sur l'envers si besoin et rangez sur un cintre.","An easy, slightly oversized shirt with a soft collar and dropped shoulders. Light and breathable, it only gets better with every wash.":"Une chemise facile, légèrement oversize, avec un col souple et des épaules tombantes. Légère et respirante, elle s'embellit à chaque lavage.","100% organic cotton. Oversized fit — take your usual size. The model wears size S.":"100 % coton biologique. Coupe oversize — prenez votre taille habituelle. Le mannequin porte une taille S.","Machine wash at 30°C with similar colours. Line dry and iron while slightly damp.":"Lavage en machine à 30 °C avec des couleurs similaires. Séchez sur un fil et repassez encore légèrement humide.","High-waisted with a pressed front crease and a long, wide leg. Slanted side pockets and a hook-and-bar fastening keep the line clean.":"Taille haute, pli marqué sur le devant et jambe longue et large. Poches latérales en biais et fermeture à crochet pour une ligne nette.","54% wool, 44% recycled polyester, 2% elastane. High rise, full length — the model is 176 cm and wears size S.":"54 % laine, 44 % polyester recyclé, 2 % élasthanne. Taille haute, longueur complète — le mannequin mesure 176 cm et porte une taille S.","Dry clean or gentle hand wash. Steam to refresh the crease and hang to store.":"Nettoyage à sec ou lavage délicat à la main. Défroissez à la vapeur pour raviver le pli et rangez suspendu.","Shaped in smooth full-grain leather with a clean, minimal outline. Room for the essentials, an inner zip pocket and a detachable strap.":"Façonné dans un cuir pleine fleur lisse aux lignes nettes et minimales. De la place pour l'essentiel, une poche intérieure zippée et une bandoulière amovible.","100% full-grain leather, cotton lining. 30 × 22 × 11 cm, strap drop 22–55 cm.":"100 % cuir pleine fleur, doublure coton. 30 × 22 × 11 cm, hauteur de bandoulière 22–55 cm.","Wipe with a soft dry cloth. Keep away from heavy rain and direct sunlight, and store filled in its dust bag.":"Essuyez avec un chiffon doux et sec. Protégez-le des fortes pluies et du soleil direct, et rangez-le rembourré dans sa housse.","Free standard delivery on orders over CFA100,000, dispatched within 2–4 business days; express delivery is offered at checkout. Returns are free within 30 days of delivery — see our":"Livraison standard offerte dès 100 000 FCFA d'achat, expédiée sous 2 à 4 jours ouvrés ; la livraison express est proposée au moment du paiement. Les retours sont gratuits sous 30 jours après la livraison — consultez nos","terms of sale":"conditions générales de vente","privacy policy":"politique de confidentialité","Delivery":"Livraison","Step 1 / 2":"Étape 1 / 2","Step 2 / 2":"Étape 2 / 2","First name":"Prénom","Last name":"Nom","Email":"E-mail","Phone number":"Téléphone","Shipping address":"Adresse de livraison","Country / Region":"Pays / Région","City":"Ville","Address":"Adresse","Zip / Postal code":"Code postal","Delivery method":"Mode de livraison","Standard delivery":"Livraison standard","Delivered within 2–4 business days":"Livrée sous 2 à 4 jours ouvrés","Free":"Offerte","Express delivery":"Livraison express","Delivered within 1–2 business days":"Livrée sous 1 à 2 jours ouvrés","Payment":"Paiement","Payment method":"Moyen de paiement","Credit card":"Carte bancaire","Card number":"Numéro de carte","Cardholder name":"Titulaire de la carte","Expiration date (MM/YY)":"Date d'expiration (MM/AA)","You will be redirected to PayPal to complete your payment.":"Vous serez redirigé vers PayPal pour finaliser votre paiement.","Confirm the payment with Apple Pay on your device.":"Confirmez le paiement avec Apple Pay sur votre appareil.","I have read and accept the":"J'ai lu et j'accepte les","and the":"et la","Order summary":"Récapitulatif de commande","Promo code":"Code promo","Apply":"Appliquer","Discount":"Remise","Total:":"Total :","Size:":"Taille :","Color:":"Couleur :","Quantity:":"Quantité :","Your bag is empty.":"Votre panier est vide.","Continue shopping":"Continuer mes achats","Required field":"Champ obligatoire","Enter a valid email address":"Saisissez une adresse e-mail valide","Enter a valid phone number":"Saisissez un numéro de téléphone valide","Enter a valid card number":"Saisissez un numéro de carte valide","Enter a valid date (MM/YY)":"Saisissez une date valide (MM/AA)","Enter a valid CVV":"Saisissez un CVV valide","Please accept the terms to continue":"Veuillez accepter les conditions pour continuer","Code applied — 10% off":"Code appliqué — 10 % de remise","This code is not valid.":"Ce code n'est pas valide.","Order number":"Numéro de commande","Thank you for your order":"Merci pour votre commande","A confirmation email will be sent to":"Un e-mail de confirmation sera envoyé à","Back to the shop":"Retour à la boutique","Belgium":"Belgique","Switzerland":"Suisse","Germany":"Allemagne","Italy":"Italie","Spain":"Espagne","Netherlands":"Pays-Bas","United Kingdom":"Royaume-Uni","United States":"États-Unis"};
+  var DICT = {"Open menu":"Ouvrir le menu","Close menu":"Fermer le menu","RELAXX home":"Accueil RELAXX","Open search":"Ouvrir la recherche","Close search":"Fermer la recherche","Search":"Rechercher","Search…":"Rechercher…","Search products":"Rechercher des produits","Open cart":"Ouvrir le panier","Main menu":"Menu principal","Language":"Langue","Outerwear":"Manteaux","Knitwear":"Maille","Dresses":"Robes","Shirts":"Chemises","Trousers":"Pantalons","Accessories":"Accessoires","All":"Tout","Your cart":"Votre panier","Your Cart":"Votre panier","Close cart":"Fermer le panier","No items found.":"Votre panier est vide.","Remove":"Retirer","Subtotal":"Sous-total","Continue to Checkout":"Passer la commande","Visit Socials":"Nos réseaux","Shop RELAXX":"Boutique RELAXX","Try the latest pieces at our store":"Essayez nos dernières pièces dans notre boutique","FIND THE STORE":"VOIR LA BOUTIQUE","Categories":"Catégories","Company":"Entreprise","About":"À propos","Journal":"Journal","Shop":"Boutique","Contact":"Contact","Shipping":"Livraison","Help":"Aide","Returns":"Retours","Size Guide":"Guide des tailles","Care":"Entretien","FAQ":"FAQ","© 2026 RELAXX. All rights reserved.":"© 2026 RELAXX. Tous droits réservés.","Terms of Sale":"CGV","Terms of Use":"CGU","Privacy Policy":"Confidentialité","Designed & made in small batches":"Conçu et fabriqué en petites séries","RELAXX — Fashion Store":"RELAXX — Boutique de mode","Product":"Produit","Checkout":"Commande","Woven to":"Tissé pour","awaken":"éveiller","shop now":"découvrir","© 2026 relaxx collection":"© 2026 collection relaxx","scroll":"défiler","Trending":"Tendance","Woman in a long dark coat":"Femme en manteau long sombre","Woman in a soft knit sweater":"Femme en pull en maille douce","Woman in a red dress":"Femme en robe rouge","Shop the trending outerwear edit":"Les manteaux tendance à découvrir","Shop the trending knitwear edit":"La maille tendance à découvrir","Shop the trending dresses edit":"Les robes tendance à découvrir","Collection categories":"Catégories de la collection","Chosen With Care, Made to Be Worn":"Choisis avec soin, faits pour être portés","View All Collections":"Voir toutes les collections","Portrait in sunglasses":"Portrait avec lunettes de soleil","Minimal portrait":"Portrait minimaliste","Where Style":"Là où le style","Meets Substance":"rencontre l'essentiel","Every RELAXX garment begins with one simple question: will this still feel right in ten years? We start from honest fibres like organic cotton, washed linen and responsibly sourced wool, then cut in small runs so nothing is made without a reason. Each seam is finished with care by the same small workshops we have partnered with since day one. The result is a wardrobe that works quietly in the background of a full life: pieces that soften with wear, pair with everything you already own and carry intention rather than excess. Fewer, better things, made to be kept, repaired and worn for many years to come.":"Chaque vêtement RELAXX commence par une question simple : sera-t-il toujours juste dans dix ans ? Nous partons de fibres honnêtes comme le coton biologique, le lin lavé et la laine d'origine responsable, puis nous produisons en petites séries pour que rien ne soit fabriqué sans raison. Chaque couture est finie avec soin par les mêmes petits ateliers qui nous accompagnent depuis le premier jour. Le résultat : une garde-robe qui accompagne discrètement une vie bien remplie, des pièces qui s'adoucissent au fil du temps, s'accordent avec tout ce que vous possédez déjà et portent une intention plutôt qu'un excès. Moins de choses, mais de meilleures, faites pour être gardées, réparées et portées pendant de longues années.","learn more about us":"en savoir plus sur nous","what our clients say":"ce que disent nos clients","About Us":"À propos","Testimonials":"Témoignages","Previous slide":"Diapositive précédente","Next slide":"Diapositive suivante","“ The fit is quiet and exact. Nothing shouts, yet everything feels considered. My RELAXX coat is the thing I reach for first. ”":"« La coupe est discrète et précise. Rien ne crie, et pourtant tout semble pensé. Mon manteau RELAXX est la première pièce que j'attrape. »","“ I love knowing where my clothes come from. The fabrics are beautiful and still look new after a full year of wear. ”":"« J'aime savoir d'où viennent mes vêtements. Les tissus sont magnifiques et semblent encore neufs après une année entière. »","“ Each drop feels like a small, careful edit instead of a flood of product. Choosing is easy, and wearing is even easier. ”":"« Chaque collection ressemble à une petite sélection soignée plutôt qu'à un déluge de produits. Choisir est simple, porter l'est encore plus. »","“ Clean lines, soft textures and no compromise on comfort. RELAXX has quietly become the backbone of my wardrobe. ”":"« Des lignes nettes, des matières douces et aucun compromis sur le confort. RELAXX est discrètement devenu la base de ma garde-robe. »","“ You can feel the hand finishing in every detail. These are clothes that ask to be kept, mended and worn again. ”":"« On sent la finition à la main dans chaque détail. Ce sont des vêtements qu'on a envie de garder, de réparer et de porter encore. »","our blog":"notre blog","From the Journal":"Le Journal","journal":"journal","materials":"matières","style":"style","lifestyle":"art de vivre","Portrait in red light":"Portrait en lumière rouge","Designers at work in a studio":"Créatrices au travail dans un atelier","Outdoor fashion portrait":"Portrait de mode en extérieur","Perfume bottle":"Flacon de parfum","The Quiet Luxury of Getting Dressed Slowly":"Le luxe discret de s'habiller lentement","What Natural Fibres Did for My Wardrobe":"Ce que les fibres naturelles ont changé dans ma garde-robe","Beyond Trends: Building a Personal Uniform":"Au-delà des tendances : construire son uniforme","Scent, Memory and the Clothes We Keep":"Parfum, mémoire et vêtements que l'on garde","read more":"lire la suite","Best Selling":"Meilleure vente","On Sale":"Promo","New Collection":"Nouvelle collection","Close":"Fermer","Previous":"Précédent","Next":"Suivant","Explore the RELAXX Collection":"Découvrez la collection RELAXX","Pieces for every day and every season, cut in small runs from honest fibres. Browse by category or see everything at once.":"Des pièces pour chaque jour et chaque saison, produites en petites séries à partir de fibres honnêtes. Parcourez par catégorie ou voyez tout d'un coup d'œil.","1 product matches your search.":"1 produit correspond à votre recherche.","Camel Wrap Coat":"Manteau portefeuille camel","Double-Breasted Coat":"Manteau croisé","Belted Trench":"Trench ceinturé","Wool Overcoat":"Pardessus en laine","Cropped Jacket":"Veste courte","Longline Coat":"Manteau long","Cable Knit Sweater":"Pull torsadé","Merino Crewneck":"Pull col rond en mérinos","Ribbed Turtleneck":"Col roulé côtelé","Chunky Cardigan":"Gilet en grosse maille","Mohair Pullover":"Pull en mohair","Cashmere V-Neck":"Pull col V en cachemire","Silk Slip Dress":"Robe nuisette en soie","Wrap Midi Dress":"Robe portefeuille midi","Pleated Maxi Dress":"Robe longue plissée","Satin Evening Dress":"Robe de soirée en satin","Linen Shirt Dress":"Robe chemise en lin","Knit Column Dress":"Robe colonne en maille","Oversized Linen Shirt":"Chemise oversize en lin","Poplin Button-Down":"Chemise en popeline","Relaxed Oxford Shirt":"Chemise Oxford décontractée","Wide-Leg Trousers":"Pantalon large","Pleated Wool Trousers":"Pantalon à pinces en laine","Tailored Straight Pants":"Pantalon droit tailleur","Leather Tote":"Cabas en cuir","Mini Shoulder Bag":"Mini sac porté épaule","Structured Top-Handle":"Sac structuré à anse","More images":"Autres images","Product images":"Images du produit","Choose image":"Choisir une image","Breadcrumb":"Fil d'Ariane","Quantity":"Quantité","Decrease quantity":"Diminuer la quantité","Increase quantity":"Augmenter la quantité","Add to wishlist":"Ajouter à la liste d'envies","Close size guide":"Fermer le guide des tailles","Color —":"Couleur —","Size":"Taille","Size guide →":"Guide des tailles →","Please choose a size.":"Veuillez choisir une taille.","In stock — ships within 2–4 business days":"En stock — expédié sous 2 à 4 jours ouvrés","Free returns within 30 days":"Retours gratuits sous 30 jours","You may also like":"Vous aimerez aussi","Size guide":"Guide des tailles","Body measurements in centimetres. Between two sizes? Take the larger one for a relaxed fit.":"Mesures du corps en centimètres. Entre deux tailles ? Choisissez la plus grande pour une coupe plus ample.","Measurements of the bag, taken flat.":"Dimensions du sac, mesurées à plat.","Chest":"Tour de poitrine","Waist":"Tour de taille","Hips":"Tour de hanches","Dimensions":"Dimensions","Strap drop":"Hauteur de bandoulière","Weight":"Poids","22–55 cm, adjustable":"22–55 cm, réglable","One size":"Taille unique","Added ✓":"Ajouté ✓","Fabric & Fit":"Matière & coupe","Care Instructions":"Entretien","Shipping & Returns":"Livraison & retours","Available colours":"Couleurs disponibles","Camel":"Camel","Charcoal":"Anthracite","Ink":"Encre","Stone":"Pierre","Oat":"Avoine","Ecru":"Écru","Sage":"Sauge","Black":"Noir","Taupe":"Taupe","Sand":"Sable","White":"Blanc","Sky":"Ciel","Olive":"Olive","Cognac":"Cognac","Chocolate":"Chocolat","Bone":"Ivoire","A clean, structured shape in a dense wool blend that holds its line all season. Fully lined, with deep pockets and tonal buttons, cut to layer easily over knitwear.":"Une ligne nette et structurée dans un mélange de laine dense qui garde sa tenue toute la saison. Entièrement doublé, avec des poches profondes et des boutons ton sur ton, coupé pour se porter facilement sur la maille.","80% wool, 20% recycled polyamide; lining 100% viscose. Relaxed fit, true to size — the model is 176 cm and wears size S.":"80 % laine, 20 % polyamide recyclé ; doublure 100 % viscose. Coupe ample, taille normalement — le mannequin mesure 176 cm et porte une taille S.","Dry clean only. Brush gently after wearing, hang on a shaped hanger and store in a breathable garment bag.":"Nettoyage à sec uniquement. Brossez délicatement après chaque port, suspendez sur un cintre épaulé et rangez dans une housse respirante.","Knitted in a soft, springy yarn with a relaxed shoulder and ribbed trims. Warm without the weight, easy on its own or under a coat.":"Tricoté dans un fil doux et élastique, avec une épaule décontractée et des finitions côtelées. Chaud sans être lourd, à porter seul ou sous un manteau.","70% merino wool, 30% recycled cashmere. Relaxed fit — size down for a closer shape. The model wears size S.":"70 % laine mérinos, 30 % cachemire recyclé. Coupe ample — prenez une taille en dessous pour un tombé plus ajusté. Le mannequin porte une taille S.","Hand wash cold or use a wool cycle. Dry flat in shape, away from direct heat. Do not tumble dry.":"Lavage à la main à froid ou programme laine. Séchez à plat en remettant en forme, loin d'une source de chaleur. Pas de sèche-linge.","A fluid silhouette that moves with the body, finished with a concealed back zip and a soft lining. Designed to go from day to evening.":"Une silhouette fluide qui accompagne le mouvement, finie par une fermeture invisible au dos et une doublure douce. Pensée pour passer du jour au soir.","70% silk, 30% wool, fully lined. True to size — the model is 175 cm and wears size S.":"70 % soie, 30 % laine, entièrement doublée. Taille normalement — le mannequin mesure 175 cm et porte une taille S.","Dry clean recommended. Cool iron on the reverse if needed and store on a hanger.":"Nettoyage à sec recommandé. Repassez à fer doux sur l'envers si besoin et rangez sur un cintre.","An easy, slightly oversized shirt with a soft collar and dropped shoulders. Light and breathable, it only gets better with every wash.":"Une chemise facile, légèrement oversize, avec un col souple et des épaules tombantes. Légère et respirante, elle s'embellit à chaque lavage.","100% organic cotton. Oversized fit — take your usual size. The model wears size S.":"100 % coton biologique. Coupe oversize — prenez votre taille habituelle. Le mannequin porte une taille S.","Machine wash at 30°C with similar colours. Line dry and iron while slightly damp.":"Lavage en machine à 30 °C avec des couleurs similaires. Séchez sur un fil et repassez encore légèrement humide.","High-waisted with a pressed front crease and a long, wide leg. Slanted side pockets and a hook-and-bar fastening keep the line clean.":"Taille haute, pli marqué sur le devant et jambe longue et large. Poches latérales en biais et fermeture à crochet pour une ligne nette.","54% wool, 44% recycled polyester, 2% elastane. High rise, full length — the model is 176 cm and wears size S.":"54 % laine, 44 % polyester recyclé, 2 % élasthanne. Taille haute, longueur complète — le mannequin mesure 176 cm et porte une taille S.","Dry clean or gentle hand wash. Steam to refresh the crease and hang to store.":"Nettoyage à sec ou lavage délicat à la main. Défroissez à la vapeur pour raviver le pli et rangez suspendu.","Shaped in smooth full-grain leather with a clean, minimal outline. Room for the essentials, an inner zip pocket and a detachable strap.":"Façonné dans un cuir pleine fleur lisse aux lignes nettes et minimales. De la place pour l'essentiel, une poche intérieure zippée et une bandoulière amovible.","100% full-grain leather, cotton lining. 30 × 22 × 11 cm, strap drop 22–55 cm.":"100 % cuir pleine fleur, doublure coton. 30 × 22 × 11 cm, hauteur de bandoulière 22–55 cm.","Wipe with a soft dry cloth. Keep away from heavy rain and direct sunlight, and store filled in its dust bag.":"Essuyez avec un chiffon doux et sec. Protégez-le des fortes pluies et du soleil direct, et rangez-le rembourré dans sa housse.","Free standard delivery on orders over CFA100,000, dispatched within 2–4 business days; express delivery is offered at checkout. Returns are free within 30 days of delivery — see our":"Livraison standard offerte dès 100 000 FCFA d'achat, expédiée sous 2 à 4 jours ouvrés ; la livraison express est proposée au moment du paiement. Les retours sont gratuits sous 30 jours après la livraison — consultez nos","terms of sale":"conditions générales de vente","privacy policy":"politique de confidentialité","Delivery":"Livraison","Step 1 / 2":"Étape 1 / 2","Step 2 / 2":"Étape 2 / 2","First name":"Prénom","Last name":"Nom","Email":"E-mail","Phone number":"Téléphone","Shipping address":"Adresse de livraison","Country / Region":"Pays / Région","City":"Ville","Address":"Adresse","Zip / Postal code":"Code postal","Delivery method":"Mode de livraison","Standard delivery":"Livraison standard","Delivered within 2–4 business days":"Livrée sous 2 à 4 jours ouvrés","Free":"Offerte","Express delivery":"Livraison express","Delivered within 1–2 business days":"Livrée sous 1 à 2 jours ouvrés","Payment":"Paiement","Payment method":"Moyen de paiement","Credit card":"Carte bancaire","Card number":"Numéro de carte","Cardholder name":"Titulaire de la carte","Expiration date (MM/YY)":"Date d'expiration (MM/AA)","You will be redirected to PayPal to complete your payment.":"Vous serez redirigé vers PayPal pour finaliser votre paiement.","Confirm the payment with Apple Pay on your device.":"Confirmez le paiement avec Apple Pay sur votre appareil.","I have read and accept the":"J'ai lu et j'accepte les","and the":"et la","Order summary":"Récapitulatif de commande","Promo code":"Code promo","Apply":"Appliquer","Discount":"Remise","Total:":"Total :","Size:":"Taille :","Color:":"Couleur :","Quantity:":"Quantité :","Your bag is empty.":"Votre panier est vide.","Continue shopping":"Continuer mes achats","Required field":"Champ obligatoire","Enter a valid email address":"Saisissez une adresse e-mail valide","Enter a valid phone number":"Saisissez un numéro de téléphone valide","Enter a valid card number":"Saisissez un numéro de carte valide","Enter a valid date (MM/YY)":"Saisissez une date valide (MM/AA)","Enter a valid CVV":"Saisissez un CVV valide","Please accept the terms to continue":"Veuillez accepter les conditions pour continuer","Code applied — 10% off":"Code appliqué — 10 % de remise","This code is not valid.":"Ce code n'est pas valide.","Order number":"Numéro de commande","Thank you for your order":"Merci pour votre commande","A confirmation email will be sent to":"Un e-mail de confirmation sera envoyé à","Back to the shop":"Retour à la boutique","Belgium":"Belgique","Switzerland":"Suisse","Germany":"Allemagne","Italy":"Italie","Spain":"Espagne","Netherlands":"Pays-Bas","United Kingdom":"Royaume-Uni","United States":"États-Unis"};
   if (window.RelaxxDB) { try { var DX = RelaxxDB.dict(); for (var dk in DX) DICT[dk] = DX[dk]; } catch (e) {} }
   var has = Object.prototype.hasOwnProperty;
   function tr(s) {
@@ -859,7 +887,7 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
     [/^Shopping Bag \((\d+)\)$/, function (m) { return "Panier (" + m[1] + ")"; }],
     [/^(.+) · (.+)$/, function (m) { return tr(m[1]) + " · " + tr(m[2]); }]
   ];
-  window.wovenT = tr;
+  window.relaxxT = tr;
 
   var ATTRS = ["placeholder", "aria-label", "alt", "title"];
   function skip(el) { return !el || el.closest && el.closest("script,style,[data-no-i18n]"); }
@@ -888,7 +916,7 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
     b.addEventListener("click", function () {
       var l = b.getAttribute("data-set-lang");
       if (l === lang) return;
-      try { localStorage.setItem("woven-lang", l); } catch (e) {}
+      try { localStorage.setItem("relaxx-lang", l); } catch (e) {}
       document.body.style.transition = "opacity .25s"; document.body.style.opacity = "0";
       setTimeout(function () { location.reload(); }, 250);
     });
@@ -911,9 +939,11 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
     if (document.title !== tr(document.title)) document.title = tr(document.title);
   }).observe(d, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
 })();
+});
 </script>
 <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.23/bundled/lenis.min.js"></script>
 <script>
+RelaxxDB.ready(function () {
 (function () {
   "use strict";
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -963,7 +993,7 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
   if (window.RelaxxDB) { try { P = RelaxxDB.catalog(P); CATS = RelaxxDB.categories(CATS); } catch (e) {} }
   var PV = P.filter(function (p) { return !p.hidden; });
   var PER_PAGE = 12;
-  var money = function (n) { return "CFA" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+  var money = function (n) { return RelaxxDB.money(n); };
   var labelOf = function (k) { for (var i = 0; i < CATS.length; i++) if (CATS[i].key === k) return CATS[i].label; return k; };
 
   var ICON_PLUS = '<svg viewBox="0 0 17 17" fill="none"><path d="M8.5 1v15M1 8.5h15" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
@@ -1027,19 +1057,37 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
 
   /* ---------- cart ---------- */
   var cart = [];
-  try { cart = JSON.parse(localStorage.getItem("woven-cart") || "[]"); } catch (err) { cart = []; }
+  try { cart = JSON.parse(localStorage.getItem("relaxx-cart") || "[]"); } catch (err) { cart = []; }
   var overlay = $(".cart-overlay");
-  function saveCart() { try { localStorage.setItem("woven-cart", JSON.stringify(cart)); } catch (err) {} }
+  function saveCart() { try { localStorage.setItem("relaxx-cart", JSON.stringify(cart)); } catch (err) {} }
   function renderCart() {
-    var qty = cart.reduce(function (s, l) { return s + l.q; }, 0);
-    $(".cart-qty").textContent = qty;
+    // each line is checked against the catalogue: still on sale, size and colour chosen, quantity within the stock
+    var FR = document.documentElement.getAttribute("data-lang") === "fr";
+    cart = cart.filter(function (l) { return P[l.id]; });
+    var chk = window.RelaxxDB ? RelaxxDB.checkCart(cart) : cart.map(function (l) { return { q: l.q, problem: "" }; }), fixed = false;
+    chk.forEach(function (r, i) { if (r.problem === "reduced") { cart[i].q = r.q; fixed = true; } });
+    if (fixed) saveCart();
+    $(".cart-qty").textContent = cart.reduce(function (s, l) { return s + l.q; }, 0);
     var body = $(".cart-body");
     if (!cart.length) { body.innerHTML = '<div class="cart-empty">No items found.</div>'; return; }
-    var total = 0;
+    var total = 0, ok = 0;
+    var NOTE = {
+      soldout: FR ? "Épuisé dans cette taille et cette couleur" : "Sold out in this size and colour",
+      unavailable: FR ? "Cet article n'est plus disponible" : "This item is no longer available",
+      options: FR ? "Choisissez la taille et la couleur" : "Choose the size and colour",
+      reduced: FR ? "Quantité ajustée au stock disponible" : "Quantity adjusted to the stock left"
+    };
     body.innerHTML = '<ul class="cart-list">' + cart.map(function (l, i) {
-      var p = P[l.id]; total += p.price * l.q;
-      return '<li class="cart-item"><img alt="" src="' + IMG(((p.colors || []).filter(function (c) { return c.name === l.c; })[0] || {}).img || p.img, 200) + '"><div class="cart-item-info"><span class="cart-item-name">' + p.name + '</span>' + (l.c || l.s ? '<span class="cart-item-var">' + [l.c, l.s].filter(Boolean).join(" · ") + '</span>' : '') + '<span>' + money(p.price) + ' × ' + l.q + '</span><button type="button" class="cart-remove" data-remove="' + i + '">Remove</button></div></li>';
-    }).join("") + '</ul><div class="cart-foot"><div class="cart-sub"><span>Subtotal</span><strong>' + money(total) + '</strong></div><a href="checkout.html" class="cart-checkout">Continue to Checkout</a></div>';
+      var p = P[l.id], r = chk[i], buyable = !r.problem || r.problem === "reduced";
+      if (buyable) { total += p.price * l.q; ok++; }
+      var note = r.problem ? '<span class="cart-item-note" data-no-i18n>' + (r.problem === "options" ? '<a href="product.html?id=' + p.id + '">' + NOTE.options + "</a>" : NOTE[r.problem]) + "</span>" : "";
+      return '<li class="cart-item' + (buyable ? "" : " is-off") + '"><img alt="" src="' + IMG(((p.colors || []).filter(function (c) { return c.name === l.c; })[0] || {}).img || p.img, 200) + '"><div class="cart-item-info"><span class="cart-item-name">' + p.name + '</span>' + (l.c || l.s ? '<span class="cart-item-var">' + [l.c, l.s].filter(Boolean).join(" · ") + '</span>' : '') + '<span>' + money(p.price) + ' × ' + l.q + '</span>' + note + '<button type="button" class="cart-remove" data-remove="' + i + '">Remove</button></div></li>';
+    }).join("") + '</ul><div class="cart-foot"><div class="cart-sub"><span>Subtotal</span><strong>' + money(total) + '</strong></div>' + (ok ? '<a href="checkout.html" class="cart-checkout">Continue to Checkout</a>' : '') + '</div>';
+  }
+  // quick "add to bag" from a product card: when a size or a colour has to be chosen, the product page asks for it
+  function quickAdd(id) {
+    if (window.RelaxxDB && RelaxxDB.needsChoice(RelaxxDB.product(id))) { location.href = "product.html?id=" + id; return false; }
+    addToCart(id); return true;
   }
   function addToCart(id, qty, c, s) {
     qty = qty || 1;
@@ -1146,8 +1194,10 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
 
   document.documentElement.classList.add("ix-ready");
 })();
+});
 </script>
 <script>
+RelaxxDB.ready(function () {
 /* Custom cursor — vanilla port of the CustomCursor React component.
    A dot follows the pointer on a spring (stiffness 150, damping 22, mass .8) and grows
    into a ring over links and buttons. Disabled for coarse pointers and reduced motion. */
@@ -1220,6 +1270,7 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
   coarse.addEventListener("change", sync);
   reduced.addEventListener("change", sync);
 })();
+});
 </script>
 </body>
 </html>
