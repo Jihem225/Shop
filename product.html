@@ -1496,6 +1496,7 @@ RelaxxDB.ready(function () {
 
       /* write-a-review form */
       var form = $(".pr-form", sec), msg = $(".pr-msg", sec), labels = $$(".pr-rate label", form), rateTxt = $(".pr-rate-txt", form);
+      var guard = RelaxxDB.protect(form, "review"); // anti-robot check, verified by the database
       function openForm(v) {
         form.hidden = !v;
         form.classList.toggle("is-open", v);
@@ -1540,11 +1541,14 @@ RelaxxDB.ready(function () {
         var r = { stars: v.stars, title: v.title, text: v.text, name: v.name, city: "", size: v.size, fit: v.fit, lang: L };
         var sendBtn = $('button[type="submit"]', form), sendTxt = sendBtn.textContent;
         sendBtn.disabled = true; sendBtn.textContent = L === "fr" ? "Envoi…" : "Sending…";
-        RelaxxDB.addReview(id, r).then(function (rec) {
+        RelaxxDB.addReview(id, r, guard).then(function (rec) {
           sendBtn.disabled = false; sendBtn.textContent = sendTxt; rec.helpful = 0; published(rec);
-        }, function () {
+        }, function (e) {
           sendBtn.disabled = false; sendBtn.textContent = sendTxt;
-          err("name", L === "fr" ? "L'avis n'a pas pu être envoyé. Vérifiez votre connexion puis réessayez." : "The review could not be sent. Check your connection and try again.");
+          var code = e && e.message;
+          err("name", code === "rate" ? (L === "fr" ? "Plusieurs avis viennent d'être envoyés depuis cette connexion : réessayez un peu plus tard." : "Several reviews were just sent from this connection: try again a little later.")
+            : code === "bot" ? (L === "fr" ? "La vérification de sécurité a échoué. Rechargez la page, puis réessayez." : "The security check failed. Reload the page, then try again.")
+            : (L === "fr" ? "L'avis n'a pas pu être envoyé. Vérifiez votre connexion puis réessayez." : "The review could not be sent. Check your connection and try again."));
         });
       });
       function published(r) {

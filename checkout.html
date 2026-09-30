@@ -1087,6 +1087,7 @@ RelaxxDB.ready(function () {
     var root = $("[data-checkout]");
     if (!root) return;
     var form = $(".co-form"), payBtn = $(".co-pay", form), promo = null;
+    var guard = RelaxxDB.protect(form, "order"); // anti-robot check, verified by the database
     var LANG = document.documentElement.getAttribute("data-lang") === "fr" ? "fr" : "en";
     // delivery rates, payment methods and countries are managed in the back office
     var SH = window.RelaxxDB ? RelaxxDB.shipping() : { standard: { enabled: true, price: 0, days: "2–4" }, express: { enabled: true, price: 10000, days: "1–2" }, freeOver: 0 };
@@ -1217,6 +1218,7 @@ RelaxxDB.ready(function () {
         promo: FR ? "Ce code promo n'est plus valable : il a été retiré." : "This promo code is no longer valid: it has been removed.",
         cod_max: FR ? "Le paiement à la livraison n'est pas possible pour ce montant : choisissez un autre moyen de paiement." : "Cash on delivery is not available for this amount: choose another payment method.",
         country: FR ? "Nous ne livrons pas encore ce pays." : "We do not deliver to this country yet.",
+        bot: FR ? "La vérification de sécurité a échoué. Rechargez la page, puis réessayez." : "The security check failed. Reload the page, then try again.",
         rate: FR ? "Plusieurs commandes viennent d'être passées avec cette adresse e-mail : patientez quelques minutes ou contactez-nous." : "Several orders were just placed with this e-mail address: wait a few minutes or contact us.",
         net: FR ? "Connexion impossible : vérifiez votre connexion Internet puis réessayez." : "Connection failed: check your Internet connection and try again.",
         other: FR ? "La commande n'a pas pu être enregistrée. Vérifiez vos informations puis réessayez." : "The order could not be recorded. Check your details and try again."
@@ -1233,7 +1235,7 @@ RelaxxDB.ready(function () {
         subtotal: t.sub, discount: t.disc, promo: promo ? promo.code : null,
         shipping: { method: (form.querySelector('input[name="shipping"]:checked') || {}).value || "standard", price: t.ship }, total: t.total,
         payment: { method: m, operator: m === "mobilemoney" && form.operator ? form.operator.value : "" }, lang: LANG
-      }).then(function (order) { done(order, ordered); }, function (err) {
+      }, guard).then(function (order) { done(order, ordered); }, function (err) {
         payBtn.disabled = false; payBtn.removeAttribute("aria-busy"); payBtn.textContent = label;
         var code = err && err.message;
         note.textContent = MSG[code] || (err && !err.status && code !== "contact" && code !== "payment" && code !== "shipping" && code !== "closed" && code !== "empty" ? MSG.net : MSG.other);
