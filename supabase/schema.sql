@@ -299,7 +299,9 @@ begin
        or exists (select 1 from public.rx_docs c where c.coll = 'categories' and c.key = prod->>'cat' and not coalesce((c.data->>'visible')::boolean, true)) then
       bad := bad || jsonb_build_object('pid', it->'pid', 'problem', 'unavailable'); continue;
     end if;
-    v_sizes := case when prod->>'cat' = 'accessories' then array['One size'] else array['XS', 'S', 'M', 'L', 'XL'] end;
+    -- the sizes of the product are its own list (back office); without one: the usual five, a single size for the accessories
+    v_sizes := case when jsonb_typeof(prod->'sizes') = 'array' and jsonb_array_length(prod->'sizes') > 0 then array(select jsonb_array_elements_text(prod->'sizes'))
+      when prod->>'cat' = 'accessories' then array['One size'] else array['XS', 'S', 'M', 'L', 'XL'] end;
     v_size := coalesce(nullif(it->>'size', ''), case when array_length(v_sizes, 1) = 1 then v_sizes[1] end);
     col := null;
     if jsonb_typeof(prod->'colors') = 'array' and jsonb_array_length(prod->'colors') > 0 and jsonb_typeof(prod->'vstock') = 'object' then

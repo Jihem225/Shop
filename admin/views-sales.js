@@ -89,7 +89,7 @@
     // to-do
     var toPrep = db.orders.filter(function (o) { return o.status === "paid"; }).length, toPay = db.orders.filter(function (o) { return o.status === "pending"; }).length;
     var toShip = db.orders.filter(function (o) { return o.status === "processing"; }).length, toMod = db.reviews.filter(function (r) { return r.status === "pending"; }).length;
-    var out = db.products.filter(function (p) { return p.status === "active" && RX.lowStock(p) === "out"; }).length, low = db.products.filter(function (p) { return p.status === "active" && RX.lowStock(p) === "low"; }).length;
+    var out = RX.products(db).filter(function (p) { return p.status === "active" && RX.lowStock(p) === "out"; }).length, low = RX.products(db).filter(function (p) { return p.status === "active" && RX.lowStock(p) === "low"; }).length;
 
     // top products / categories / payments / cities
     var prod = {}, cat = {}, pay = {}, city = {};

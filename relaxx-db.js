@@ -145,7 +145,7 @@
     { key: "trousers", label: "Trousers", labelFr: "Pantalons" },
     { key: "accessories", label: "Accessories", labelFr: "Accessoires" }
   ];
-  var SIZES = ["XS", "S", "M", "L", "XL"];
+  var SIZES = ["XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL"];
   var COUNTRIES = [
     ["CI", "Côte d'Ivoire", "Côte d'Ivoire"], ["SN", "Senegal", "Sénégal"], ["ML", "Mali", "Mali"], ["BF", "Burkina Faso", "Burkina Faso"],
     ["BJ", "Benin", "Bénin"], ["TG", "Togo", "Togo"], ["NE", "Niger", "Niger"], ["GW", "Guinea-Bissau", "Guinée-Bissau"],
@@ -161,7 +161,11 @@
   function pick(r, arr) { return arr[Math.floor(r() * arr.length)]; }
   function weighted(r, pairs) { var t = 0, i; for (i = 0; i < pairs.length; i++) t += pairs[i][1]; var x = r() * t; for (i = 0; i < pairs.length; i++) { x -= pairs[i][1]; if (x <= 0) return pairs[i][0]; } return pairs[0][0]; }
   function dayKey(t) { var d = new Date(t); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
-  function sizesOf(cat) { return cat === "accessories" ? ["One size"] : SIZES; }
+  // sizes: each product has its own list (p.sizes, set in the back office); a product without one has the usual five,
+  // or a single size for the accessories. SIZES is the standard scale offered when adding a size and in the size guide.
+  var BASE_SIZES = ["XS", "S", "M", "L", "XL"];
+  function sizesOf(cat) { return cat === "accessories" ? ["One size"] : BASE_SIZES; }
+  function sizesFor(p) { return p && p.sizes && p.sizes.length ? p.sizes : sizesOf(p ? p.cat : ""); }
 
   /* ---------- colour variants ----------
      p.colors = [{ id, name (EN), nameFr, hex, img }] (img: optional photo of that colour)
@@ -183,7 +187,7 @@
   function syncStock(p) {
     if (!hasColors(p)) return p;
     var st = {};
-    sizesOf(p.cat).forEach(function (s) { st[s] = p.colors.reduce(function (n, c) { return n + Math.max(0, +((p.vstock[c.id] || {})[s]) || 0); }, 0); });
+    sizesFor(p).forEach(function (s) { st[s] = p.colors.reduce(function (n, c) { return n + Math.max(0, +((p.vstock[c.id] || {})[s]) || 0); }, 0); });
     p.stock = st;
     return p;
   }
@@ -430,7 +434,7 @@
     var table = kind === "accessories"
       ? "<table><tbody>" + g.rows.map(function (r) { return "<tr><th>" + t(r) + "</th><td>" + esc(r.v) + "</td></tr>"; }).join("") + "</tbody></table>"
       : "<table><thead><tr><th>" + (fr ? "Taille" : "Size") + "</th>" + g.cols.map(function (c) { return "<th>" + t(c) + "</th>"; }).join("") + "</tr></thead><tbody>" +
-        SIZES.map(function (sz) { var row = g.rows[sz] || []; return "<tr><th>" + sz + "</th>" + g.cols.map(function (c, i) { return "<td>" + esc(row[i] || "—") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table>";
+        SIZES.filter(function (sz) { return g.rows[sz] || BASE_SIZES.indexOf(sz) > -1; }).map(function (sz) { var row = g.rows[sz] || []; return "<tr><th>" + sz + "</th>" + g.cols.map(function (c, i) { return "<td>" + esc(row[i] || "—") + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table>";
     return { note: fr ? g.note.fr : g.note.en || g.note.fr, table: table };
   }
   function esc(v) { return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -859,7 +863,7 @@
     db.categories.forEach(function (c) { if (!c.visible) hiddenCat[c.key] = 1; });
     return db.products.map(function (p) {
       var out = totalStock(p) <= 0;
-      return { id: p.id, cat: p.cat, name: clean(p.name), nameFr: clean(p.nameFr), price: p.price, compare: p.compare, tag: out ? "Sold Out" : p.tag, img: p.img, imgs: p.imgs || [], desc: p.desc, stock: p.stock,
+      return { id: p.id, cat: p.cat, name: clean(p.name), nameFr: clean(p.nameFr), price: p.price, compare: p.compare, tag: out ? "Sold Out" : p.tag, img: p.img, imgs: p.imgs || [], desc: p.desc, stock: p.stock, sizes: sizesFor(p),
         colors: hasColors(p) ? p.colors : [], vstock: hasColors(p) ? p.vstock : null,
         hidden: p.status !== "active" || !!hiddenCat[p.cat], soldOut: out, sku: p.sku };
     });
@@ -917,13 +921,13 @@
      is checked against the catalogue: product on sale, colour and size chosen, quantity within the stock left. */
   function needsChoice(p) {
     if (!p) return false;
-    return sizesOf(p.cat).length > 1 || (hasColors(p) && p.colors.length > 1);
+    return sizesFor(p).length > 1 || (hasColors(p) && p.colors.length > 1);
   }
   function checkLine(db, l) {
     var p = db.products[l.id], hiddenCat = db.categories.some(function (c) { return p && c.key === p.cat && !c.visible; });
     var out = { id: l.id, q: Math.max(1, Math.floor(+l.q || 1)), c: l.c || "", s: l.s || "", max: 0, problem: "" };
     if (!p || p.status !== "active" || hiddenCat) { out.problem = "unavailable"; return out; }
-    var sizes = sizesOf(p.cat), size = out.s || (sizes.length === 1 ? sizes[0] : "");
+    var sizes = sizesFor(p), size = out.s || (sizes.length === 1 ? sizes[0] : "");
     var col = hasColors(p) ? (colorOf(p, out.c) || (p.colors.length === 1 ? p.colors[0] : null)) : null;
     if (!size || sizes.indexOf(size) < 0 || (hasColors(p) && !col)) { out.problem = "options"; return out; }
     out.max = Math.max(0, col ? +((p.vstock[col.id] || {})[size]) || 0 : +(p.stock || {})[size] || 0);
@@ -1492,7 +1496,7 @@
   window.RelaxxDB = {
     KEY: KEY, SIZES: SIZES, CATEGORIES: CATEGORIES, COUNTRIES: COUNTRIES,
     get: get, update: update, reload: reload, adopt: adopt, persist: persist, log: log, reset: reset,
-    seed: seed, timeline: timeline, money: money, dayKey: dayKey, sizesOf: sizesOf, totalStock: totalStock, uid: uid,
+    seed: seed, timeline: timeline, money: money, dayKey: dayKey, sizesOf: sizesOf, sizesFor: sizesFor, totalStock: totalStock, uid: uid,
     defaultColors: defaultColors, colorSlug: colorSlug, hasColors: hasColors, syncStock: syncStock, colorOf: colorOf, adjustStock: adjustStock,
     catalog: catalog, categories: categories, dict: dict, product: product, shipping: shipping, payments: payments, countries: countries,
     vitrine: vitrine, defaultVitrine: defaultVitrine, imgUrl: imgUrl, media: media, setMedia: setMedia,

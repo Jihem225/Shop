@@ -5,6 +5,15 @@
 (function () {
   "use strict";
   var RX = window.RX, DB = window.RelaxxDB, I = RX.I, esc = RX.esc, $ = RX.$, $$ = RX.$$, DAY = 864e5;
+  // every size used by the products: the standard scale first, then the sizes typed freely, then the single size
+  function allSizes(db) {
+    var seen = {}, out = [];
+    RX.products(db).forEach(function (p) { DB.sizesFor(p).forEach(function (z) { seen[z] = 1; }); });
+    DB.SIZES.forEach(function (z) { if (seen[z]) { out.push(z); delete seen[z]; } });
+    Object.keys(seen).forEach(function (z) { if (z !== "One size") out.push(z); });
+    return out.concat(["One size"]);
+  }
+  function stdSizes(db) { return allSizes(db).filter(function (z) { return z !== "One size"; }); }
   function catLabel(db, key) { var c = db.categories.filter(function (x) { return x.key === key; })[0]; return c ? (c.labelFr || c.label) : key; }
   function sold30(db) {
     var r = RX.range(30), m = {};
@@ -19,9 +28,9 @@
   var PS = { q: "", cat: "", status: "", stock: "", sort: { key: "id", dir: 1 }, sel: {} };
   RX.route("/products", "products", function (el) {
     var db = RX.db(), w = RX.canWrite("products"), s30 = sold30(db);
-    var n = { active: 0, draft: 0, archived: 0 }; db.products.forEach(function (p) { n[p.status]++; });
+    var n = { active: 0, draft: 0, archived: 0 }; RX.products(db).forEach(function (p) { n[p.status]++; });
     el.innerHTML =
-      '<div class="ph"><div><h1>Produits</h1><p>' + db.products.length + " produits · " + n.active + " en ligne · " + n.draft + " brouillon" + (n.draft > 1 ? "s" : "") + " · " + n.archived + " archivé" + (n.archived > 1 ? "s" : "") + "</p></div>" +
+      '<div class="ph"><div><h1>Produits</h1><p>' + RX.products(db).length + " produits · " + n.active + " en ligne · " + n.draft + " brouillon" + (n.draft > 1 ? "s" : "") + " · " + n.archived + " archivé" + (n.archived > 1 ? "s" : "") + "</p></div>" +
       '<div class="ph-actions">' + RX.readOnly("products") + '<button type="button" class="btn" data-export>' + I.down + "Exporter</button>" + (w ? '<a class="btn is-primary" href="#/products/new">' + I.plus + "Nouveau produit</a>" : "") + "</div></div>" +
       '<div class="card"><div class="toolbar"><div class="input-wrap">' + I.search + '<input class="input" type="search" placeholder="Nom, référence (SKU)…" data-q value="' + esc(PS.q) + '" aria-label="Rechercher"></div>' +
       '<select class="select" data-f="cat" aria-label="Catégorie"><option value="">Toutes les catégories</option>' + db.categories.map(function (c) { return '<option value="' + c.key + '"' + (PS.cat === c.key ? " selected" : "") + ">" + esc(c.labelFr || c.label) + "</option>"; }).join("") + "</select>" +
@@ -32,7 +41,7 @@
 
     function list() {
       var db = RX.db(), q = PS.q.trim().toLowerCase();
-      var l = db.products.filter(function (p) {
+      var l = RX.products(db).filter(function (p) {
         if (PS.cat && p.cat !== PS.cat) return false;
         if (PS.status && p.status !== PS.status) return false;
         if (PS.stock && RX.lowStock(p) !== PS.stock) return false;
@@ -97,8 +106,8 @@
         db.products.push(copy); RX.save("a dupliqué le produit", src.nameFr || src.name); location.hash = "#/products/" + copy.id; return;
       }
       if (t.closest("[data-export]")) {
-        var rows = [["ID", "SKU", "Nom (EN)", "Nom (FR)", "Catégorie", "Prix", "Prix barré", "Coût", "Étiquette", "Statut", "Stock total"].concat(DB.SIZES).concat(["Taille unique"])];
-        el._l.forEach(function (p) { rows.push([p.id, p.sku, p.name, p.nameFr, catLabel(db, p.cat), p.price, p.compare || "", p.cost || "", RX.TAGS[p.tag] || p.tag, RX.PSTATUS[p.status].label, RX.stock(p)].concat(DB.SIZES.map(function (s) { return p.stock[s] == null ? "" : p.stock[s]; })).concat([p.stock["One size"] == null ? "" : p.stock["One size"]])); });
+        var rows = [["ID", "SKU", "Nom (EN)", "Nom (FR)", "Catégorie", "Prix", "Prix barré", "Coût", "Étiquette", "Statut", "Stock total"].concat(stdSizes(db)).concat(["Taille unique"])];
+        el._l.forEach(function (p) { rows.push([p.id, p.sku, p.name, p.nameFr, catLabel(db, p.cat), p.price, p.compare || "", p.cost || "", RX.TAGS[p.tag] || p.tag, RX.PSTATUS[p.status].label, RX.stock(p)].concat(stdSizes(db).map(function (s) { return p.stock[s] == null ? "" : p.stock[s]; })).concat([p.stock["One size"] == null ? "" : p.stock["One size"]])); });
         RX.download("produits-relaxx-" + DB.dayKey(Date.now()) + ".csv", RX.csv(rows)); return;
       }
       var tr = t.closest("tr[data-href]"); if (tr) location.hash = tr.dataset.href;
@@ -109,11 +118,15 @@
   function editor(el, params) {
     var db = RX.db(), isNew = params.id === undefined, w = RX.canWrite("products");
     var src = isNew ? null : db.products[+params.id];
-    if (!isNew && !src) { el.innerHTML = '<div class="card">' + RX.empty("Produit introuvable", "", I.tag) + "</div>"; return; }
+    if (!isNew && (!src || src.status === "deleted")) { el.innerHTML = '<div class="card">' + RX.empty("Produit introuvable", "", I.tag) + "</div>"; return; }
     var p = isNew ? { id: db.products.length, sku: "", name: "", nameFr: "", cat: db.categories[0].key, price: 0, compare: 0, cost: 0, tag: "", img: "", status: "draft", stock: {}, desc: "", descFr: "", colors: [{ id: "noir", name: "Black", nameFr: "Noir", hex: "#141414", img: "" }], vstock: { noir: {} } } : JSON.parse(JSON.stringify(src));
     var variants = DB.hasColors(p) || isNew;
     if (!p.colors) p.colors = []; if (!p.vstock) p.vstock = {};
-    var imgs = []; db.products.forEach(function (x) { if (x.img && imgs.indexOf(x.img) < 0) imgs.push(x.img); });
+    // sizes of this product (the manager adds and removes them); a new product starts with the usual sizes of its category
+    p.sizes = (isNew ? DB.sizesOf(p.cat) : DB.sizesFor(p)).slice();
+    var sizesTouched = !isNew, szLbl = function (s) { return s === "One size" ? "Taille unique" : s; };
+    var imgs = []; RX.products(db).forEach(function (x) { if (x.img && imgs.indexOf(x.img) < 0) imgs.push(x.img); });
+    var ordered = db.orders.some(function (o) { return (o.items || []).some(function (i) { return i.pid === p.id; }); });
     var sold = 0, rev = 0; db.orders.forEach(function (o) { if (RX.isSale(o)) o.items.forEach(function (i) { if (i.pid === p.id) { sold += i.q; rev += i.price * i.q; } }); });
     var dis = w ? "" : " disabled";
 
@@ -146,7 +159,8 @@
           '<label class="field"><span>Référence (SKU)</span><input class="input mono" name="sku" value="' + esc(p.sku) + '" placeholder="Générée automatiquement"' + dis + "></label>" +
         "</div></div>" +
         '<div class="card"><div class="card-h"><h2>Aperçu boutique</h2></div><div class="card-b"><div class="preview-card" style="position:relative" data-preview></div></div></div>' +
-        (!isNew && w ? '<div class="card"><div class="card-h"><h2>Zone sensible</h2></div><div class="card-b"><p class="muted" style="font-size:13px;margin-bottom:12px">Un produit déjà commandé ne peut pas être supprimé : archivez-le pour le retirer de la boutique en gardant l\'historique.</p><button type="button" class="btn is-ghost-danger is-block" data-archive>' + (p.status === "archived" ? "Restaurer en brouillon" : "Archiver le produit") + "</button></div></div>" : "") +
+        (!isNew && w ? '<div class="card"><div class="card-h"><h2>Zone sensible</h2></div><div class="card-b"><p class="muted" style="font-size:13px;margin-bottom:12px">Un produit déjà commandé ne peut pas être supprimé : archivez-le pour le retirer de la boutique en gardant l\'historique.</p><button type="button" class="btn is-ghost-danger is-block" data-archive>' + (p.status === "archived" ? "Restaurer en brouillon" : "Archiver le produit") + "</button>" +
+          '<p class="muted" style="font-size:13px;margin:16px 0 12px">' + (ordered ? "Ce produit figure dans au moins une commande : il ne peut qu'être archivé." : "Produit ajouté par erreur ? Il n'a jamais été commandé : vous pouvez le supprimer définitivement.") + '</p><button type="button" class="btn is-ghost-danger is-block" data-delete' + (ordered ? " disabled" : "") + ">" + I.trash + "Supprimer définitivement</button></div></div>" : "") +
       "</div></div>" +
       (w ? '<div class="sticky-save"><span class="muted" data-state>' + (isNew ? "Nouveau produit" : "Aucune modification") + '</span><div class="row"><a class="btn" href="#/products">Annuler</a><button type="submit" class="btn is-primary">' + (isNew ? "Créer le produit" : "Enregistrer") + "</button></div></div>" : "") + "</form>";
 
@@ -182,20 +196,48 @@
           "</div></div>" +
           (w ? '<div class="var-actions"><button type="button" class="btn is-sm" data-cmove="' + c.id + '" data-dir="-1"' + (i === 0 ? " disabled" : "") + ' aria-label="Monter">↑</button><button type="button" class="btn is-sm" data-cmove="' + c.id + '" data-dir="1"' + (i === p.colors.length - 1 ? " disabled" : "") + ' aria-label="Descendre">↓</button>' +
             '<button type="button" class="btn is-sm is-ghost-danger" data-cdel="' + c.id + '" aria-label="Supprimer la couleur"' + (p.colors.length < 2 ? ' disabled title="Il faut au moins une couleur"' : "") + ">" + I.trash + "</button></div>" : "") +
-          "</div>";
+          "</div>" +
+          '<div style="padding:2px 0 16px;border-bottom:1px solid var(--line);margin-bottom:14px"><div style="font-size:12.5px;font-weight:600;margin-bottom:8px">Photos supplémentaires de « ' + esc(c.nameFr || "cette couleur") + ' »</div>' + strip(c.id, "sans photo propre, cette couleur montre les photos supplémentaires du produit") + "</div>";
       }).join("") + "</div>" +
-      (w ? '<div class="var-add"><button type="button" class="btn" data-cadd>' + I.plus + 'Ajouter une couleur</button><div class="var-palette"><span class="muted">Couleurs courantes :</span>' +
-        PALETTE.map(function (c) { var on = p.colors.some(function (x) { return (x.nameFr || "").toLowerCase() === c[0].toLowerCase(); }); return '<button type="button" class="var-chip" data-cpal="' + esc(c.join("|")) + '"' + (on ? " disabled" : "") + ' title="' + esc(c[0]) + '"><i style="--c:' + c[2] + '"></i>' + esc(c[0]) + "</button>"; }).join("") + "</div></div>" : "");
+      (w ? '<div class="var-add"><button type="button" class="btn" data-cadd>' + I.plus + "Ajouter une couleur</button></div>" : "");
+    }
+    // the sizes of the product: removed with the cross, added from the standard scale or typed freely (5XL, 42, 38/40…)
+    function sizeBar() {
+      if (!w) return "";
+      var std = DB.SIZES.concat(["One size"]).filter(function (x) { return p.sizes.indexOf(x) < 0; });
+      return '<div class="field" style="margin-bottom:16px"><span>Tailles du produit</span><div class="row" style="flex-wrap:wrap;gap:6px">' +
+        p.sizes.map(function (x) { return '<span class="row" style="gap:2px;padding:4px 4px 4px 12px;border:1px solid var(--line);font-size:13px;font-weight:600">' + esc(szLbl(x)) + '<button type="button" class="icon-btn" style="width:24px;height:24px" data-szdel="' + esc(x) + '" aria-label="Retirer la taille ' + esc(szLbl(x)) + '"' + (p.sizes.length < 2 ? ' disabled title="Il faut au moins une taille"' : "") + ">" + I.x + "</button></span>"; }).join("") + "</div>" +
+        '<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:10px"><input class="input" data-sznew aria-label="Nouvelle taille" placeholder="Autre taille : 5XL, 42, 38/40…" maxlength="10" style="width:230px"><button type="button" class="btn" data-szadd>' + I.plus + "Ajouter la taille</button>" +
+        std.map(function (x) { return '<button type="button" class="btn is-sm" data-szquick="' + esc(x) + '">+ ' + esc(szLbl(x)) + "</button>"; }).join("") + "</div>" +
+        "<small class=\"muted\">Indiquez le stock de chaque taille ci-dessous. Une taille dont le stock est à 0 reste affichée sur la fiche produit, grisée et barrée (épuisée) ; retirez-la pour qu'elle ne soit plus proposée.</small></div>";
+    }
+    function addSize(v) {
+      v = String(v || "").replace(/[:|"<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 10);
+      if (!v) return;
+      if (/^taille unique$/i.test(v)) v = "One size";
+      if (p.sizes.some(function (x) { return x.toLowerCase() === v.toLowerCase(); })) { RX.toast("Cette taille existe déjà", "bad"); return; }
+      if (p.sizes.length >= 16) { RX.toast("16 tailles au plus par produit", "bad"); return; }
+      p.sizes.push(v);
+      // standard sizes keep their usual order (XS … 4XL); the others stay where they were added
+      var rank = function (x, i) { var k = DB.SIZES.indexOf(x); return k > -1 ? k : 100 + i; };
+      p.sizes = p.sizes.map(function (x, i) { return [x, rank(x, i)]; }).sort(function (a, b) { return a[1] - b[1]; }).map(function (x) { return x[0]; });
+      sizesTouched = true; changed(); sizes();
+    }
+    function delSize(v) {
+      if (p.sizes.length < 2) return;
+      var units = variants ? p.colors.reduce(function (t, c) { return t + (+(p.vstock[c.id] || {})[v] || 0); }, 0) : +p.stock[v] || 0;
+      var go = function () { p.sizes = p.sizes.filter(function (x) { return x !== v; }); delete p.stock[v]; Object.keys(p.vstock).forEach(function (k) { delete p.vstock[k][v]; }); sizesTouched = true; changed(); sizes(); };
+      if (!units) go(); else RX.confirm({ title: "Retirer la taille « " + szLbl(v) + " » ?", text: "Cette taille a encore " + units + " unité" + (units > 1 ? "s" : "") + " en stock, qui seront retirées du stock.", ok: "Retirer", danger: true }).then(function (ok) { if (ok) go(); });
     }
     function cls(v) { return v === 0 ? " is-zero" : v <= db.settings.store.lowStock ? " is-low" : ""; }
     function sizes() {
-      var list = DB.sizesOf(form.cat.value), lbl = function (s) { return s === "One size" ? "Taille unique" : s; };
+      var list = p.sizes, lbl = function (s) { return s === "One size" ? "Taille unique" : s; };
       if (!variants) {
-        $("[data-sizes]", el).innerHTML = '<div class="sizes">' + list.map(function (s) { var v = p.stock[s] || 0; return '<label class="size-in"><span>' + lbl(s) + '</span><input class="inv-in' + cls(v) + '" style="width:100%" type="number" min="0" data-size="' + s + '" value="' + v + '"' + dis + "></label>"; }).join("") +
+        $("[data-sizes]", el).innerHTML = sizeBar() + '<div class="sizes">' + list.map(function (s) { var v = p.stock[s] || 0; return '<label class="size-in"><span>' + lbl(s) + '</span><input class="inv-in' + cls(v) + '" style="width:100%" type="number" min="0" data-size="' + s + '" value="' + v + '"' + dis + "></label>"; }).join("") +
           '<div class="size-in"><span>Total</span><b class="num" style="height:34px;display:flex;align-items:center;font-size:16px" data-total></b></div></div>';
         total(); return;
       }
-      $("[data-sizes]", el).innerHTML = '<div class="table-wrap"><table class="t var-stock"><thead><tr><th>Stock</th>' + list.map(function (s) { return '<th class="c">' + lbl(s) + "</th>"; }).join("") + '<th class="r">Total</th></tr></thead><tbody>' +
+      $("[data-sizes]", el).innerHTML = sizeBar() + '<div class="table-wrap"><table class="t var-stock"><thead><tr><th>Stock</th>' + list.map(function (s) { return '<th class="c">' + lbl(s) + "</th>"; }).join("") + '<th class="r">Total</th></tr></thead><tbody>' +
         p.colors.map(function (c) {
           var row = p.vstock[c.id] = p.vstock[c.id] || {};
           return '<tr><td><span class="row" style="gap:8px;white-space:nowrap"><i class="var-dot" style="--c:' + esc(c.hex) + '"></i>' + esc(c.nameFr || c.name || "Sans nom") + "</span></td>" +
@@ -206,7 +248,7 @@
     }
     function total() {
       if (!variants) { $("[data-total]", el).textContent = $$("[data-size]", el).reduce(function (n, i) { return n + (+i.value || 0); }, 0); return; }
-      var list = DB.sizesOf(form.cat.value), all = 0;
+      var list = p.sizes, all = 0;
       p.colors.forEach(function (c) { var t = list.reduce(function (n, s) { return n + (+(p.vstock[c.id] || {})[s] || 0); }, 0); all += t; var b = $('[data-vt="' + c.id + '"]', el); if (b) b.textContent = t; });
       list.forEach(function (s) { var b = $('[data-st="' + s + '"]', el); if (b) b.textContent = p.colors.reduce(function (n, c) { return n + (+(p.vstock[c.id] || {})[s] || 0); }, 0); });
       $("[data-total]", el).textContent = all;
@@ -221,19 +263,24 @@
         (variants && p.colors.length ? '<div class="pc-dots">' + p.colors.map(function (c) { return '<i title="' + esc(c.nameFr || c.name) + '" style="--c:' + esc(c.hex) + '"></i>'; }).join("") + "</div>" : "") + "</div>";
       $(".img-prev", el).src = RX.img(form.img.value, 400);
     }
-    // extra photos (thumbnails of the product page): added from the media library, removed or reordered here
+    // extra photos (thumbnails of the product page), for the product and for each colour: added from the media library,
+    // removed or reordered here. key: "" for the product, the id of the colour otherwise.
     var MAX_EXTRA = 8;
     if (!p.imgs) p.imgs = [];
-    function extras() {
-      var box = $("[data-extras]", el); if (!box) return;
-      box.innerHTML = '<div class="row" style="flex-wrap:wrap;gap:10px;align-items:flex-start">' + p.imgs.map(function (v, i) {
-        return '<div style="width:116px"><img alt="Photo supplémentaire ' + (i + 1) + '" src="' + esc(RX.img(v, 240)) + '" style="display:block;width:116px;aspect-ratio:3/4;object-fit:cover;background:var(--grey-soft)">' +
-          (w ? '<div class="row" style="gap:4px;margin-top:6px;justify-content:space-between"><button type="button" class="btn is-sm" style="width:34px;padding:0;justify-content:center" data-xmove="' + i + '" data-dir="-1"' + (i === 0 ? " disabled" : "") + ' aria-label="Avancer la photo">←</button><button type="button" class="btn is-sm" style="width:34px;padding:0;justify-content:center" data-xmove="' + i + '" data-dir="1"' + (i === p.imgs.length - 1 ? " disabled" : "") + ' aria-label="Reculer la photo">→</button><button type="button" class="btn is-sm is-ghost-danger" style="width:34px;padding:0;justify-content:center" data-xdel="' + i + '" aria-label="Retirer la photo">' + I.x + "</button></div>" : "") + "</div>";
-      }).join("") + "</div>" +
-        (w ? '<div class="row" style="gap:12px;margin-top:' + (p.imgs.length ? 14 : 0) + 'px;flex-wrap:wrap"><button type="button" class="btn" data-xadd' + (p.imgs.length >= MAX_EXTRA ? " disabled" : "") + ">" + I.plus + 'Ajouter une photo</button><small class="muted">' + p.imgs.length + " / " + MAX_EXTRA + (p.imgs.length ? "" : " — sans photo supplémentaire, la fiche n'affiche que la grande photo") + "</small></div>" : "");
+    function listOf(key) { if (!key) return p.imgs; var c = p.colors.filter(function (x) { return x.id === key; })[0]; return c ? c.imgs || (c.imgs = []) : []; }
+    function strip(key, empty) {
+      var list = listOf(key), bs = ' style="width:26px;height:26px;padding:0;justify-content:center"';
+      return '<div class="row" style="flex-wrap:wrap;gap:8px;align-items:center">' + list.map(function (v, i) {
+        return '<div class="row" style="gap:4px;padding:4px;border:1px solid var(--line)"><img class="thumb" alt="Photo supplémentaire ' + (i + 1) + '" src="' + esc(RX.img(v, 100)) + '">' +
+          (w ? '<button type="button" class="btn is-sm"' + bs + ' data-xmove="' + esc(key) + "|" + i + '" data-dir="-1"' + (i === 0 ? " disabled" : "") + ' aria-label="Avancer la photo">←</button><button type="button" class="btn is-sm"' + bs + ' data-xmove="' + esc(key) + "|" + i + '" data-dir="1"' + (i === list.length - 1 ? " disabled" : "") + ' aria-label="Reculer la photo">→</button><button type="button" class="btn is-sm is-ghost-danger"' + bs + ' data-xdel="' + esc(key) + "|" + i + '" aria-label="Retirer la photo">' + I.x + "</button>" : "") + "</div>";
+      }).join("") +
+        (w ? '<button type="button" class="btn is-sm" data-xadd="' + esc(key) + '"' + (list.length >= MAX_EXTRA ? " disabled" : "") + ">" + I.plus + 'Ajouter une photo</button><small class="muted">' + list.length + " / " + MAX_EXTRA + (list.length ? "" : " — " + empty) + "</small>" : "") + "</div>";
     }
+    function extras() { var box = $("[data-extras]", el); if (box) box.innerHTML = strip("", variants ? "photos montrées pour les couleurs qui n'ont pas les leurs" : "sans photo supplémentaire, la fiche n'affiche que la grande photo"); }
     colors(); sizes(); extras(); preview();
+    el.addEventListener("keydown", function (e) { if (e.key === "Enter" && e.target.matches && e.target.matches("[data-sznew]")) { e.preventDefault(); addSize(e.target.value); } });
     form.addEventListener("input", function (e) {
+      if (e.target.matches("[data-sznew]")) return;
       RX.dirty = true; var st = $("[data-state]", el); if (st) st.textContent = "Modifications non enregistrées";
       var t = e.target;
       if (t.matches("[data-size]")) { p.stock[t.dataset.size] = Math.max(0, +t.value || 0); t.className = "inv-in" + cls(+t.value || 0); total(); }
@@ -248,7 +295,7 @@
       }
       preview();
     });
-    form.cat.addEventListener("change", function () { if (!variants) p.stock = {}; sizes(); });
+    form.cat.addEventListener("change", function () { if (!sizesTouched) { p.sizes = DB.sizesOf(form.cat.value).slice(); if (!variants) p.stock = {}; } sizes(); });
     el.addEventListener("change", function (e) {
       if (!e.target.matches("[data-variants]")) return;
       var on = e.target.checked;
@@ -260,7 +307,7 @@
       var n = p.colors.length;
       RX.confirm({ title: "Passer en couleur unique ?", text: "Les " + n + " couleur" + (n > 1 ? "s" : "") + " seront supprimées ; le stock de chaque taille devient la somme des couleurs.", ok: "Passer en couleur unique", danger: true }).then(function (ok) {
         if (!ok) { e.target.checked = true; return; }
-        var list = DB.sizesOf(form.cat.value), st = {};
+        var list = p.sizes, st = {};
         list.forEach(function (s) { st[s] = p.colors.reduce(function (t, c) { return t + (+(p.vstock[c.id] || {})[s] || 0); }, 0); });
         p.stock = st; p.colors = []; p.vstock = {}; variants = false; $("[data-variants-lbl]", el).textContent = "Couleur unique"; changed(); colors(); sizes();
       });
@@ -292,7 +339,7 @@
         var mv = p.colors.splice(ix, 1)[0]; p.colors.splice(to, 0, mv); changed(); colors(); sizes(); return;
       }
       if ((b = e.target.closest("[data-cdel]"))) {
-        var dc = p.colors.filter(function (c) { return c.id === b.dataset.cdel; })[0], units = DB.sizesOf(form.cat.value).reduce(function (t, s) { return t + (+(p.vstock[dc.id] || {})[s] || 0); }, 0);
+        var dc = p.colors.filter(function (c) { return c.id === b.dataset.cdel; })[0], units = p.sizes.reduce(function (t, s) { return t + (+(p.vstock[dc.id] || {})[s] || 0); }, 0);
         var go = function () { p.colors = p.colors.filter(function (c) { return c !== dc; }); delete p.vstock[dc.id]; changed(); colors(); sizes(); };
         if (!units) go(); else RX.confirm({ title: "Supprimer « " + (dc.nameFr || dc.name) + " » ?", text: "Cette couleur a encore " + units + " unité" + (units > 1 ? "s" : "") + " en stock, qui seront retirées du stock.", ok: "Supprimer", danger: true }).then(function (ok) { if (ok) go(); });
         return;
@@ -303,15 +350,34 @@
         return;
       }
       if ((b = e.target.closest("[data-cphoto-del]"))) { p.colors.forEach(function (c) { if (c.id === b.dataset.cphotoDel) c.img = ""; }); changed(); colors(); return; }
-      if (e.target.closest("[data-xadd]")) {
-        if (p.imgs.length >= MAX_EXTRA) return;
-        RX.pickMedia({ title: "Photo supplémentaire", current: "", siteLabel: "Photos du catalogue", groups: [{ label: "Photos du catalogue", items: imgs }], onPick: function (v) { if (v && p.imgs.length < MAX_EXTRA) { p.imgs.push(v); changed(); extras(); } } });
+      if ((b = e.target.closest("[data-szdel]"))) { delSize(b.dataset.szdel); return; }
+      if (e.target.closest("[data-szadd]")) { addSize($("[data-sznew]", el).value); return; }
+      if ((b = e.target.closest("[data-szquick]"))) { addSize(b.dataset.szquick); return; }
+      if ((b = e.target.closest("[data-xadd]"))) {
+        var xk = b.dataset.xadd, xl = listOf(xk);
+        if (xl.length >= MAX_EXTRA) return;
+        RX.pickMedia({ title: "Photo supplémentaire", current: "", siteLabel: "Photos du catalogue", groups: [{ label: "Photos du catalogue", items: imgs }], onPick: function (v) { if (v && xl.length < MAX_EXTRA) { xl.push(v); changed(); if (xk) colors(); else extras(); } } });
         return;
       }
-      if ((b = e.target.closest("[data-xdel]"))) { p.imgs.splice(+b.dataset.xdel, 1); changed(); extras(); return; }
-      if ((b = e.target.closest("[data-xmove]"))) { var xi = +b.dataset.xmove, xt = xi + (+b.dataset.dir); if (xt < 0 || xt >= p.imgs.length) return; var xv = p.imgs.splice(xi, 1)[0]; p.imgs.splice(xt, 0, xv); changed(); extras(); return; }
+      if ((b = e.target.closest("[data-xdel], [data-xmove]"))) {
+        var xs = b.dataset.xdel !== undefined ? b.dataset.xdel : b.dataset.xmove, cut = xs.lastIndexOf("|"), key2 = xs.slice(0, cut), xi = +xs.slice(cut + 1), l2 = listOf(key2);
+        if (b.dataset.xdel !== undefined) l2.splice(xi, 1);
+        else { var xt = xi + (+b.dataset.dir); if (xt < 0 || xt >= l2.length) return; var xv = l2.splice(xi, 1)[0]; l2.splice(xt, 0, xv); }
+        changed(); if (key2) colors(); else extras(); return;
+      }
       if (e.target.closest("[data-img-upload]")) {
         RX.pickMedia({ title: "Photo du produit", current: form.img.value, siteLabel: "Photos du catalogue", groups: [{ label: "Photos du catalogue", items: imgs }], onPick: function (v) { setImg(v); } });
+        return;
+      }
+      if (e.target.closest("[data-delete]")) {
+        if (ordered) return;
+        var dname = src.nameFr || src.name || "ce produit";
+        RX.confirm({ title: "Supprimer définitivement", text: "« " + dname + " » sera supprimé de la boutique et du back-office, avec ses photos, ses couleurs et son stock. Cette action est irréversible.", ok: "Supprimer définitivement", danger: true }).then(function (ok) {
+          if (!ok) return;
+          // the place of the product is kept empty (the pages and the orders find a product by its number)
+          db.products[src.id] = { id: src.id, status: "deleted", cat: src.cat, sku: "", name: "", nameFr: "", price: 0, compare: 0, cost: 0, tag: "", img: "", imgs: [], desc: "", descFr: "", colors: [], stock: {} };
+          RX.dirty = false; RX.save("a supprimé le produit", dname); RX.toast("Produit supprimé"); location.hash = "#/products";
+        });
         return;
       }
       if (e.target.closest("[data-archive]")) {
@@ -332,7 +398,7 @@
       var comp = +form.compare.value || 0, price = +form.price.value;
       if (comp && comp <= price) { form.compare.setAttribute("aria-invalid", "true"); RX.toast("Le prix barré doit être supérieur au prix de vente", "bad"); return; }
       var nameFr = form.nameFr.value.trim(), descFr = form.descFr.value.trim();
-      var names = db.products.filter(function (x) { return x.id !== p.id && (x.nameFr || "").trim().toLowerCase() === nameFr.toLowerCase(); });
+      var names = RX.products(db).filter(function (x) { return x.id !== p.id && (x.nameFr || "").trim().toLowerCase() === nameFr.toLowerCase(); });
       if (names.length) { form.nameFr.setAttribute("aria-invalid", "true"); RX.toast("Un autre produit porte déjà ce nom", "bad"); return; }
       if (variants) {
         var bad = p.colors.filter(function (c) { return !c.nameFr; });
@@ -360,11 +426,12 @@
         target.status = form.status.value; target.cat = form.cat.value; target.tag = form.tag.value;
         target.sku = form.sku.value.trim() || "RX-" + target.cat.slice(0, 3).toUpperCase() + "-" + ("00" + (target.id + 1)).slice(-3);
         if (variants) {
-          var sz = DB.sizesOf(target.cat);
-          target.colors = p.colors.map(function (c) { return { id: c.id, name: c.name || c.nameFr, nameFr: c.nameFr, hex: /^#[0-9a-f]{6}$/i.test(c.hex) ? c.hex : "#cccccc", img: c.img || "" }; });
+          var sz = p.sizes;
+          target.colors = p.colors.map(function (c) { return { id: c.id, name: c.name || c.nameFr, nameFr: c.nameFr, hex: /^#[0-9a-f]{6}$/i.test(c.hex) ? c.hex : "#cccccc", img: c.img || "", imgs: (c.imgs || []).filter(Boolean).slice(0, MAX_EXTRA) }; });
           target.vstock = {}; target.colors.forEach(function (c) { target.vstock[c.id] = {}; sz.forEach(function (s) { target.vstock[c.id][s] = Math.max(0, +((p.vstock[c.id] || {})[s]) || 0); }); });
         } else { target.colors = []; delete target.vstock; }
-        var st = {}; DB.sizesOf(target.cat).forEach(function (s) { st[s] = Math.max(0, +(p.stock[s] || 0)); }); target.stock = st;
+        target.sizes = p.sizes.slice();
+        var st = {}; p.sizes.forEach(function (s) { st[s] = Math.max(0, +(p.stock[s] || 0)); }); target.stock = st;
         DB.syncStock(target);
         if (isNew) db.products.push(target);
         RX.dirty = false;
@@ -385,11 +452,11 @@
     var db = RX.db(), w = RX.canWrite("inventory"), th = db.settings.store.lowStock, changes = {};
     if (q.filter) IS.filter = q.filter;
     var units = 0, value = 0, out = 0, low = 0;
-    db.products.forEach(function (p) { var n = RX.stock(p); units += n; value += n * (p.cost || p.price * 0.4); var s = RX.lowStock(p); if (p.status === "active") { if (s === "out") out++; if (s === "low") low++; } });
+    RX.products(db).forEach(function (p) { var n = RX.stock(p); units += n; value += n * (p.cost || p.price * 0.4); var s = RX.lowStock(p); if (p.status === "active") { if (s === "out") out++; if (s === "low") low++; } });
     el.innerHTML =
       '<div class="ph"><div><h1>Stock</h1><p>Quantités par couleur et par taille. Modifiez les cellules puis enregistrez.</p></div><div class="ph-actions">' + RX.readOnly("inventory") + '<button type="button" class="btn" data-export>' + I.down + "Exporter</button>" +
       (w ? '<button type="button" class="btn" data-threshold>Seuil d\'alerte : ' + th + "</button>" : "") + "</div></div>" +
-      '<div class="grid g-4" style="margin-bottom:18px">' + RX.kpiS("Unités en stock", RX.num(units), db.products.length + " produits") + RX.kpiS("Valeur du stock", RX.money(value), "au coût d'achat") +
+      '<div class="grid g-4" style="margin-bottom:18px">' + RX.kpiS("Unités en stock", RX.num(units), RX.products(db).length + " produits") + RX.kpiS("Valeur du stock", RX.money(value), "au coût d'achat") +
         RX.kpiS("Ruptures", out, "produits actifs sans stock") + RX.kpiS("Stock faible", low, "une taille à zéro ou total ≤ " + th * 2) + "</div>" +
       '<div class="card"><div class="toolbar"><div class="input-wrap">' + I.search + '<input class="input" type="search" placeholder="Produit ou SKU…" data-q value="' + esc(IS.q) + '" aria-label="Rechercher"></div>' +
       '<div class="seg" aria-label="Filtre">' + [["", "Tous"], ["low", "Stock faible"], ["out", "Ruptures"]].map(function (f) { return '<button type="button" data-filter="' + f[0] + '" aria-pressed="' + (IS.filter === f[0]) + '">' + f[1] + "</button>"; }).join("") + "</div>" +
@@ -399,13 +466,13 @@
 
     function draw() {
       var qq = IS.q.trim().toLowerCase();
-      var l = db.products.filter(function (p) {
+      var l = RX.products(db).filter(function (p) {
         if (IS.cat && p.cat !== IS.cat) return false;
         if (IS.filter && RX.lowStock(p) !== IS.filter) return false;
         if (qq && (p.name + " " + p.nameFr + " " + p.sku).toLowerCase().indexOf(qq) < 0) return false;
         return true;
       });
-      var cols = DB.SIZES.concat(["One size"]);
+      var cols = allSizes(db);
       $("[data-body]", el).innerHTML = l.length ? '<div class="table-wrap"><table class="t"><thead><tr><th>Produit</th>' + cols.map(function (s) { return '<th class="c">' + (s === "One size" ? "Unique" : s) + "</th>"; }).join("") + '<th class="r">Total</th><th>État</th></tr></thead><tbody>' +
         l.map(function (p) {
           var st = RX.lowStock(p);
@@ -460,12 +527,12 @@
         return;
       }
       if (e.target.closest("[data-export]")) {
-        var rows = [["SKU", "Produit", "Couleur", "Catégorie"].concat(DB.SIZES).concat(["Taille unique", "Total", "État"])];
+        var rows = [["SKU", "Produit", "Couleur", "Catégorie"].concat(stdSizes(db)).concat(["Taille unique", "Total", "État"])];
         var line = function (p, sku, color, st) {
           var tot = Object.keys(st).reduce(function (n, k) { return n + (+st[k] || 0); }, 0), s = RX.lowStock(p);
-          rows.push([sku, p.nameFr, color, catLabel(db, p.cat)].concat(DB.SIZES.map(function (z) { return st[z] == null ? "" : st[z]; })).concat([st["One size"] == null ? "" : st["One size"], tot, color ? "" : s === "out" ? "Rupture" : s === "low" ? "Faible" : "OK"]));
+          rows.push([sku, p.nameFr, color, catLabel(db, p.cat)].concat(stdSizes(db).map(function (z) { return st[z] == null ? "" : st[z]; })).concat([st["One size"] == null ? "" : st["One size"], tot, color ? "" : s === "out" ? "Rupture" : s === "low" ? "Faible" : "OK"]));
         };
-        db.products.forEach(function (p) {
+        RX.products(db).forEach(function (p) {
           line(p, p.sku, "", p.stock);
           if (DB.hasColors(p)) p.colors.forEach(function (c) { line(p, p.sku + "-" + c.id.toUpperCase(), c.nameFr || c.name, p.vstock[c.id] || {}); });
         });
@@ -489,7 +556,7 @@
         '<div class="ph"><div><h1>Catégories</h1><p>Onglets de la boutique et de la page d\'accueil. L\'ordre ci-dessous est celui des onglets. Modifiez les noms puis cliquez sur « Enregistrer ».</p></div><div class="ph-actions">' + (w ? '<button type="button" class="btn" data-add>' + I.plus + 'Nouvelle catégorie</button><button type="button" class="btn is-primary" data-save-cats disabled>Enregistrer</button>' : "") + "</div></div>" +
         '<div class="card"><div class="table-wrap"><table class="t"><thead><tr><th class="w0">Ordre</th><th>Nom</th><th>Version anglaise (automatique)</th><th>Identifiant</th><th class="r">Produits</th><th>Visible</th><th class="r">Actions</th></tr></thead><tbody>' +
         cats.map(function (c, i) {
-          var n = db.products.filter(function (p) { return p.cat === c.key; }).length, act = db.products.filter(function (p) { return p.cat === c.key && p.status === "active"; }).length;
+          var n = RX.products(db).filter(function (p) { return p.cat === c.key; }).length, act = RX.products(db).filter(function (p) { return p.cat === c.key && p.status === "active"; }).length;
           return '<tr><td class="w0"><div class="row" style="gap:4px"><button type="button" class="btn is-sm" data-move="' + c.key + '" data-dir="-1"' + (!w || i === 0 ? " disabled" : "") + ' aria-label="Monter">↑</button><button type="button" class="btn is-sm" data-move="' + c.key + '" data-dir="1"' + (!w || i === cats.length - 1 ? " disabled" : "") + ' aria-label="Descendre">↓</button></div></td>' +
             '<td><input class="input" data-lbl="labelFr" data-key="' + c.key + '" value="' + esc(names[c.key] !== undefined ? names[c.key] : c.labelFr) + '"' + (w ? "" : " disabled") + '></td><td class="muted" data-en="' + c.key + '">' + esc(c.label) + "</td>" +
             '<td class="mono muted">' + esc(c.key) + '</td><td class="r num">' + act + ' <span class="muted">/ ' + n + "</span></td>" +

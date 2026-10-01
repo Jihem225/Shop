@@ -100,7 +100,7 @@
       '<datalist id="rx-links">' + LINKS.map(function (l) { return '<option value="' + l + '">'; }).join("") + "</datalist>";
 
     var state = {}, defs = null, ctl = null, form = $("[data-form]", el), body = $("[data-body]", el);
-    var imgs = []; db.products.forEach(function (p) { if (imgs.indexOf(p.img) < 0) imgs.push(p.img); });
+    var imgs = []; RX.products(db).forEach(function (p) { if (imgs.indexOf(p.img) < 0) imgs.push(p.img); });
 
     if (P.custom) ctl = RX[P.custom](el, body, w, dirty);
     else if (tab === "seo") {
@@ -197,7 +197,7 @@
       refreshReset(k); dirty();
     }
     function productOptions(sel) {
-      return db.products.map(function (p) { return '<option value="' + p.id + '"' + (+sel === p.id ? " selected" : "") + ">" + esc((p.nameFr || p.name) + " — " + p.sku + (p.status !== "active" ? " (" + RX.PSTATUS[p.status].label.toLowerCase() + ")" : "")) + "</option>"; }).join("");
+      return RX.products(db).map(function (p) { return '<option value="' + p.id + '"' + (+sel === p.id ? " selected" : "") + ">" + esc((p.nameFr || p.name) + " — " + p.sku + (p.status !== "active" ? " (" + RX.PSTATUS[p.status].label.toLowerCase() + ")" : "")) + "</option>"; }).join("");
     }
     function productField(f) {
       var v = state[f.k].v, p = db.products[+v] || {};
