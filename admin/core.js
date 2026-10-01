@@ -18,7 +18,7 @@
   RX.OPS = { wave: "Wave", orange: "Orange Money", mtn: "MTN MoMo", moov: "Moov Money" };
   RX.SHIP = { standard: "Standard", express: "Express" };
   RX.TAGS = { "": "Aucune", "Best Selling": "Meilleure vente", "New Collection": "Nouvelle collection", "On Sale": "Promo" };
-  RX.PSTATUS = { active: { label: "Actif", tone: "ok" }, draft: { label: "Brouillon", tone: "muted" }, archived: { label: "Archivé", tone: "bad" } };
+  RX.PSTATUS = { active: { label: "Actif", tone: "ok" }, draft: { label: "Brouillon", tone: "muted" }, archived: { label: "Archivé", tone: "bad" }, deleted: { label: "Supprimé", tone: "muted" } };
   RX.ROLES = {
     admin: { label: "Administrateur", desc: "Accès complet, y compris les réglages et l'équipe." },
     manager: { label: "Gestionnaire", desc: "Ventes, catalogue et marketing. Pas de réglages ni d'équipe." },
@@ -145,6 +145,8 @@
 
   /* ---------- data helpers ---------- */
   RX.db = function () { return DB.get(); };
+  // the products of the shop: a product deleted for good keeps its place in the list, empty, and is never shown
+  RX.products = function (db) { return (db || DB.get()).products.filter(function (p) { return p && p.status !== "deleted"; }); };
   /* The page being edited works on the database object it was rendered with. If another tab (a customer
      ordering, another admin) wrote in the meantime, that object is stale: merge the newer records into it so
      neither the edit nor the other tab's data is lost. The section being edited keeps its own version. */
@@ -528,7 +530,7 @@
     return {
       orders: db.orders.filter(function (o) { return o.status === "paid" || o.status === "pending"; }).length,
       reviews: db.reviews.filter(function (r) { return r.status === "pending"; }).length,
-      inventory: db.products.filter(function (p) { return p.status === "active" && RX.lowStock(p) === "out"; }).length
+      inventory: RX.products(db).filter(function (p) { return p.status === "active" && RX.lowStock(p) === "out"; }).length
     };
   }
   function renderSide() {
@@ -551,7 +553,7 @@
     var db = RX.db(), out = [], c = counts();
     if (c.orders) out.push({ href: "#/orders?status=paid", tone: "t-info", icon: "bag", title: c.orders + " commande" + (c.orders > 1 ? "s" : "") + " à traiter", sub: "Payées ou en attente de paiement" });
     if (c.reviews) out.push({ href: "#/reviews?status=pending", tone: "t-warn", icon: "star", title: c.reviews + " avis à modérer", sub: "En attente de publication" });
-    var low = db.products.filter(function (p) { return p.status === "active" && RX.lowStock(p) !== "ok"; });
+    var low = RX.products(db).filter(function (p) { return p.status === "active" && RX.lowStock(p) !== "ok"; });
     if (low.length) out.push({ href: "#/inventory?filter=low", tone: "t-bad", icon: "box", title: low.length + " produit" + (low.length > 1 ? "s" : "") + " en stock faible ou rupture", sub: low.slice(0, 3).map(function (p) { return p.nameFr || p.name; }).join(", ") + (low.length > 3 ? "…" : "") });
     db.orders.filter(function (o) { return o.source === "web" && Date.now() - o.date < 3 * DAY; }).slice(-5).reverse().forEach(function (o) {
       out.push({ href: "#/orders/" + o.id, tone: "t-ok", icon: "check", title: "Nouvelle commande " + o.id, sub: RX.custName(o) + " · " + RX.money(o.total) + " · " + RX.rel(o.date) });
@@ -643,7 +645,7 @@
       if (pages.length) groups.push(["Pages", pages.slice(0, q ? 6 : 8)]);
       if (q) {
         if (RX.can("orders")) groups.push(["Commandes", db.orders.filter(function (o) { return norm(o.id + " " + RX.custName(o) + " " + o.customer.email).indexOf(q) > -1; }).slice(-6).reverse().map(function (o) { return { href: "#/orders/" + o.id, label: o.id + " — " + RX.custName(o), sub: RX.money(o.total) }; })]);
-        if (RX.can("products")) groups.push(["Produits", db.products.filter(function (p) { return norm(p.name + " " + p.nameFr + " " + p.sku).indexOf(q) > -1; }).slice(0, 6).map(function (p) { return { href: "#/products/" + p.id, label: p.nameFr || p.name, sub: p.sku }; })]);
+        if (RX.can("products")) groups.push(["Produits", RX.products(db).filter(function (p) { return norm(p.name + " " + p.nameFr + " " + p.sku).indexOf(q) > -1; }).slice(0, 6).map(function (p) { return { href: "#/products/" + p.id, label: p.nameFr || p.name, sub: p.sku }; })]);
         if (RX.can("customers")) groups.push(["Clients", db.customers.filter(function (c) { return norm(c.first + " " + c.last + " " + c.email + " " + c.phone).indexOf(q) > -1; }).slice(0, 6).map(function (c) { return { href: "#/customers/" + c.id, label: c.first + " " + c.last, sub: c.email }; })]);
       }
       results = []; var html = "";

@@ -89,7 +89,7 @@
     // to-do
     var toPrep = db.orders.filter(function (o) { return o.status === "paid"; }).length, toPay = db.orders.filter(function (o) { return o.status === "pending"; }).length;
     var toShip = db.orders.filter(function (o) { return o.status === "processing"; }).length, toMod = db.reviews.filter(function (r) { return r.status === "pending"; }).length;
-    var out = db.products.filter(function (p) { return p.status === "active" && RX.lowStock(p) === "out"; }).length, low = db.products.filter(function (p) { return p.status === "active" && RX.lowStock(p) === "low"; }).length;
+    var out = RX.products(db).filter(function (p) { return p.status === "active" && RX.lowStock(p) === "out"; }).length, low = RX.products(db).filter(function (p) { return p.status === "active" && RX.lowStock(p) === "low"; }).length;
 
     // top products / categories / payments / cities
     var prod = {}, cat = {}, pay = {}, city = {};
@@ -156,7 +156,7 @@
 
       '<div class="grid g-3" style="margin-top:18px">' +
         '<div class="card span-2"><div class="card-h"><div><h2>Meilleures ventes</h2><p>' + esc(cap(per.label)) + "</p></div>" + (RX.can("reports") ? '<a class="link" href="#/reports?' + per.q + '">Tout voir</a>' : "") + '</div><div class="table-wrap"><table class="t"><thead><tr><th>Produit</th><th class="r">Vendus</th><th class="r">CA</th><th class="r">Stock</th></tr></thead><tbody>' +
-          (top.length ? top.map(function (t) { var p = db.products[t.pid] || {}; return '<tr class="is-link" data-href="#/products/' + t.pid + '"><td><div class="cell">' + productThumb(db, t.pid, "is-sm") + '<div class="cell-txt"><b>' + esc(pname(db, t.pid)) + "</b><small>" + esc(p.sku || "") + '</small></div></div></td><td class="r num">' + t.q + '</td><td class="r num">' + RX.money(t.rev) + '</td><td class="r">' + stockPill(p) + "</td></tr>"; }).join("") : '<tr><td colspan="4">' + RX.empty("Aucune vente", per.single ? esc(per.label) : "sur cette période") + "</td></tr>") +
+          (top.length ? top.map(function (t) { var p = db.products[t.pid] || {}; return '<tr class="is-link" data-href="#/products/' + t.pid + '"><td><div class="cell">' + productThumb(db, t.pid, "is-sm") + '<div class="cell-txt"><b>' + esc(pname(db, t.pid)) + "</b><small>" + esc(p.sku || "") + '</small></div></div></td><td class="r num">' + t.q + '</td><td class="r num">' + RX.money(t.rev) + '</td><td class="r">' + stockPill(p) + "</td></tr>"; }).join("") : '<tr><td colspan="4">' + RX.empty("Aucune vente", per.single ? cap(per.label) : "Sur cette période") + "</td></tr>") +
         "</tbody></table></div></div>" +
         '<div class="card"><div class="card-h"><div><h2>Ventes par catégorie</h2><p>Chiffre d\'affaires des articles</p></div></div><div class="card-b" id="c-cat"></div></div>' +
       "</div>" +
@@ -174,13 +174,13 @@
       '<div class="card" style="margin-top:18px"><div class="card-h"><div><h2>' + (per.single ? "Commandes " + (per.key === "today" ? "du jour" : per.key === "yesterday" ? "d'hier" : "du " + esc(per.short)) : "Dernières commandes") + "</h2><p>" +
         (per.single ? inPeriod.length + " commande" + (inPeriod.length > 1 ? "s" : "") + ", tous statuts confondus" : "Les 8 plus récentes de la période") + "</p></div>" + (RX.can("orders") ? '<a class="link" href="#/orders">Toutes les commandes</a>' : "") + "</div>" + ordersTable(db, ordersList, null, false) + "</div>" +
 
-      (per.single ? '<div class="card" style="margin-top:18px"><div class="card-h"><div><h2>Historique de la journée</h2><p>Commandes, changements de statut, avis, inscriptions et actions de l\'équipe, ' + esc(per.label) + "</p></div></div>" + timeline(dayHistory(db, cur)) + "</div>" : "");
+      "";
 
     RX.chart.area($("#c-rev", el), { labels: chart.labels, tipLabels: chart.tips, aria: "Chiffre d'affaires", fill: true,
       series: [{ name: "Chiffre d'affaires", values: chart.rev, color: "#c89564", format: RX.money },
         { name: chart.otherName, values: chart.other.map(function (v) { return v * (Math.max.apply(null, chart.rev.concat([1])) / Math.max.apply(null, chart.other.concat([1]))) * 0.6; }), raw: chart.other, color: "var(--muted)", dash: true, format: chart.otherFmt }] });
     if (catItems.length) RX.chart.donut($("#c-cat", el), { stack: true, aria: "Ventes par catégorie", format: RX.compact, center: RX.compact(sum(catItems, function (c) { return c.value; })), centerLabel: "FCFA", items: catItems });
-    else $("#c-cat", el).innerHTML = RX.empty("Aucune vente", per.single ? per.label : "sur cette période");
+    else $("#c-cat", el).innerHTML = RX.empty("Aucune vente", per.single ? cap(per.label) : "Sur cette période");
 
     RX.bindPeriod(el, per, function (qs) { RX.go("#/?" + qs); }, orderMarks(db));
     el.addEventListener("click", function (e) {
@@ -240,6 +240,8 @@
     db.activity.forEach(function (a) { if (inR(a.t) && a.user !== "Boutique en ligne") ev.push({ t: a.t, icon: "shield", tone: "t-muted", title: a.user + " " + a.action + (a.target ? " " + a.target : ""), sub: "Journal d'activité" }); });
     return ev.sort(function (a, b) { return b.t - a.t; });
   }
+  // the history of a day is shown in the activity log (Journal d'activité), not on the dashboard
+  RX.dayHistory = function (db, range) { return timeline(dayHistory(db, range)); };
   function timeline(ev) {
     if (!ev.length) return RX.empty("Rien à signaler", "Aucune activité enregistrée ce jour-là.", I.history);
     return '<ol class="dayh">' + ev.map(function (e) {

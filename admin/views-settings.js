@@ -123,7 +123,7 @@
         '<div class="card" id="s-notif"><div class="card-h"><div><h2>Notifications de l\'équipe</h2><p>Alertes affichées dans le back-office (cloche) et, une fois un serveur d\'e-mails branché, envoyées à ' + esc(s.email) + ".</p></div></div><div class=\"card-b stack\" style=\"gap:14px\">" +
           [["newOrder", "Nouvelle commande"], ["lowStock", "Stock faible ou rupture"], ["newReview", "Nouvel avis à modérer"], ["dailyReport", "Rapport quotidien des ventes"]].map(function (x) { return '<label class="switch"><input type="checkbox" name="n-' + x[0] + '"' + (n[x[0]] ? " checked" : "") + "><i></i><b>" + x[1] + "</b></label>"; }).join("") +
         "</div></div>" + saveBar() + "</form>" +
-      '<div class="card" id="s-data"><div class="card-h"><div><h2>Données & sauvegarde</h2><p>Base de la boutique : ' + size + (DB.remote ? " Ko enregistrés dans Supabase · " : " Ko enregistrés dans ce navigateur · ") + db.orders.length + " commandes · " + db.products.length + " produits · " + db.customers.length + " clients.</p></div></div>" +
+      '<div class="card" id="s-data"><div class="card-h"><div><h2>Données & sauvegarde</h2><p>Base de la boutique : ' + size + (DB.remote ? " Ko enregistrés dans Supabase · " : " Ko enregistrés dans ce navigateur · ") + db.orders.length + " commandes · " + RX.products(db).length + " produits · " + db.customers.length + " clients.</p></div></div>" +
         '<div class="card-b stack" style="gap:14px"><div class="row is-wrap"><button type="button" class="btn" data-backup>' + I.down + 'Télécharger une sauvegarde (JSON)</button><label class="btn">' + I.upload + 'Restaurer une sauvegarde<input type="file" accept="application/json,.json" data-restore hidden></label></div>' +
         '<div class="hr"></div><div class="row is-wrap"><button type="button" class="btn is-ghost-danger" data-clear-demo>' + I.trash + 'Supprimer les données de démonstration</button><button type="button" class="btn is-ghost-danger" data-reset-all>' + I.refresh + "Réinitialiser toute la boutique</button></div>" +
         '<p class="muted" style="font-size:12.5px">« Supprimer les données de démonstration » retire les commandes, clients, avis, abonnés et visites d\'exemple, et garde vos produits, réglages et commandes passées sur le site.</p></div></div></div></div>';
@@ -260,6 +260,7 @@
     db.activity.forEach(function (a) { users[a.user] = 1; });
     el.innerHTML =
       '<div class="ph"><div><h1>Journal d\'activité</h1><p>Actions de l\'équipe et événements de la boutique (400 dernières entrées).</p></div><div class="ph-actions"><button type="button" class="btn" data-export>' + I.down + "Exporter</button></div></div>" +
+      (RX.dayHistory ? '<div class="card" style="margin-bottom:18px"><div class="card-h"><div><h2>Historique de la journée</h2><p>Commandes, changements de statut, avis, inscriptions et actions de l\'équipe.</p></div><input class="input" type="date" data-hday aria-label="Jour affiché" style="width:auto" value="' + DB.dayKey(Date.now()) + '" max="' + DB.dayKey(Date.now()) + '"></div><div data-hbody></div></div>' : "") +
       '<div class="card"><div class="toolbar"><div class="input-wrap">' + I.search + '<input class="input" type="search" placeholder="Rechercher une action, un produit, une commande…" data-q value="' + esc(AS.q) + '"></div>' +
       '<select class="select" data-user aria-label="Auteur"><option value="">Tous les auteurs</option>' + Object.keys(users).map(function (u) { return '<option' + (AS.user === u ? " selected" : "") + ">" + esc(u) + "</option>"; }).join("") + "</select></div><div data-body></div></div>";
     function list() { var q = AS.q.trim().toLowerCase(); return db.activity.filter(function (a) { return (!AS.user || a.user === AS.user) && (!q || (a.user + " " + a.action + " " + a.target).toLowerCase().indexOf(q) > -1); }); }
@@ -272,6 +273,10 @@
       }).join("") + "</ul>" : RX.empty("Aucune activité", "", I.list);
     }
     draw();
+    // history of the chosen day (today when the page opens)
+    function history() { var hb = $("[data-hbody]", el), hd = $("[data-hday]", el); if (hb) hb.innerHTML = RX.dayHistory(db, RX.period({ d: hd.value }, "today").range); }
+    history();
+    if ($("[data-hday]", el)) $("[data-hday]", el).addEventListener("change", history);
     $("[data-q]", el).addEventListener("input", RX.debounce(function (e) { AS.q = e.target.value; draw(); }, 160));
     $("[data-user]", el).addEventListener("change", function (e) { AS.user = e.target.value; draw(); });
     // errors met in the browser by the visitors and the team (Supabase only), loaded on demand
