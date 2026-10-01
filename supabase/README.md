@@ -28,16 +28,16 @@ Une table `rx_docs (coll, key, data jsonb, updated_at)` : un document par enregi
 | `staff` | e-mail | membres de l'équipe et leur rôle |
 | `activity`, `traffic`, `media` | — | journal, visites par jour, fichiers de la médiathèque |
 
-Les photos et vidéos importées dans le back-office sont dans le bucket public **`media`** (Storage).
+Les photos et vidéos importées dans le back-office sont dans le bucket public **`media`** (Storage), qui n'accepte que des images et des vidéos de 200 Mo au plus.
 
 ## Sécurité
 
 - **Visiteurs** : aucun accès direct à la table. Ils passent par des fonctions :
-  - `rx_public` : catalogue sans coût d'achat, réglages publics, avis publiés ;
-  - `rx_check_promo` : règles d'un seul code ; la liste des codes reste privée ;
+  - `rx_public` : catalogue sans coût d'achat, réglages publics, avis publiés ; un produit qui n'est pas en vente n'y laisse que sa place (ni nom, ni prix, ni stock) ;
+  - `rx_check_promo` : règles d'un seul code ; la liste des codes reste privée ; 20 essais en 10 minutes et 100 par jour par connexion ;
   - `rx_place_order` : la base recalcule elle-même prix, livraison, code promo, stock et plafond du paiement à la livraison, et refuse plus de 3 commandes en 10 minutes pour la même adresse e-mail ;
-  - `rx_add_review`, `rx_subscribe`, `rx_track`.
-- **Équipe** : un compte Supabase Auth dont l'e-mail figure dans `staff` (et qui est actif) lit toutes les données. Il écrit selon son rôle, avec la même matrice que le back-office :
+  - `rx_add_review`, `rx_subscribe`, `rx_track` (les vues au-delà de 120 en 10 minutes ou 2 000 par jour pour une même connexion ne sont pas comptées).
+- **Équipe** : un compte Supabase Auth dont l'e-mail figure dans `staff` (et qui est actif) lit les données de la boutique. Les codes promo et les abonnés à la newsletter ne sont lus que par l'administrateur et le gestionnaire ; la liste de l'équipe par l'administrateur seul (chacun lit sa propre fiche). Il écrit selon son rôle, avec la même matrice que le back-office :
   - Administrateur : tout ;
   - Gestionnaire : catalogue, ventes, marketing, vitrine ;
   - Support : commandes, clients, avis, stock ;

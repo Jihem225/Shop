@@ -72,6 +72,18 @@ create or replace function public.rx_can_write(p_coll text, p_key text) returns 
   end
 $$;
 
+-- read access per role: the team reads the shop, except what its role has no section for in the back office
+-- (promo codes and newsletter subscribers: administrator and manager; the team list: administrator, and one's own entry)
+create or replace function public.rx_can_read(p_coll text, p_key text) returns boolean language sql stable security definer set search_path = public as $$
+  select case public.rx_role()
+    when 'admin' then true
+    when 'manager' then p_coll <> 'staff' or p_key = lower(coalesce(auth.jwt()->>'email', ''))
+    when 'support' then p_coll not in ('staff', 'promos', 'subscribers') or (p_coll = 'staff' and p_key = lower(coalesce(auth.jwt()->>'email', '')))
+    when 'viewer' then p_coll not in ('staff', 'promos', 'subscribers') or (p_coll = 'staff' and p_key = lower(coalesce(auth.jwt()->>'email', '')))
+    else false
+  end
+$$;
+
 -- ---------------------------------------------------------------------------
 -- row-level security: staff only
 -- ---------------------------------------------------------------------------
@@ -81,7 +93,7 @@ drop policy if exists rx_docs_read on public.rx_docs;
 drop policy if exists rx_docs_insert on public.rx_docs;
 drop policy if exists rx_docs_update on public.rx_docs;
 drop policy if exists rx_docs_delete on public.rx_docs;
-create policy rx_docs_read on public.rx_docs for select to authenticated using ((select public.rx_role()) is not null);
+create policy rx_docs_read on public.rx_docs for select to authenticated using (public.rx_can_read(coll, key));
 create policy rx_docs_insert on public.rx_docs for insert to authenticated with check (public.rx_can_write(coll, key));
 create policy rx_docs_update on public.rx_docs for update to authenticated using (public.rx_can_write(coll, key)) with check (public.rx_can_write(coll, key));
 create policy rx_docs_delete on public.rx_docs for delete to authenticated using (public.rx_can_write(coll, key));
@@ -103,7 +115,10 @@ create or replace function public.rx_public() returns jsonb language sql stable 
           else data end)
       from public.rx_docs where coll = 'settings' and key not in ('notifications')), '{}'::jsonb),
     'categories', coalesce((select jsonb_agg(data order by coalesce((data->>'order')::int, 0)) from public.rx_docs where coll = 'categories'), '[]'::jsonb),
-    'products', coalesce((select jsonb_agg(data - 'cost' order by (data->>'id')::int) from public.rx_docs where coll = 'products'), '[]'::jsonb),
+    -- a product that is not on sale keeps its place in the list (the pages find a product by its position) but shows nothing
+    'products', coalesce((select jsonb_agg(case when data->>'status' = 'active' then data - 'cost'
+        else jsonb_build_object('id', data->'id', 'cat', data->'cat', 'status', data->'status', 'name', '', 'nameFr', '', 'price', 0, 'img', '', 'stock', '{}'::jsonb, 'colors', '[]'::jsonb) end
+      order by (data->>'id')::int) from public.rx_docs where coll = 'products'), '[]'::jsonb),
     'reviews', coalesce((
       select jsonb_agg(jsonb_build_object('id', data->'id', 'pid', data->'pid', 'stars', data->'stars', 'title', data->'title', 'text', data->'text',
         'name', data->'name', 'city', data->'city', 'size', data->'size', 'fit', data->'fit', 'date', data->'date', 'status', data->'status',
@@ -113,11 +128,34 @@ create or replace function public.rx_public() returns jsonb language sql stable 
     'time', public.rx_now_ms())
 $$;
 
--- promo code rules, for one code only (the list of codes stays private)
-create or replace function public.rx_check_promo(p_code text) returns jsonb language plpgsql stable security definer set search_path = public as $$
+-- limits per connection for the public functions that have no form (promo code check, visit counter):
+-- true while the connection stays under p_lim10 calls in 10 minutes and p_limday calls in a day.
+-- Same counters as rx_guard_check below (salted hash of the address, kept 48 hours in rx_guard).
+create or replace function public.rx_rate(p_action text, p_lim10 int, p_limday int) returns boolean language plpgsql security definer set search_path = public as $$
+declare
+  v_now bigint := public.rx_now_ms();
+  v_hdr json; v_ip text; v_salt text; v_who text; v_n int;
+begin
+  delete from public.rx_guard where at < now() - interval '48 hours' and key not like 'salt:%';
+  begin v_hdr := nullif(current_setting('request.headers', true), '')::json; exception when others then v_hdr := null; end;
+  v_ip := coalesce(v_hdr->>'cf-connecting-ip', nullif(trim(split_part(coalesce(v_hdr->>'x-forwarded-for', ''), ',', 1)), ''), v_hdr->>'x-real-ip', 'unknown');
+  select (select key from public.rx_guard where key like 'salt:%' limit 1) into v_salt;
+  if v_salt is null then v_salt := 'salt:' || gen_random_uuid(); insert into public.rx_guard (key, at) values (v_salt, now() + interval '100 years'); end if;
+  v_who := encode(sha256(convert_to(v_salt || v_ip, 'UTF8')), 'hex');
+  insert into public.rx_guard as r (key, n) values ('rl:' || p_action || ':' || v_who || ':' || (v_now / 600000), 1)
+    on conflict (key) do update set n = r.n + 1 returning n into v_n;
+  if v_n > p_lim10 then return false; end if;
+  insert into public.rx_guard as r (key, n) values ('rd:' || p_action || ':' || v_who || ':' || (v_now / 86400000), 1)
+    on conflict (key) do update set n = r.n + 1 returning n into v_n;
+  return v_n <= p_limday;
+end $$;
+
+-- promo code rules, for one code only (the list of codes stays private); 20 tries in 10 minutes per connection
+create or replace function public.rx_check_promo(p_code text) returns jsonb language plpgsql security definer set search_path = public as $$
 declare
   p jsonb; v_now bigint := public.rx_now_ms();
 begin
+  if not public.rx_rate('promo', 20, 100) then return jsonb_build_object('ok', false, 'reason', 'rate'); end if;
   select data into p from public.rx_docs where coll = 'promos' and key = upper(trim(coalesce(p_code, '')));
   if p is null or not coalesce((p->>'active')::boolean, false) or coalesce((p->>'starts')::bigint, 0) > v_now then
     return jsonb_build_object('ok', false, 'reason', 'invalid');
@@ -258,6 +296,9 @@ begin
     end if;
     if v_size is null or not (v_size = any (v_sizes)) then bad := bad || jsonb_build_object('pid', it->'pid', 'problem', 'options'); continue; end if;
     v_avail := greatest(0, coalesce(case when col is not null then (prod->'vstock'->(col->>'id')->>v_size)::int else (prod->'stock'->>v_size)::int end, 0));
+    -- the same article on several lines of the order: what the earlier lines take is no longer available
+    v_avail := greatest(0, v_avail - coalesce((select sum((t->>'q')::int) from jsonb_array_elements(todo) t
+      where t->>'key' = prod->>'id' and t->>'cid' is not distinct from col->>'id' and t->>'size' = v_size), 0)::int);
     if v_avail < v_q then
       bad := bad || jsonb_build_object('pid', it->'pid', 'problem', case when v_avail = 0 then 'soldout' else 'reduced' end, 'max', v_avail); continue;
     end if;
@@ -316,8 +357,8 @@ begin
     insert into public.rx_docs (coll, key, data) values ('customers', v_cust_id, jsonb_build_object('id', v_cust_id, 'first', v_first, 'last', v_last, 'email', v_email,
       'phone', v_phone, 'country', v_country, 'city', v_city, 'createdAt', v_now, 'tags', '[]'::jsonb, 'note', '', 'newsletter', false));
   else
+    -- an existing customer is not changed by an order: anyone can type someone else's e-mail (the order keeps its own contact details)
     v_cust_id := cust->>'id';
-    update public.rx_docs set data = data || jsonb_build_object('phone', v_phone, 'city', v_city, 'country', v_country) where coll = 'customers' and key = v_cust_id;
   end if;
 
   -- the order, waiting for the shop to confirm the payment
@@ -385,6 +426,8 @@ create or replace function public.rx_track(p_first boolean) returns void languag
 declare
   v_day text := to_char(now() at time zone 'UTC', 'YYYY-MM-DD');
 begin
+  -- 120 pages in 10 minutes, 2 000 a day per connection: beyond that the views are not counted
+  if not public.rx_rate('track', 120, 2000) then return; end if;
   insert into public.rx_docs (coll, key, data) values ('traffic', v_day, jsonb_build_object('sessions', case when p_first then 1 else 0 end, 'views', 1))
   on conflict (coll, key) do update set data = jsonb_build_object(
     'sessions', coalesce((public.rx_docs.data->>'sessions')::int, 0) + case when p_first then 1 else 0 end,
@@ -410,7 +453,7 @@ declare
 begin
   if trim(coalesce(p_name, '')) = '' then return null; end if;
   update public.rx_docs set data = data || jsonb_build_object('name', left(trim(p_name), 80))
-    where coll = 'staff' and key = v_email returning data into me;
+    where coll = 'staff' and key = v_email and coalesce((data->>'active')::boolean, true) returning data into me;
   return me;
 end $$;
 
@@ -419,12 +462,19 @@ revoke execute on function public.rx_public(), public.rx_check_promo(text), publ
   public.rx_role(), public.rx_can_write(text, text), public.rx_guard_check(text, jsonb) from public;
 grant execute on function public.rx_public(), public.rx_check_promo(text), public.rx_place_order(jsonb), public.rx_add_review(int, jsonb),
   public.rx_subscribe(text, text, text, jsonb), public.rx_track(boolean) to anon, authenticated;
-grant execute on function public.rx_me(), public.rx_set_my_name(text), public.rx_role(), public.rx_can_write(text, text) to authenticated;
+-- Supabase grants every new function to anon and authenticated by name: revoking from "public" above does not remove that
+revoke execute on function public.rx_me(), public.rx_set_my_name(text), public.rx_role(), public.rx_can_write(text, text), public.rx_can_read(text, text) from public, anon;
+revoke execute on function public.rx_guard_check(text, jsonb), public.rx_rate(text, int, int) from public, anon, authenticated;
+grant execute on function public.rx_me(), public.rx_set_my_name(text), public.rx_role(), public.rx_can_write(text, text), public.rx_can_read(text, text) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- media library: photos and videos uploaded in the back office (public files)
 -- ---------------------------------------------------------------------------
 insert into storage.buckets (id, name, public) values ('media', 'media', true) on conflict (id) do update set public = true;
+-- size and types checked by the storage itself (same list as the media library of the back office): 200 MB, photos and videos only
+update storage.buckets set file_size_limit = 209715200,
+  allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/avif', 'video/mp4', 'video/webm', 'video/quicktime', 'video/x-m4v', 'video/ogg']
+where id = 'media';
 drop policy if exists rx_media_read on storage.objects;
 drop policy if exists rx_media_insert on storage.objects;
 drop policy if exists rx_media_update on storage.objects;
