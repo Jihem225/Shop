@@ -551,18 +551,32 @@
   }
   function notifItems() {
     var db = RX.db(), out = [], c = counts();
-    if (c.orders) out.push({ href: "#/orders?status=paid", tone: "t-info", icon: "bag", title: c.orders + " commande" + (c.orders > 1 ? "s" : "") + " à traiter", sub: "Payées ou en attente de paiement" });
-    if (c.reviews) out.push({ href: "#/reviews?status=pending", tone: "t-warn", icon: "star", title: c.reviews + " avis à modérer", sub: "En attente de publication" });
+    if (c.orders) out.push({ href: "#/orders?status=paid", tone: "t-info", icon: "bag", id: "orders:" + c.orders, title: c.orders + " commande" + (c.orders > 1 ? "s" : "") + " à traiter", sub: "Payées ou en attente de paiement" });
+    if (c.reviews) out.push({ href: "#/reviews?status=pending", tone: "t-warn", icon: "star", id: "reviews:" + c.reviews, title: c.reviews + " avis à modérer", sub: "En attente de publication" });
     var low = RX.products(db).filter(function (p) { return p.status === "active" && RX.lowStock(p) !== "ok"; });
-    if (low.length) out.push({ href: "#/inventory?filter=low", tone: "t-bad", icon: "box", title: low.length + " produit" + (low.length > 1 ? "s" : "") + " en stock faible ou rupture", sub: low.slice(0, 3).map(function (p) { return p.nameFr || p.name; }).join(", ") + (low.length > 3 ? "…" : "") });
+    if (low.length) out.push({ href: "#/inventory?filter=low", tone: "t-bad", icon: "box", id: "low:" + low.map(function (p) { return p.id; }).join("."), title: low.length + " produit" + (low.length > 1 ? "s" : "") + " en stock faible ou rupture", sub: low.slice(0, 3).map(function (p) { return p.nameFr || p.name; }).join(", ") + (low.length > 3 ? "…" : "") });
     db.orders.filter(function (o) { return o.source === "web" && Date.now() - o.date < 3 * DAY; }).slice(-5).reverse().forEach(function (o) {
-      out.push({ href: "#/orders/" + o.id, tone: "t-ok", icon: "check", title: "Nouvelle commande " + o.id, sub: RX.custName(o) + " · " + RX.money(o.total) + " · " + RX.rel(o.date) });
+      out.push({ href: "#/orders/" + o.id, tone: "t-ok", icon: "check", id: "new:" + o.id, title: "Nouvelle commande " + o.id, sub: RX.custName(o) + " · " + RX.money(o.total) + " · " + RX.rel(o.date) });
     });
-    if (db.settings.content.maintenance.enabled) out.unshift({ href: "#/content", tone: "t-warn", icon: "alert", title: "Le mode maintenance est activé", sub: "Les visiteurs ne voient pas la boutique" });
+    if (db.settings.content.maintenance.enabled) out.unshift({ href: "#/content", tone: "t-warn", icon: "alert", id: "maintenance", title: "Le mode maintenance est activé", sub: "Les visiteurs ne voient pas la boutique" });
+    // a notification already opened by this user is kept in the list, greyed, and no longer counted;
+    // it counts again when its content changes (one more order to handle, another product running low…)
+    var seen = notifSeen();
+    out.forEach(function (it) { it.read = !!seen[it.id]; });
     return out;
   }
+  function notifKey() { return "relaxx-notif-read-" + (RX.user ? RX.user.id : ""); }
+  function notifSeen() { try { return JSON.parse(localStorage.getItem(notifKey()) || "{}") || {}; } catch (e) { return {}; } }
+  function notifRead(ids) {
+    var seen = notifSeen(), live = {}, keep = {};
+    notifItems().forEach(function (it) { live[it.id] = 1; });
+    ids.forEach(function (id) { seen[id] = 1; });
+    Object.keys(seen).forEach(function (id) { if (live[id]) keep[id] = 1; });
+    try { localStorage.setItem(notifKey(), JSON.stringify(keep)); } catch (e) {}
+    RX.refreshChrome();
+  }
   function renderTop() {
-    var u = RX.user, n = notifItems().length;
+    var u = RX.user, n = notifItems().filter(function (it) { return !it.read; }).length;
     return '<button type="button" class="icon-btn top-burger" data-nav-toggle aria-label="Ouvrir le menu">' + RX.I.menu + "</button>" +
       '<button type="button" class="top-search" data-palette>' + RX.I.search + "<span>Rechercher une commande, un produit, un client…</span><kbd>⌘K</kbd></button>" +
       '<div class="top-r"><a class="btn is-sm" href="../index.html" target="_blank" rel="noopener">' + RX.I.ext + "<span>Voir la boutique</span></a>" +
@@ -675,9 +689,14 @@
       if (e.target.closest("[data-palette]")) { palette(); return; }
       var nb = e.target.closest("[data-notif]");
       if (nb) {
-        var items = notifItems();
-        RX.menu(nb, '<div class="notif-h"><b>Notifications</b><span class="muted" style="font-size:12px">' + items.length + "</span></div>" +
-          (items.length ? items.map(function (it) { return '<a href="' + it.href + '"><span class="ic ' + it.tone + '">' + RX.I[it.icon] + "</span><span><b>" + RX.esc(it.title) + "</b><small>" + RX.esc(it.sub) + "</small></span></a>"; }).join("") : '<div class="empty" style="padding:30px">Tout est à jour.</div>'), "notif");
+        var items = notifItems(), unread = items.filter(function (it) { return !it.read; }).length;
+        RX.menu(nb, '<div class="notif-h"><b>Notifications</b>' + (unread ? '<button type="button" class="notif-all" data-notif-all>Tout marquer comme lu</button>' : '<span class="muted" style="font-size:12px">Tout est lu</span>') + "</div>" +
+          (items.length ? items.map(function (it) { return '<a href="' + it.href + '" data-nid="' + RX.esc(it.id) + '"' + (it.read ? ' class="is-read"' : "") + '><span class="ic ' + it.tone + '">' + RX.I[it.icon] + "</span><span><b>" + RX.esc(it.title) + "</b><small>" + RX.esc(it.sub) + "</small></span></a>"; }).join("") : '<div class="empty" style="padding:30px">Tout est à jour.</div>'), "notif").addEventListener("click", function (ev) {
+          // the menu is outside the app shell: its clicks are handled here
+          var all = ev.target.closest("[data-notif-all]"), one = ev.target.closest("[data-nid]");
+          if (all) notifRead(notifItems().map(function (it) { return it.id; }));
+          else if (one) notifRead([one.dataset.nid]);
+        });
         return;
       }
       var me = e.target.closest("[data-me]");

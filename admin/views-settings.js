@@ -259,26 +259,14 @@
     var db = RX.db(), users = {};
     db.activity.forEach(function (a) { users[a.user] = 1; });
     el.innerHTML =
-      '<div class="ph"><div><h1>Journal d\'activité</h1><p>Actions de l\'équipe et événements de la boutique (400 dernières entrées).</p></div><div class="ph-actions"><button type="button" class="btn" data-export>' + I.down + "Exporter</button></div></div>" +
-      (RX.dayHistory ? '<div class="card" style="margin-bottom:18px"><div class="card-h"><div><h2>Historique de la journée</h2><p>Commandes, changements de statut, avis, inscriptions et actions de l\'équipe.</p></div><input class="input" type="date" data-hday aria-label="Jour affiché" style="width:auto" value="' + DB.dayKey(Date.now()) + '" max="' + DB.dayKey(Date.now()) + '"></div><div data-hbody></div></div>' : "") +
-      '<div class="card"><div class="toolbar"><div class="input-wrap">' + I.search + '<input class="input" type="search" placeholder="Rechercher une action, un produit, une commande…" data-q value="' + esc(AS.q) + '"></div>' +
-      '<select class="select" data-user aria-label="Auteur"><option value="">Tous les auteurs</option>' + Object.keys(users).map(function (u) { return '<option' + (AS.user === u ? " selected" : "") + ">" + esc(u) + "</option>"; }).join("") + "</select></div><div data-body></div></div>";
-    function list() { var q = AS.q.trim().toLowerCase(); return db.activity.filter(function (a) { return (!AS.user || a.user === AS.user) && (!q || (a.user + " " + a.action + " " + a.target).toLowerCase().indexOf(q) > -1); }); }
-    function draw() {
-      var l = list(), day = "";
-      $("[data-body]", el).innerHTML = l.length ? '<ul class="list">' + l.map(function (a) {
-        var d = RX.date(a.t), head = d !== day ? '<li style="background:var(--surface-2);padding:8px 18px;font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">' + d + "</li>" : ""; day = d;
-        var link = /RX-\d+/.exec(a.target || "");
-        return head + '<li><span class="avatar" style="width:30px;height:30px;font-size:11px;' + (a.user === "Boutique en ligne" ? "background:var(--ink);color:var(--ink-text)" : "") + '">' + (a.user === "Boutique en ligne" ? "RX" : RX.initials(a.user)) + '</span><div class="grow"><b>' + esc(a.user) + "</b> " + esc(a.action) + (a.target ? " <b>" + (link ? '<a href="#/orders/' + link[0] + '">' + esc(a.target) + "</a>" : esc(a.target)) + "</b>" : "") + '</div><span class="muted mono" style="font-size:12px">' + RX.time(a.t) + "</span></li>";
-      }).join("") + "</ul>" : RX.empty("Aucune activité", "", I.list);
-    }
-    draw();
+      '<div class="ph"><div><h1>Journal d\'activité</h1><p>Actions de l\'équipe et événements de la boutique, jour par jour. « Exporter » télécharge les 400 dernières entrées.</p></div><div class="ph-actions"><button type="button" class="btn" data-export>' + I.down + "Exporter</button></div></div>" +
+      (RX.dayHistory ? '<div class="card"><div class="card-h"><div><h2>Historique de la journée</h2><p>Commandes, changements de statut, avis, inscriptions et actions de l\'équipe.</p></div><input class="input" type="date" data-hday aria-label="Jour affiché" style="width:auto" value="' + DB.dayKey(Date.now()) + '" max="' + DB.dayKey(Date.now()) + '"></div><div data-hbody></div></div>' : "");
+    // the export keeps every entry of the journal, all days together
+    function list() { return db.activity; }
     // history of the chosen day (today when the page opens)
     function history() { var hb = $("[data-hbody]", el), hd = $("[data-hday]", el); if (hb) hb.innerHTML = RX.dayHistory(db, RX.period({ d: hd.value }, "today").range); }
     history();
     if ($("[data-hday]", el)) $("[data-hday]", el).addEventListener("change", history);
-    $("[data-q]", el).addEventListener("input", RX.debounce(function (e) { AS.q = e.target.value; draw(); }, 160));
-    $("[data-user]", el).addEventListener("change", function (e) { AS.user = e.target.value; draw(); });
     // errors met in the browser by the visitors and the team (Supabase only), loaded on demand
     if (DB.remote) {
       var ec = document.createElement("div"); ec.className = "card"; ec.style.marginTop = "18px";
