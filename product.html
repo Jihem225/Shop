@@ -451,13 +451,15 @@ html.js [data-reveal="fm"].in{opacity:1;transform:none}
 /* ======================================================================
    PRODUCT DETAIL — layout after reference 1, purchase block after reference 2
    ====================================================================== */
-:root{--bg:#fff;--pd-brown:#6b5a3c;--pd-line:#e6e2da;--pd-muted:#77736c}
+:root{--bg:#fff;--pd-brown:#bf8c4e;--pd-line:#e6e2da;--pd-muted:#77736c}
 body{background:#fff;font-family:Geist,sans-serif}
 .pd-page{padding:110px var(--pad-x) 0}
 .pd-grid{display:grid;grid-template-columns:.312fr 1fr .8fr;gap:36px;align-items:start}
 /* gallery */
 .pd-thumbs{display:flex;flex-direction:column;gap:24px}
 .pd-thumb{display:block;width:100%;aspect-ratio:3/4;padding:0;border-radius:0;overflow:hidden;background:#f1efeb;cursor:pointer;animation:pd-in .45s var(--ease)}
+.pd-thumbs.is-scroll{overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y proximity;scrollbar-width:thin}
+.pd-thumbs.is-scroll .pd-thumb{flex:none;scroll-snap-align:start}
 .pd-thumb img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .6s var(--ease)}
 .pd-thumb:hover img{transform:scale(1.04)}
 .pd-thumb:focus-visible{outline:2px solid #000;outline-offset:3px}
@@ -1146,26 +1148,40 @@ RelaxxDB.ready(function () {
     $(".pd-price").innerHTML = fmt(p.price) + (p.compare ? " <s>" + fmt(p.compare) + "</s>" : "");
     $(".pd-desc").textContent = p.desc || info.desc; $(".pd-desc").hidden = !(p.desc || info.desc);
 
-    /* gallery: 4 crops of the product photo (Unsplash / imgix focal-point crops) */
+    /* gallery: the main photo, then the extra photos added in the back office (thumbnails: three are shown, the others scroll).
+       A catalogue (Unsplash) photo without extra photos keeps its four crops; an imported photo alone is shown alone. */
     var VIEWS = [{ y: 0.5, z: 1 }, { y: 0.3, z: 1.7 }, { y: 0.55, z: 2.2 }, { y: 0.78, z: 1.8 }];
     var gImg = p.img; // the photo of the chosen colour when it has one
-    var src = function (v, w) {
-      if (/^(https?:|data:|blob:|media:)/.test(gImg)) return IMG(gImg);
-      return "https://images.unsplash.com/" + gImg + "?w=" + w + "&h=" + Math.round(w * 4 / 3) + "&q=80&auto=format&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=" + v.y + "&fp-z=" + v.z;
-    };
+    var isFile = function (v) { return /^(https?:|data:|blob:|media:)/.test(v); };
+    var extra = (p.imgs || []).filter(Boolean), shots = [];
+    function crop(v) { return function (w) { return "https://images.unsplash.com/" + gImg + "?w=" + w + "&h=" + Math.round(w * 4 / 3) + "&q=80&auto=format&fit=crop&crop=focalpoint&fp-x=0.5&fp-y=" + v.y + "&fp-z=" + v.z; }; }
+    function photo(v) { return function (w) { return IMG(v, w); }; }
     var track = $(".pd-track"), thumbs = $(".pd-thumbs"), dots = $(".pd-dots"), active = 0;
-    track.innerHTML = VIEWS.map(function (v, i) {
-      return '<div class="pd-slide" role="group" aria-label="Image ' + (i + 1) + ' of ' + VIEWS.length + '"><img src="' + src(v, 1000) + '" alt="' + p.name + (i ? ' — detail ' + i : '') + '"' + (i ? ' loading="lazy"' : '') + '></div>';
-    }).join("");
-    dots.innerHTML = VIEWS.map(function (v, i) {
-      return '<button type="button" class="pd-dot" role="tab" aria-label="Show image ' + (i + 1) + '" data-i="' + i + '"></button>';
-    }).join("");
+    thumbs.setAttribute("data-lenis-prevent", "");
+    function build() {
+      shots = extra.length || isFile(gImg) ? [gImg].concat(extra).map(photo) : VIEWS.map(crop);
+      active = Math.min(active, shots.length - 1);
+      track.innerHTML = shots.map(function (f, i) {
+        return '<div class="pd-slide" role="group" aria-label="Image ' + (i + 1) + ' of ' + shots.length + '"><img src="' + f(1000) + '" alt="' + p.name + (i ? ' — detail ' + i : '') + '"' + (i ? ' loading="lazy"' : '') + '></div>';
+      }).join("");
+      dots.innerHTML = shots.length < 2 ? "" : shots.map(function (f, i) {
+        return '<button type="button" class="pd-dot" role="tab" aria-label="Show image ' + (i + 1) + '" data-i="' + i + '"></button>';
+      }).join("");
+      paint();
+    }
+    // three thumbnails are visible; with more, the column scrolls
+    function fitThumbs() {
+      var t = thumbs.querySelector(".pd-thumb"), n = thumbs.children.length;
+      thumbs.classList.toggle("is-scroll", n > 3);
+      thumbs.style.maxHeight = t && n > 3 ? Math.round(t.getBoundingClientRect().height * 3 + 24 * 2) + "px" : "";
+    }
     function paint() {
       // thumbnails always show the images that are not on the main stage
-      thumbs.innerHTML = VIEWS.map(function (v, i) {
-        return i === active ? "" : '<button type="button" class="pd-thumb" data-i="' + i + '" aria-label="Show image ' + (i + 1) + '"><img src="' + src(v, 400) + '" alt=""></button>';
+      thumbs.innerHTML = shots.map(function (f, i) {
+        return i === active ? "" : '<button type="button" class="pd-thumb" data-i="' + i + '" aria-label="Show image ' + (i + 1) + '"><img src="' + f(400) + '" alt=""></button>';
       }).join("");
       $$(".pd-dot", dots).forEach(function (d, i) { d.classList.toggle("is-active", i === active); d.setAttribute("aria-selected", i === active ? "true" : "false"); });
+      fitThumbs();
     }
     function go(i) { active = i; track.scrollTo({ left: i * track.clientWidth }); paint(); }
     thumbs.addEventListener("click", function (e) { var b = e.target.closest(".pd-thumb"); if (b) go(+b.dataset.i); });
@@ -1179,16 +1195,19 @@ RelaxxDB.ready(function () {
       }, 90);
     }, { passive: true });
     track.addEventListener("keydown", function (e) {
-      if (e.key === "ArrowRight") { e.preventDefault(); go(Math.min(active + 1, VIEWS.length - 1)); }
+      if (e.key === "ArrowRight") { e.preventDefault(); go(Math.min(active + 1, shots.length - 1)); }
       if (e.key === "ArrowLeft") { e.preventDefault(); go(Math.max(active - 1, 0)); }
     });
-    addEventListener("resize", function () { track.style.scrollBehavior = "auto"; track.scrollLeft = active * track.clientWidth; track.style.scrollBehavior = ""; });
-    paint();
+    addEventListener("resize", function () { track.style.scrollBehavior = "auto"; track.scrollLeft = active * track.clientWidth; track.style.scrollBehavior = ""; fitThumbs(); });
+    build();
 
     /* colour: the product's variants from the back office (stock per colour and size);
        products without variants keep the category palette */
     var FR = document.documentElement.getAttribute("data-lang") === "fr";
-    var COLS = p.colors && p.colors.length ? p.colors : info.colors.map(function (c) { return { id: "", name: c[0], nameFr: "", hex: c[1], img: "" }; });
+    // "Couleur unique" in the back office: no colour to choose, the colour block is not shown
+    var noColor = !(p.colors && p.colors.length);
+    var COLS = noColor ? [{ id: "", name: "", nameFr: "", hex: "", img: "" }] : p.colors;
+    if (noColor) { var cbox = $(".pd-swatches").closest(".pd-opt"); if (cbox) cbox.hidden = true, cbox.style.display = "none"; }
     var cname = function (c) { return FR ? c.nameFr || c.name : c.name; };
     function outFor(c) {
       if (!c.id || !p.vstock) return outSizes;
@@ -1207,8 +1226,7 @@ RelaxxDB.ready(function () {
     function setGallery() {
       var img = cur.img || p.img; if (img === gImg) return;
       gImg = img;
-      $$(".pd-slide img", track).forEach(function (im, i) { im.src = src(VIEWS[i], 1000); });
-      paint();
+      build();
     }
     setGallery();
     sw.addEventListener("click", function (e) {
@@ -1225,11 +1243,12 @@ RelaxxDB.ready(function () {
       var out = outFor(cur), available = SIZES.filter(function (s) { return out.indexOf(s) < 0; });
       if (oneSize) size = SIZES[0];
       else if (!size || available.indexOf(size) < 0) size = ["M", "S", "L", "XS", "XL"].filter(function (s) { return available.indexOf(s) > -1; })[0];
-      sz.innerHTML = SIZES.map(function (s) {
-        var o = out.indexOf(s) > -1;
-        return '<button type="button" class="pd-size" role="radio" aria-checked="' + (s === size) + '" data-s="' + s + '"' + (o ? ' disabled aria-label="' + s + ' — sold out"' : '') + '>' + s + '</button>';
+      // only the sizes that can be bought are shown: a size left at 0 in the back office does not appear
+      sz.innerHTML = available.map(function (s) {
+        return '<button type="button" class="pd-size" role="radio" aria-checked="' + (s === size) + '" data-s="' + s + '">' + s + '</button>';
       }).join("");
-      var some = out.length && out.length < SIZES.length ? out.join(", ") : null;
+      var sbox = sz.closest(".pd-opt"); if (sbox) sbox.hidden = !available.length, sbox.style.display = available.length ? "" : "none";
+      var some = null;
       // dispatch time from the back office (standard delivery)
       var days = window.RelaxxDB ? RelaxxDB.shipping().standard.days : "2–4";
       $(".pd-stock").setAttribute("data-no-i18n", "");

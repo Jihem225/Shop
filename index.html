@@ -66,7 +66,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 
 /* ---------- hero ---------- */
 .hero-wrap{
-  position:sticky;top:0;width:100%;height:100svh;min-height:100svh;color:#fff;
+  position:sticky;top:0;width:100%;height:100svh;min-height:100svh;color:var(--hero-color,#fff);
   display:grid;grid-template-rows:1fr min-content;grid-template-columns:1fr;place-items:center;
 }
 .hero-bg{
@@ -75,13 +75,16 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 }
 .hero{
   display:flex;justify-content:center;align-items:center;width:100%;height:100%;
-  padding:10rem var(--pad-x) 5rem;color:#fff;
+  padding:10rem var(--pad-x) 5rem;color:var(--hero-color,#fff);
 }
 .hero-content{display:flex;flex-direction:column;align-items:center;gap:1rem;max-width:80rem;margin:0 auto;text-transform:uppercase}
-.hero-heading{font-size:10vw;line-height:1.1;letter-spacing:-1.5px;text-align:center}
+/* size, colour and number of lines of the title: back office › Vitrine › Bannière principale */
+.hero-heading{font-size:calc(10vw * var(--hero-scale,1) * var(--hero-fit,1));line-height:1.1;letter-spacing:-1.5px;text-align:center}
+/* number of lines chosen in the back office: a line is never cut, the title is reduced until its longest line fits the screen (--hero-fit) */
+.hero-heading.is-fit{white-space:nowrap;letter-spacing:-.012em}
 .hero-cta{
   position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;
-  width:100%;max-width:15rem;padding:.5rem 1rem;border:1px solid #fff;background:#fff;color:#000;
+  width:100%;max-width:15rem;padding:.5rem 1rem;border:1px solid var(--hero-color,#fff);background:var(--hero-color,#fff);color:var(--hero-on,#000);
   text-transform:uppercase;white-space:nowrap;
 }
 .marquee{position:absolute;inset:0;display:flex;align-items:center;gap:1rem;overflow:hidden;transform:rotate(-3deg)}
@@ -295,7 +298,7 @@ html.js [data-reveal].in{opacity:1;transform:none}
   :root{--pad-y:4rem;--pad-x:4vw;--fs-h-xl:7rem;--fs-h-lg:3.5rem}
   h1{letter-spacing:-5px;font-size:7rem}
   .tab-hide{display:none!important}
-  .hero-heading{font-size:16vw}
+  .hero-heading{font-size:calc(16vw * var(--hero-scale,1) * var(--hero-fit,1))}
 }
 /* ---------- mobile landscape ---------- */
 @media (max-width:767px){

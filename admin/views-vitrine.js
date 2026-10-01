@@ -13,8 +13,12 @@
   var PAGES = {
     home: { label: "Page d'accueil", file: "index.html", url: "../index.html", sections: [
       { id: "hero", title: "Bannière principale", desc: "Grand visuel plein écran à l'ouverture du site (après la page de chargement).", fields: [
-        T("home.hero.title", "Titre (une ligne par retour à la ligne)", "lines"), T("home.hero.cta", "Texte du bouton"), T("home.hero.link", "Lien du bouton", "link"),
-        T("home.hero.image", "Image ou vidéo de fond (aussi montrée à la fin de la page de chargement)", "media"), T("home.hero.foot", "Mention en bas à gauche")] },
+        T("home.hero.title", "Titre (une ligne par retour à la ligne)", "lines", { keepWith: "home.hero.lines" }),
+        T("home.hero.lines", "Nombre de lignes du titre", "choice", { options: [["", "Comme saisi dans le titre"], ["1", "1 ligne"], ["2", "2 lignes"], ["3", "3 lignes"]], hint: "Pour un titre long : le texte est réparti sur le nombre de lignes choisi." }),
+        T("home.hero.size", "Taille du titre", "choice", { options: [["s", "Petit"], ["m", "Moyen"], ["", "Grand (taille d'origine)"], ["xl", "Très grand"]] }),
+        T("home.hero.color", "Couleur du texte et du bouton", "color", { hint: "Blanc sur une photo sombre, noir ou une couleur foncée sur une photo claire." }),
+        T("home.hero.cta", "Texte du bouton"), T("home.hero.link", "Lien du bouton", "link"),
+        T("home.hero.image", "Image ou vidéo de fond (aussi montrée à la fin de la page de chargement et à l'ouverture du menu)", "media"), T("home.hero.foot", "Mention en bas à gauche")] },
       { id: "trending", section: "home.trending", title: "Catégories tendance", desc: "Trois grandes cartes avec le badge qui suit la souris.", fields: rep(3, function (i) {
         return [T(null, "Carte " + i, "sub"), T("home.trend." + i + ".name", "Nom"), T("home.trend." + i + ".tag", "Étiquette"), T("home.trend." + i + ".ring", "Texte du badge tournant"),
           T("home.trend." + i + ".link", "Lien", "link"), T("home.trend." + i + ".image", "Image", "img")]; }) },
@@ -120,7 +124,7 @@
       loadDefaults(P.file).then(function (d) {
         defs = d;
         P.sections.forEach(function (s) {
-          s.fields.forEach(function (f) { if (!f.k) return; state[f.k] = V.fields[f.k] ? clone(V.fields[f.k]) : clone(d[f.k] || (isVal(f.t) ? { v: "" } : { fr: "", en: "" })); });
+          s.fields.forEach(function (f) { if (!f.k) return; if (!d[f.k] && isVal(f.t)) d[f.k] = { v: "" }; state[f.k] = V.fields[f.k] ? clone(V.fields[f.k]) : clone(d[f.k] || (isVal(f.t) ? { v: "" } : { fr: "", en: "" })); });
           if (s.section) state["§" + s.section] = V.sections[s.section] !== false;
           if (s.picks) state["picks." + s.picks.key] = (V.picks[s.picks.key] || DB.defaultVitrine().picks[s.picks.key]).slice();
         });
@@ -129,28 +133,41 @@
     }
 
     function clone(o) { return JSON.parse(JSON.stringify(o)); }
-    function isVal(t) { return t === "img" || t === "media" || t === "link" || t === "product"; }
+    function isVal(t) { return t === "img" || t === "media" || t === "link" || t === "product" || t === "choice" || t === "color"; }
     function changed(k) { var d = defs[k], s = state[k]; if (!d) return false; return JSON.stringify(normalize(s)) !== JSON.stringify(normalize(d)); }
     function normalize(o) { return o.v !== undefined ? { v: String(o.v) } : { fr: (o.fr || "").trim(), en: (o.en || "").trim() }; }
-    function resetBtn(k) { return w ? '<button type="button" class="link" data-reset="' + k + '" style="font-size:12px' + (changed(k) ? "" : ";visibility:hidden") + '">Rétablir l\'original</button>' : ""; }
+    // no "Rétablir l'original" link next to the fields: a content is changed again and published, not reset
+    function resetBtn() { return ""; }
 
     function sectionCard(s) {
       return '<div class="card" id="v-' + s.id + '"><div class="card-h"><div><h2>' + esc(s.title) + "</h2>" + (s.desc ? "<p>" + esc(s.desc) + "</p>" : "") + "</div>" +
         (s.section ? '<label class="switch"><input type="checkbox" data-section="' + s.section + '"' + (state["§" + s.section] ? " checked" : "") + dis + "><i></i><b>" + (state["§" + s.section] ? "Affichée" : "Masquée") + "</b></label>" : "") + "</div>" +
-        '<div class="card-b stack" style="gap:16px">' + s.fields.map(field).join("") + (s.picks ? picksField(s.picks) : "") +
-        (s.goto ? '<div><a class="btn" href="#/vitrine?tab=' + s.goto[0] + '">' + I.arrowR + esc(s.goto[1]) + "</a></div>" : "") + "</div></div>";
+        // two columns (one on a phone): headings, long texts and product selections take the whole width
+        '<div class="card-b form-grid" style="align-items:start">' + s.fields.map(field).join("") + (s.picks ? picksField(s.picks) : "") +
+        (s.goto ? '<div class="full"><a class="btn" href="#/vitrine?tab=' + s.goto[0] + '">' + I.arrowR + esc(s.goto[1]) + "</a></div>" : "") + "</div></div>";
     }
     function field(f) {
-      if (f.t === "sub") return '<div style="margin-top:6px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">' + esc(f.l) + "</div>";
+      if (f.t === "sub") return '<div class="full" style="margin-top:6px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">' + esc(f.l) + "</div>";
       if (f.t === "img" || f.t === "media") return imgField(f);
       if (f.t === "link") return '<div class="field" data-f="' + f.k + '"><div class="row is-between"><span style="font-size:12.5px;font-weight:600">' + esc(f.l) + "</span>" + resetBtn(f.k) + '</div><input class="input mono" list="rx-links" data-k="' + f.k + '" data-v value="' + esc(state[f.k].v || "") + '" placeholder="shop.html, histoire.html, https://…"' + dis + "></div>";
       if (f.t === "product") return productField(f);
+      if (f.t === "choice") return '<div class="field" data-f="' + f.k + '"><div class="row is-between"><span style="font-size:12.5px;font-weight:600">' + esc(f.l) + "</span>" + resetBtn(f.k) + '</div><select class="select" aria-label="' + esc(f.l) + '" data-k="' + f.k + '" data-v data-choice' + dis + ">" +
+        f.options.map(function (o) { return '<option value="' + o[0] + '"' + (String(state[f.k].v || "") === o[0] ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select>" + (f.hint ? '<small class="muted">' + esc(f.hint) + "</small>" : "") + "</div>";
+      if (f.t === "color") return colorField(f);
       return textField(f);
+    }
+    // colour: white (original), black, or any colour from the picker
+    function colorField(f) {
+      var v = /^#[0-9a-f]{6}$/i.test(state[f.k].v || "") ? state[f.k].v.toLowerCase() : "#ffffff";
+      return '<div class="field" data-f="' + f.k + '"><div class="row is-between"><span style="font-size:12.5px;font-weight:600">' + esc(f.l) + "</span>" + resetBtn(f.k) + '</div><div class="row" style="gap:8px;flex-wrap:wrap">' +
+        '<input type="color" aria-label="' + esc(f.l) + '" data-k="' + f.k + '" data-v value="' + v + '" style="width:46px;height:40px;padding:2px;border:1px solid var(--line);background:var(--surface);cursor:pointer"' + dis + ">" +
+        [["#ffffff", "Blanc"], ["#000000", "Noir"]].map(function (c) { return '<button type="button" class="btn is-sm" data-color="' + f.k + '" data-val="' + c[0] + '" aria-pressed="' + (v === c[0]) + '"' + dis + ">" + c[1] + "</button>"; }).join("") +
+        '<span class="mono muted" data-colorval="' + f.k + '">' + v + "</span></div>" + (f.hint ? '<small class="muted">' + esc(f.hint) + "</small>" : "") + "</div>";
     }
     // French only: the English shown under the field is produced automatically when publishing
     function textField(f) {
       var s = state[f.k], big = f.t === "long" || f.t === "lines", v = esc(s.fr || ""), mx = f.max ? ' maxlength="' + f.max + '"' : "";
-      return '<div class="field" data-f="' + f.k + '"><div class="row is-between"><span style="font-size:12.5px;font-weight:600">' + esc(f.l) + "</span>" +
+      return '<div class="field' + (f.t === "long" ? " full" : "") + '" data-f="' + f.k + '"><div class="row is-between"><span style="font-size:12.5px;font-weight:600">' + esc(f.l) + "</span>" +
         '<span class="row" style="gap:12px">' + (f.max ? '<small class="muted" data-count="' + f.k + ':fr">' + (s.fr || "").length + " / " + f.max + "</small>" : "") + resetBtn(f.k) + "</span></div>" +
         (big ? '<textarea class="textarea" aria-label="' + esc(f.l) + '" rows="' + (f.t === "lines" ? 2 : 3) + '" style="min-height:' + (f.t === "lines" ? 64 : 88) + 'px" data-k="' + f.k + '" data-lang="fr"' + mx + dis + ">" + v + "</textarea>"
           : '<input class="input" aria-label="' + esc(f.l) + '" data-k="' + f.k + '" data-lang="fr" value="' + v + '"' + mx + dis + ">") +
@@ -189,7 +206,7 @@
     }
     function picksField(pk) {
       var list = state["picks." + pk.key];
-      return '<div class="field"><div class="row is-between"><span style="font-size:12.5px;font-weight:600">' + esc(pk.label) + "</span>" + (w ? '<button type="button" class="link" data-reset-picks="' + pk.key + '" style="font-size:12px">Sélection d\'origine</button>' : "") + '</div><div class="grid g-3" style="gap:10px">' +
+      return '<div class="field full"><div class="row is-between"><span style="font-size:12.5px;font-weight:600">' + esc(pk.label) + "</span>" + (w ? '<button type="button" class="link" data-reset-picks="' + pk.key + '" style="font-size:12px">Sélection d\'origine</button>' : "") + '</div><div class="grid g-3" style="gap:10px">' +
         list.map(function (id, i) { var p = db.products[id] || {}; return '<div class="row" style="gap:10px;padding:8px;border:1px solid var(--line)"><span class="mono muted" style="width:18px">' + (i + 1) + '</span><img alt="" class="thumb is-sm" src="' + RX.img(p.img, 100) + '"><select class="select" data-pick-slot="' + pk.key + ":" + i + '"' + dis + ">" + productOptions(id) + "</select></div>"; }).join("") + "</div>" +
         '<small class="muted">Les produits masqués, en brouillon ou archivés ne s\'affichent pas sur le site.</small></div>';
     }
@@ -212,6 +229,7 @@
         refreshNote(k);
       }
       else { state[k].v = t.hasAttribute("data-num") ? +t.value : t.value.trim(); delete state[k].poster; }
+      var cv = $('[data-colorval="' + k + '"]', el); if (cv) { cv.textContent = t.value; $$('[data-color="' + k + '"]', el).forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.val === t.value ? "true" : "false"); }); }
       var th = $('[data-thumb="' + k + '"]', el); if (th) th.outerHTML = thumb(k);
       var c = $('[data-count="' + k + ":" + t.getAttribute("data-lang") + '"]', el); if (c) c.textContent = t.value.length + c.textContent.replace(/^\d+/, "");
       if (tab === "seo") serp();
@@ -221,6 +239,7 @@
       var t = e.target;
       if (t.matches("[data-section]")) { state["§" + t.dataset.section] = t.checked; t.nextElementSibling.nextElementSibling.textContent = t.checked ? "Affichée" : "Masquée"; dirty(); }
       if (t.matches("[data-pick-slot]")) { var p = t.dataset.pickSlot.split(":"); state["picks." + p[0]][+p[1]] = +t.value; t.previousElementSibling.src = RX.img((db.products[+t.value] || {}).img, 100); dirty(); }
+      if (t.matches("select[data-choice]")) { var ck = t.getAttribute("data-k"); state[ck].v = t.value; refreshReset(ck); dirty(); return; }
       if (t.matches("select[data-k]")) { var k = t.getAttribute("data-k"); state[k].v = +t.value; var pt = $('[data-pthumb="' + k + '"]', el); if (pt) pt.src = RX.img((db.products[+t.value] || {}).img, 120); refreshReset(k); dirty(); }
     });
     el.addEventListener("click", function (e) {
@@ -237,6 +256,8 @@
       }
       var rp = t.closest("[data-reset-picks]");
       if (rp) { var key = rp.dataset.resetPicks; state["picks." + key] = DB.defaultVitrine().picks[key].slice(); var sec = P.sections.filter(function (s) { return s.picks && s.picks.key === key; })[0]; $("#v-" + sec.id, el).outerHTML = sectionCard(sec); dirty(); return; }
+      var cb = t.closest("[data-color]");
+      if (cb) { var ckey = cb.dataset.color; state[ckey].v = cb.dataset.val; var cw = $('[data-f="' + ckey + '"]', el), cf = findField(ckey); if (cw && cf) { var ct = document.createElement("div"); ct.innerHTML = field(cf); cw.replaceWith(ct.firstChild); } dirty(); return; }
       var pk = t.closest("[data-pick]"); if (pk) picker(pk.dataset.pick);
     });
     function findField(k) { var out = null; (P.sections || []).forEach(function (s) { s.fields.forEach(function (f) { if (f.k === k) out = f; }); }); if (!out && /^seo\./.test(k)) out = { k: k, l: /title$/.test(k) ? "Titre de la page" : "Description", t: /title$/.test(k) ? "text" : "long", max: /title$/.test(k) ? 70 : 170 }; return out; }
@@ -300,7 +321,9 @@
           if (changed(k)) { V.seo[pg][fld] = normalize(state[k]); n++; } else delete V.seo[pg][fld];
           return;
         }
-        if (changed(k)) { V.fields[k] = normalize(state[k]); if (isVal((findField(k) || {}).t)) { V.fields[k] = { v: state[k].v }; if (state[k].poster) V.fields[k].poster = state[k].poster; } n++; } else delete V.fields[k];
+        // a text is also stored, even unchanged, when the option that reshapes it is set (the site then needs the text itself)
+        var kw = (findField(k) || {}).keepWith;
+        if (changed(k) || (kw && state[kw] && state[kw].v && (state[k].fr || "").trim())) { V.fields[k] = normalize(state[k]); if (isVal((findField(k) || {}).t)) { V.fields[k] = { v: state[k].v }; if (state[k].poster) V.fields[k].poster = state[k].poster; } n++; } else delete V.fields[k];
       });
       RX.dirty = false;
       RX.save("a publié la vitrine", P.label);

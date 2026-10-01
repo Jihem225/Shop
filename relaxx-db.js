@@ -670,7 +670,7 @@
 
   /* ---------- storefront: public catalogue, kept a minute in the browser ----------
      A page opened less than a minute after the previous one uses the copy at once and refreshes it for the
-     next page; otherwise it waits for Supabase (6 s at most, then the last copy or the base catalogue). */
+     next page; otherwise it waits for Supabase (6 s at most, 16 s on the checkout, then the last copy or the base catalogue). */
   var PKEY = "relaxx-public", readyQ = [], isReady = false;
   var MAX_AGE = typeof window !== "undefined" && window.RELAXX_MAX_AGE != null ? window.RELAXX_MAX_AGE : 60000;
   function ready(fn) { if (isReady) fn(); else readyQ.push(fn); }
@@ -696,8 +696,11 @@
   function loadPublic() {
     var copy = readPublic(), timer = 0;
     var fallback = function () { if (!isReady) { cache = copy ? fromPublic(copy.data) : baseline(); markReady(); } };
-    if (copy && Date.now() - copy.t < MAX_AGE) { cache = fromPublic(copy.data); markReady(); }
-    else timer = setTimeout(fallback, 6000);
+    // a member of the team signed in on this browser always gets the latest data: what was just saved in the back office shows at the first reload
+    if (copy && Date.now() - copy.t < (auth.session() ? 0 : MAX_AGE)) { cache = fromPublic(copy.data); markReady(); }
+    // a page that must have the latest data (checkout: stock, prices, colours) waits for the answer as long as the call itself
+    // lasts (15 s) instead of falling back after 6 s on a copy that could wrongly refuse an article of the bag
+    else timer = setTimeout(fallback, MAX_AGE === 0 ? 16000 : 6000);
     refreshPublic().then(function (pub) { if (!isReady) { clearTimeout(timer); cache = fromPublic(pub); markReady(); } }, function () { clearTimeout(timer); fallback(); });
   }
 
@@ -856,7 +859,7 @@
     db.categories.forEach(function (c) { if (!c.visible) hiddenCat[c.key] = 1; });
     return db.products.map(function (p) {
       var out = totalStock(p) <= 0;
-      return { id: p.id, cat: p.cat, name: clean(p.name), nameFr: clean(p.nameFr), price: p.price, compare: p.compare, tag: out ? "Sold Out" : p.tag, img: p.img, desc: p.desc, stock: p.stock,
+      return { id: p.id, cat: p.cat, name: clean(p.name), nameFr: clean(p.nameFr), price: p.price, compare: p.compare, tag: out ? "Sold Out" : p.tag, img: p.img, imgs: p.imgs || [], desc: p.desc, stock: p.stock,
         colors: hasColors(p) ? p.colors : [], vstock: hasColors(p) ? p.vstock : null,
         hidden: p.status !== "active" || !!hiddenCat[p.cat], soldOut: out, sku: p.sku };
     });
@@ -1120,6 +1123,18 @@
     }
     tryPlay(v);
   }
+  // a text spread over n lines of about the same length (never more lines than words)
+  function splitLines(text, n) {
+    var words = String(text).replace(/\s+/g, " ").trim().split(" "), total = words.join(" ").length, out = [], line = [], cum = 0;
+    n = Math.min(n, words.length);
+    words.forEach(function (w, i) {
+      line.push(w); cum += w.length + 1;
+      var leftW = words.length - i - 1, leftL = n - out.length - 1;
+      if (leftL > 0 && (leftW === leftL || (cum >= total * (out.length + 1) / n && leftW >= leftL))) { out.push(line.join(" ")); line = []; }
+    });
+    if (line.length) out.push(line.join(" "));
+    return out;
+  }
   function applyVitrine() {
     var html = document.documentElement, lang = html.getAttribute("data-lang") === "fr" ? "fr" : "en", db = get(), V = db.settings.vitrine || defaultVitrine(), F = V.fields || {};
     var txt = function (f) { return f ? (f[lang] != null && f[lang] !== "" ? f[lang] : f.fr || f.en || "") : null; };
@@ -1146,6 +1161,53 @@
       if (type === "lines") { el.innerHTML = t.split(/\n/).map(function (l) { return l.replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }).join("<br>"); return; }
       el.textContent = t;
     });
+    // home banner: colour, size and number of lines of the title (back office › Vitrine › Bannière principale)
+    var hero = document.querySelector(".hero-wrap"), hv = function (k) { return String((F["home.hero." + k] || {}).v || ""); };
+    if (hero) {
+      var col = hv("color"), scale = { s: 0.6, m: 0.8, xl: 1.25 }[hv("size")], nl = +hv("lines"), hd = hero.querySelector(".hero-heading");
+      if (/^#[0-9a-f]{6}$/i.test(col)) {
+        // the button takes the colour of the text, with its own text in black or white, whichever reads best
+        var light = parseInt(col.substr(1, 2), 16) * 0.299 + parseInt(col.substr(3, 2), 16) * 0.587 + parseInt(col.substr(5, 2), 16) * 0.114 > 150;
+        hero.style.setProperty("--hero-color", col); hero.style.setProperty("--hero-on", light ? "#000" : "#fff");
+      }
+      if (scale) hero.style.setProperty("--hero-scale", scale);
+      if (hd && nl >= 1 && nl <= 3) {
+        var ht = txt(F["home.hero.title"]);
+        if (ht) hd.innerHTML = splitLines(ht, nl).map(function (l) { return l.replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }).join("<br>");
+        // title of the page itself (its translation follows its two lines): it can only be put on one line
+        else if (nl === 1) Array.prototype.forEach.call(hd.querySelectorAll("br"), function (br) { br.parentNode.replaceChild(document.createTextNode(" "), br); });
+        // the chosen number of lines is kept whatever the length: no line is cut, the title is reduced until the longest one fits
+        hd.classList.add("is-fit");
+        var fit = function () {
+          hero.style.setProperty("--hero-fit", 1);
+          var box = hd.closest(".hero") || hero, cs = getComputedStyle(box);
+          // room: the width of the screen (the banner itself would stretch with a title that is too long) minus the side margins
+          var room = document.documentElement.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0), wide = hd.getBoundingClientRect().width;
+          if (room > 0 && wide > room) hero.style.setProperty("--hero-fit", Math.max(0.15, room / wide * 0.98).toFixed(3));
+        };
+        fit(); window.addEventListener("resize", fit);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+      }
+    }
+    // rotating badge of the three category cards: it names the card ("Chemises tendance à découvrir"), following the name set in
+    // Vitrine or, failing that, the name of the category the card leads to; a badge text written in Vitrine is kept as it is
+    ["outerwear", "knitwear", "dresses"].forEach(function (dk, n) {
+      var i = n + 1, ring = document.querySelector('.trend-cursor[data-cms="home.trend.' + i + '.ring"]');
+      if (!ring || F["home.trend." + i + ".ring"]) return;
+      var name = txt(F["home.trend." + i + ".name"]);
+      if (!name) {
+        var lk = (F["home.trend." + i + ".link"] || {}).v, key = lk ? String(lk).split("#")[1] || "" : dk;
+        var c = db.categories.filter(function (x) { return x.key === key; })[0], d0 = CATEGORIES.filter(function (x) { return x.key === key; })[0];
+        if (!c || (d0 && c.label === d0.label && c.labelFr === d0.labelFr)) return; // category never renamed: the text of the page stays
+        name = lang === "fr" ? c.labelFr || c.label : c.label;
+      }
+      var label = lang === "fr" ? name + " tendance à découvrir" : "Shop the trending " + name.toLowerCase() + " edit";
+      ring.setAttribute("data-label", label); ring.setAttribute("data-no-i18n", "");
+      var rtp = ring.querySelector("textPath"); if (rtp) rtp.textContent = label;
+    });
+    // the menu opens on the photo of the home banner (a video shows its poster frame)
+    var hi = F["home.hero.image"], mi = document.querySelector(".mn-img-main img");
+    if (mi && hi && hi.v) { var hsrc = media.isVideo(hi.v) ? hi.poster : hi.v; if (hsrc) { mi.removeAttribute("srcset"); mi.src = imgUrl(hsrc, 1600); } }
     Array.prototype.forEach.call(document.querySelectorAll("[data-cms-href]"), function (el) { var f = F[el.getAttribute("data-cms-href")]; if (f && safeHref(f.v)) el.setAttribute("href", safeHref(f.v)); });
     var st = db.settings.store || {};
     // social links: the shop's accounts; an account that is not filled in is not shown
@@ -1222,6 +1284,20 @@
     var db = get(), cats = db.categories.filter(function (c) { return c.visible; }).sort(function (a, b) { return a.order - b.order; });
     var photoOf = function (key) { var p = db.products.filter(function (x) { return x.cat === key && x.status === "active"; })[0]; return p ? imgUrl(p.img, 1400) : ""; };
     var closeMenu = function () { var b = document.querySelector(".mn-burger.is-open"); if (b) b.click(); };
+    // a category shown as a card on the home page ("Catégories tendance", back office › Vitrine) has the same photo in the menu
+    var F = (db.settings.vitrine || {}).fields || {}, trendImg = {};
+    [["outerwear", "photo-1613915617430-8ab0fd7c6baf"], ["knitwear", "photo-1515511624704-b8916dcc30ea"], ["dresses", "photo-1635760057387-36eedcc8123f"]].forEach(function (d, n) {
+      var link = (F["home.trend." + (n + 1) + ".link"] || {}).v, img = (F["home.trend." + (n + 1) + ".image"] || {}).v || d[1];
+      var key = link ? (String(link).split("#")[1] || "") : d[0];
+      if (key && !trendImg[key] && !media.isVideo(img)) trendImg[key] = imgUrl(img, 1400);
+    });
+    // the other categories take the photo of their product shown in the home collection (back office › Vitrine › products put forward),
+    // or of their first product on sale
+    var vp = (db.settings.vitrine || {}).picks || {}, dp = defaultVitrine().picks, picks = (vp.collection || dp.collection).concat(vp.accessories || dp.accessories);
+    var pickImg = function (key) {
+      for (var n = 0; n < picks.length; n++) { var pp = db.products[picks[n]]; if (pp && pp.cat === key && pp.status === "active" && pp.img) return imgUrl(pp.img, 1400); }
+      return photoOf(key);
+    };
     var menu = document.querySelector(".mn-links");
     if (menu) {
       var have = {};
@@ -1237,6 +1313,8 @@
           a.addEventListener("click", closeMenu);
         }
         if (!a) return;
+        var ti = a.querySelector(".mn-link-img img"), tsrc = trendImg[c.key] || pickImg(c.key);
+        if (ti && tsrc) { ti.removeAttribute("srcset"); ti.src = tsrc; }
         a.querySelector(".mn-num").textContent = ("0" + (i + 1)).slice(-2) + ".";
         a.querySelector(".mn-label").textContent = c.label;
         a.style.setProperty("--od", (300 + i * 100) + "ms"); a.style.setProperty("--cd", Math.max(0, (cats.length - 1 - i) * 100) + "ms");

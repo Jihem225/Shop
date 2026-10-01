@@ -130,6 +130,7 @@
           '<div class="stack" style="gap:12px">' + (w ? '<div class="row" style="flex-wrap:wrap"><button type="button" class="btn is-primary" data-img-upload>' + I.upload + "Importer ou choisir une photo</button><small class=\"muted\">ou glissez-déposez un fichier sur l'aperçu</small></div>" : "") +
           '<label class="field"><span>Adresse de l\'image</span><input class="input mono" name="img" value="' + esc(p.img) + '" placeholder="photo-1632149877166-f75d49000351 ou https://…"' + dis + "></label>" +
           '<div class="field"><span>Ou choisir une photo existante</span><div class="img-picks">' + imgs.map(function (id) { return '<button type="button" data-pick="' + esc(id) + '" aria-pressed="' + (id === p.img) + '" aria-label="Choisir cette photo"' + dis + '><img alt="" loading="lazy" src="' + RX.img(id, 110) + '"></button>'; }).join("") + "</div></div></div></div></div></div>" +
+        '<div class="card"><div class="card-h"><div><h2>Photos supplémentaires</h2><p>Vignettes affichées à côté de la grande photo sur la fiche produit (autres vues, détails, porté). Jusqu\'à 8 photos ; le client en voit trois et fait défiler les autres.</p></div></div><div class="card-b" data-extras></div></div>' +
         '<div class="card"><div class="card-h"><h2>Prix</h2><p>En francs CFA, TVA ' + (db.settings.store.vatIncluded ? "incluse" : "non incluse") + " (" + db.settings.store.vat + " %).</p></div><div class=\"card-b\"><div class=\"form-grid is-3\">" +
           num("Prix de vente *", "price", p.price) + num("Prix barré (avant remise)", "compare", p.compare || "") + num("Coût d'achat", "cost", p.cost || "") +
           '</div><div class="margin-box" style="margin-top:16px" data-margin></div></div></div>' +
@@ -220,7 +221,18 @@
         (variants && p.colors.length ? '<div class="pc-dots">' + p.colors.map(function (c) { return '<i title="' + esc(c.nameFr || c.name) + '" style="--c:' + esc(c.hex) + '"></i>'; }).join("") + "</div>" : "") + "</div>";
       $(".img-prev", el).src = RX.img(form.img.value, 400);
     }
-    colors(); sizes(); preview();
+    // extra photos (thumbnails of the product page): added from the media library, removed or reordered here
+    var MAX_EXTRA = 8;
+    if (!p.imgs) p.imgs = [];
+    function extras() {
+      var box = $("[data-extras]", el); if (!box) return;
+      box.innerHTML = '<div class="row" style="flex-wrap:wrap;gap:10px;align-items:flex-start">' + p.imgs.map(function (v, i) {
+        return '<div style="width:116px"><img alt="Photo supplémentaire ' + (i + 1) + '" src="' + esc(RX.img(v, 240)) + '" style="display:block;width:116px;aspect-ratio:3/4;object-fit:cover;background:var(--grey-soft)">' +
+          (w ? '<div class="row" style="gap:4px;margin-top:6px;justify-content:space-between"><button type="button" class="btn is-sm" style="width:34px;padding:0;justify-content:center" data-xmove="' + i + '" data-dir="-1"' + (i === 0 ? " disabled" : "") + ' aria-label="Avancer la photo">←</button><button type="button" class="btn is-sm" style="width:34px;padding:0;justify-content:center" data-xmove="' + i + '" data-dir="1"' + (i === p.imgs.length - 1 ? " disabled" : "") + ' aria-label="Reculer la photo">→</button><button type="button" class="btn is-sm is-ghost-danger" style="width:34px;padding:0;justify-content:center" data-xdel="' + i + '" aria-label="Retirer la photo">' + I.x + "</button></div>" : "") + "</div>";
+      }).join("") + "</div>" +
+        (w ? '<div class="row" style="gap:12px;margin-top:' + (p.imgs.length ? 14 : 0) + 'px;flex-wrap:wrap"><button type="button" class="btn" data-xadd' + (p.imgs.length >= MAX_EXTRA ? " disabled" : "") + ">" + I.plus + 'Ajouter une photo</button><small class="muted">' + p.imgs.length + " / " + MAX_EXTRA + (p.imgs.length ? "" : " — sans photo supplémentaire, la fiche n'affiche que la grande photo") + "</small></div>" : "");
+    }
+    colors(); sizes(); extras(); preview();
     form.addEventListener("input", function (e) {
       RX.dirty = true; var st = $("[data-state]", el); if (st) st.textContent = "Modifications non enregistrées";
       var t = e.target;
@@ -291,6 +303,13 @@
         return;
       }
       if ((b = e.target.closest("[data-cphoto-del]"))) { p.colors.forEach(function (c) { if (c.id === b.dataset.cphotoDel) c.img = ""; }); changed(); colors(); return; }
+      if (e.target.closest("[data-xadd]")) {
+        if (p.imgs.length >= MAX_EXTRA) return;
+        RX.pickMedia({ title: "Photo supplémentaire", current: "", siteLabel: "Photos du catalogue", groups: [{ label: "Photos du catalogue", items: imgs }], onPick: function (v) { if (v && p.imgs.length < MAX_EXTRA) { p.imgs.push(v); changed(); extras(); } } });
+        return;
+      }
+      if ((b = e.target.closest("[data-xdel]"))) { p.imgs.splice(+b.dataset.xdel, 1); changed(); extras(); return; }
+      if ((b = e.target.closest("[data-xmove]"))) { var xi = +b.dataset.xmove, xt = xi + (+b.dataset.dir); if (xt < 0 || xt >= p.imgs.length) return; var xv = p.imgs.splice(xi, 1)[0]; p.imgs.splice(xt, 0, xv); changed(); extras(); return; }
       if (e.target.closest("[data-img-upload]")) {
         RX.pickMedia({ title: "Photo du produit", current: form.img.value, siteLabel: "Photos du catalogue", groups: [{ label: "Photos du catalogue", items: imgs }], onPick: function (v) { setImg(v); } });
         return;
@@ -337,7 +356,7 @@
         cols.forEach(function (c) { c.name = tt[k++] || c.nameFr; });
         var target = isNew ? { id: db.products.length, createdAt: Date.now() } : src;
         target.nameFr = nameFr; target.name = enName; target.descFr = descFr; target.desc = !descFr ? "" : needDesc ? enDesc || descFr : src.desc;
-        target.img = form.img.value.trim() || "photo-1632149877166-f75d49000351"; target.price = price; target.compare = comp; target.cost = +form.cost.value || 0;
+        target.img = form.img.value.trim() || "photo-1632149877166-f75d49000351"; target.imgs = (p.imgs || []).filter(Boolean).slice(0, MAX_EXTRA); target.price = price; target.compare = comp; target.cost = +form.cost.value || 0;
         target.status = form.status.value; target.cat = form.cat.value; target.tag = form.tag.value;
         target.sku = form.sku.value.trim() || "RX-" + target.cat.slice(0, 3).toUpperCase() + "-" + ("00" + (target.id + 1)).slice(-3);
         if (variants) {
@@ -460,34 +479,51 @@
      ====================================================================== */
   RX.route("/categories", "categories", function (el) {
     var db = RX.db(), w = RX.canWrite("categories");
+    // names being typed, kept until "Enregistrer": the page does not refresh by itself meanwhile (RX.dirty) and a redraw keeps them
+    var names = {};
+    function pending() { return Object.keys(names).filter(function (k) { var c = byKey(k); return c && names[k].trim() && names[k].trim() !== c.labelFr; }); }
+    function mark() { var n = pending().length, b = $("[data-save-cats]", el); RX.dirty = n > 0; if (b) b.disabled = !n; }
     function draw() {
       var cats = db.categories.slice().sort(function (a, b) { return a.order - b.order; });
       el.innerHTML =
-        '<div class="ph"><div><h1>Catégories</h1><p>Onglets de la boutique et de la page d\'accueil. L\'ordre ci-dessous est celui des onglets.</p></div><div class="ph-actions">' + (w ? '<button type="button" class="btn is-primary" data-add>' + I.plus + "Nouvelle catégorie</button>" : "") + "</div></div>" +
+        '<div class="ph"><div><h1>Catégories</h1><p>Onglets de la boutique et de la page d\'accueil. L\'ordre ci-dessous est celui des onglets. Modifiez les noms puis cliquez sur « Enregistrer ».</p></div><div class="ph-actions">' + (w ? '<button type="button" class="btn" data-add>' + I.plus + 'Nouvelle catégorie</button><button type="button" class="btn is-primary" data-save-cats disabled>Enregistrer</button>' : "") + "</div></div>" +
         '<div class="card"><div class="table-wrap"><table class="t"><thead><tr><th class="w0">Ordre</th><th>Nom</th><th>Version anglaise (automatique)</th><th>Identifiant</th><th class="r">Produits</th><th>Visible</th><th class="r">Actions</th></tr></thead><tbody>' +
         cats.map(function (c, i) {
           var n = db.products.filter(function (p) { return p.cat === c.key; }).length, act = db.products.filter(function (p) { return p.cat === c.key && p.status === "active"; }).length;
           return '<tr><td class="w0"><div class="row" style="gap:4px"><button type="button" class="btn is-sm" data-move="' + c.key + '" data-dir="-1"' + (!w || i === 0 ? " disabled" : "") + ' aria-label="Monter">↑</button><button type="button" class="btn is-sm" data-move="' + c.key + '" data-dir="1"' + (!w || i === cats.length - 1 ? " disabled" : "") + ' aria-label="Descendre">↓</button></div></td>' +
-            '<td><input class="input" data-lbl="labelFr" data-key="' + c.key + '" value="' + esc(c.labelFr) + '"' + (w ? "" : " disabled") + '></td><td class="muted" data-en="' + c.key + '">' + esc(c.label) + "</td>" +
+            '<td><input class="input" data-lbl="labelFr" data-key="' + c.key + '" value="' + esc(names[c.key] !== undefined ? names[c.key] : c.labelFr) + '"' + (w ? "" : " disabled") + '></td><td class="muted" data-en="' + c.key + '">' + esc(c.label) + "</td>" +
             '<td class="mono muted">' + esc(c.key) + '</td><td class="r num">' + act + ' <span class="muted">/ ' + n + "</span></td>" +
             '<td><label class="switch"><input type="checkbox" data-vis="' + c.key + '"' + (c.visible ? " checked" : "") + (w ? "" : " disabled") + '><i></i></label></td>' +
             '<td class="r w0">' + (w ? '<a class="btn is-sm" href="../shop.html#' + c.key + '" target="_blank" rel="noopener">' + I.ext + '</a> <button type="button" class="btn is-sm is-ghost-danger" data-del="' + c.key + '"' + (n ? ' disabled title="Contient des produits"' : "") + ">" + I.trash + "</button>" : "") + "</td></tr>";
         }).join("") + "</tbody></table></div></div>" +
         '<div class="notice" style="margin-top:18px">' + I.info + "<div>Masquer une catégorie retire ses produits de la boutique (onglets, recherche, recommandations) sans les supprimer. Le menu et le pied de page du site suivent cette liste : ordre, noms et visibilité.</div></div>";
+      mark();
     }
     draw();
+    el.addEventListener("input", function (e) { if (e.target.matches("[data-lbl]")) { names[e.target.dataset.key] = e.target.value; mark(); } });
+    // "Enregistrer": every changed name is translated, then all of them are saved at once
+    function saveNames(btn) {
+      var keys = pending();
+      if (!keys.length) return;
+      var fr = keys.map(function (k) { return names[k].trim(); });
+      btn.disabled = true; btn.textContent = "Enregistrement…";
+      RX.translate(fr, { title: true }).then(function (r) { finish(r, true); }, function () { finish([], false); });
+      function finish(r, ok) {
+        if (!ok) RX.translateFailed();
+        keys.forEach(function (k, i) { var c = byKey(k); if (!c) return; c.labelFr = fr[i]; c.label = r[i] || fr[i]; });
+        names = {}; RX.dirty = false;
+        RX.save(keys.length > 1 ? "a renommé " + keys.length + " catégories" : "a renommé la catégorie", fr.join(", "));
+        draw();
+        RX.toast(keys.length > 1 ? "Modifications enregistrées : " + keys.length + " catégories renommées" : "Modification enregistrée : catégorie renommée");
+      }
+    }
     el.addEventListener("change", function (e) {
       var i = e.target;
-      if (i.matches("[data-lbl]")) {
-        var c = byKey(i.dataset.key), fr = i.value.trim();
-        if (!fr || fr === c.labelFr) { i.value = c.labelFr; return; }
-        c.labelFr = fr;
-        RX.translate([fr], { title: true }).then(function (r) { c.label = r[0] || fr; done(true); }, function () { done(false); });
-        function done(ok) { if (!ok) RX.translateFailed(); RX.save("a renommé la catégorie", c.labelFr); var td = $('[data-en="' + c.key + '"]', el); if (td) td.textContent = c.label; RX.toast("Catégorie renommée" + (ok ? " — anglais : " + c.label : "")); }
-      }
       if (i.matches("[data-vis]")) { var c2 = byKey(i.dataset.vis); c2.visible = i.checked; RX.save(i.checked ? "a affiché la catégorie" : "a masqué la catégorie", c2.labelFr); RX.toast(i.checked ? "Catégorie visible sur la boutique" : "Catégorie masquée"); }
     });
     el.addEventListener("click", function (e) {
+      var sv = e.target.closest("[data-save-cats]");
+      if (sv) { saveNames(sv); return; }
       var mv = e.target.closest("[data-move]");
       if (mv) { var cats = db.categories.slice().sort(function (a, b) { return a.order - b.order; }), i = cats.indexOf(byKey(mv.dataset.move)), j = i + +mv.dataset.dir; var t = cats[i]; cats[i] = cats[j]; cats[j] = t; cats.forEach(function (c, k) { c.order = k; }); RX.save("a réordonné les catégories"); draw(); return; }
       var del = e.target.closest("[data-del]");
