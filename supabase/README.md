@@ -36,6 +36,8 @@ Les photos et vidéos importées dans le back-office sont dans le bucket public 
   - `rx_public` : catalogue sans coût d'achat, réglages publics, avis publiés ; un produit qui n'est pas en vente n'y laisse que sa place (ni nom, ni prix, ni stock) ;
   - `rx_check_promo` : règles d'un seul code ; la liste des codes reste privée ; 20 essais en 10 minutes et 100 par jour par connexion ;
   - `rx_place_order` : la base recalcule elle-même prix, livraison, code promo, stock et plafond du paiement à la livraison, et refuse plus de 3 commandes en 10 minutes pour la même adresse e-mail ;
+  - une commande envoyée deux fois (réponse perdue, connexion coupée) n'est enregistrée qu'une fois : le navigateur joint un jeton aléatoire à chaque commande, et la base renvoie la commande déjà créée ;
+  - `rx_log_error` : les erreurs rencontrées dans le navigateur sont gardées 30 jours dans la table privée `rx_errors` (10 en 10 minutes et 50 par jour par connexion) ; l'équipe les lit dans **Journal d'activité → Erreurs du site** ;
   - `rx_add_review`, `rx_subscribe`, `rx_track` (les vues au-delà de 120 en 10 minutes ou 2 000 par jour pour une même connexion ne sont pas comptées).
 - **Équipe** : un compte Supabase Auth dont l'e-mail figure dans `staff` (et qui est actif) lit les données de la boutique. Les codes promo et les abonnés à la newsletter ne sont lus que par l'administrateur et le gestionnaire ; la liste de l'équipe par l'administrateur seul (chacun lit sa propre fiche). Il écrit selon son rôle, avec la même matrice que le back-office :
   - Administrateur : tout ;

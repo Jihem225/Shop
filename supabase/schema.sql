@@ -24,6 +24,10 @@ create table if not exists public.rx_docs (
   primary key (coll, key)
 );
 create index if not exists rx_docs_updated_at on public.rx_docs (updated_at);
+-- what every order looks up: the customer and the recent orders by e-mail, the order by its token
+create index if not exists rx_docs_customer_email on public.rx_docs (lower(data->>'email')) where coll = 'customers';
+create index if not exists rx_docs_order_email on public.rx_docs (lower(data#>>'{customer,email}')) where coll = 'orders';
+create index if not exists rx_docs_order_token on public.rx_docs ((data->>'token')) where coll = 'orders';
 
 create sequence if not exists public.rx_order_seq start 10001;
 create sequence if not exists public.rx_customer_seq start 1001;
@@ -237,7 +241,7 @@ declare
   v_ship_m text; v_pay text; v_op text := ''; v_code text; v_lang text;
   v_sizes text[]; v_size text; v_q int; v_avail int; v_sum int;
   v_sub numeric := 0; v_disc numeric := 0; v_ship numeric := 0; v_total numeric;
-  v_cust_id text; v_order_id text; v_guard text;
+  v_cust_id text; v_order_id text; v_guard text; v_token text;
 begin
   v_first := left(trim(coalesce(p#>>'{customer,first}', '')), 60);
   v_last := left(trim(coalesce(p#>>'{customer,last}', '')), 60);
@@ -253,6 +257,17 @@ begin
   if v_first = '' or v_last = '' or v_city = '' or v_line = '' or v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]{2,}$'
      or length(regexp_replace(v_phone, '\D', '', 'g')) < 8 then
     return jsonb_build_object('error', 'contact');
+  end if;
+
+  -- the same order sent twice (answer lost, connection cut): the order already recorded is returned, nothing is created
+  -- (the browser draws one random token per order as typed; two sendings at the same moment wait for each other)
+  v_token := p->>'token';
+  if v_token ~ '^[0-9a-f]{32}$' then
+    perform pg_advisory_xact_lock(hashtext(v_token));
+    select data - 'token' into ord from public.rx_docs where coll = 'orders' and data->>'token' = v_token limit 1;
+    if ord is not null then return ord; end if;
+  else
+    v_token := null;
   end if;
 
   v_guard := public.rx_guard_check('order', p->'guard');
@@ -371,7 +386,7 @@ begin
     'shipping', jsonb_build_object('method', v_ship_m, 'price', v_ship), 'total', v_total,
     'payment', jsonb_build_object('method', v_pay, 'operator', v_op), 'tracking', '', 'notes', '[]'::jsonb,
     'history', jsonb_build_array(jsonb_build_object('t', v_now, 'status', 'pending', 'by', 'Client')), 'source', 'web', 'lang', v_lang);
-  insert into public.rx_docs (coll, key, data) values ('orders', v_order_id, ord);
+  insert into public.rx_docs (coll, key, data) values ('orders', v_order_id, case when v_token is null then ord else ord || jsonb_build_object('token', v_token) end);
   insert into public.rx_docs (coll, key, data) values ('activity', 'a' || v_now || '-' || v_order_id,
     jsonb_build_object('id', 'a' || v_now || '-' || v_order_id, 't', v_now, 'user', 'Boutique en ligne', 'action', 'nouvelle commande', 'target', v_order_id || ' — ' || public.rx_money(v_total)));
   return ord;
@@ -435,6 +450,36 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
+-- errors met in the browser (storefront and back office), kept 30 days
+-- rx_errors is private: no policy, no grant — written by rx_log_error, read by the team with rx_error_list.
+-- ---------------------------------------------------------------------------
+create table if not exists public.rx_errors (
+  id bigint generated always as identity primary key,
+  at timestamptz not null default now(),
+  data jsonb not null
+);
+create index if not exists rx_errors_at on public.rx_errors (at);
+alter table public.rx_errors enable row level security;
+revoke all on public.rx_errors from anon, authenticated;
+
+-- 10 errors in 10 minutes, 50 a day per connection
+create or replace function public.rx_log_error(p jsonb) returns void language plpgsql security definer set search_path = public as $$
+begin
+  if p is null or jsonb_typeof(p) <> 'object' or coalesce(p->>'msg', '') = '' then return; end if;
+  if not public.rx_rate('error', 10, 50) then return; end if;
+  delete from public.rx_errors where at < now() - interval '30 days';
+  insert into public.rx_errors (data) values (jsonb_build_object('msg', left(p->>'msg', 300), 'src', left(coalesce(p->>'src', ''), 200),
+    'line', left(coalesce(p->>'line', ''), 10), 'page', left(coalesce(p->>'page', ''), 200), 'ua', left(coalesce(p->>'ua', ''), 200)));
+end $$;
+
+-- the 200 latest errors, for the team only
+create or replace function public.rx_error_list() returns jsonb language sql stable security definer set search_path = public as $$
+  select case when public.rx_role() is null then '[]'::jsonb else coalesce((
+    select jsonb_agg(e.data || jsonb_build_object('t', (extract(epoch from e.at) * 1000)::bigint) order by e.at desc)
+    from (select at, data from public.rx_errors order by at desc limit 200) e), '[]'::jsonb) end
+$$;
+
+-- ---------------------------------------------------------------------------
 -- back office: the signed-in member (last login, name)
 -- ---------------------------------------------------------------------------
 create or replace function public.rx_me() returns jsonb language plpgsql security definer set search_path = public as $$
@@ -462,6 +507,9 @@ revoke execute on function public.rx_public(), public.rx_check_promo(text), publ
   public.rx_role(), public.rx_can_write(text, text), public.rx_guard_check(text, jsonb) from public;
 grant execute on function public.rx_public(), public.rx_check_promo(text), public.rx_place_order(jsonb), public.rx_add_review(int, jsonb),
   public.rx_subscribe(text, text, text, jsonb), public.rx_track(boolean) to anon, authenticated;
+revoke execute on function public.rx_log_error(jsonb), public.rx_error_list() from public, anon;
+grant execute on function public.rx_log_error(jsonb) to anon, authenticated;
+grant execute on function public.rx_error_list() to authenticated;
 -- Supabase grants every new function to anon and authenticated by name: revoking from "public" above does not remove that
 revoke execute on function public.rx_me(), public.rx_set_my_name(text), public.rx_role(), public.rx_can_write(text, text), public.rx_can_read(text, text) from public, anon;
 revoke execute on function public.rx_guard_check(text, jsonb), public.rx_rate(text, int, int) from public, anon, authenticated;
