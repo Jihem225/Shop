@@ -1318,7 +1318,7 @@
     var lang = document.documentElement.getAttribute("data-lang") === "fr" ? "fr" : "en", list = instaTiles();
     Array.prototype.forEach.call(tiles, function (a, i) {
       var t = list[i], im = a.querySelector("img"); if (!t) return;
-      a.setAttribute("href", t.link); a.setAttribute("target", "_blank"); a.setAttribute("rel", "noopener");
+      a.setAttribute("href", /^https?:\/\//.test(t.link || "") ? t.link : instaProfile()); a.setAttribute("target", "_blank"); a.setAttribute("rel", "noopener");
       var cap = t.caption ? t.caption.replace(/\s+/g, " ").trim().slice(0, 90) : "";
       var post = /instagram\.com\/(?:[\w.]+\/)?(p|reel|tv)\//.test(t.link);
       a.setAttribute("aria-label", (post ? (lang === "fr" ? "Voir la publication sur Instagram" : "View the post on Instagram") : (lang === "fr" ? "Voir notre compte Instagram" : "View our Instagram account")) + (cap ? " — " + cap : ""));
@@ -1343,6 +1343,7 @@
     } catch (e) {}
     var html = document.documentElement;
     if (html.hasAttribute("data-admin")) return;
+    if (html.hasAttribute("data-maintenance")) return; // maintenance.html shows the message and checks by itself when the shop reopens
     var lang = html.getAttribute("data-lang") === "fr" ? "fr" : "en", db = get(), c = db.settings.content;
     var css = document.createElement("style");
     css.textContent =
@@ -1352,19 +1353,20 @@
       "html.has-ann .mn-bar{top:32px;transition:top .45s cubic-bezier(.22,1,.36,1),opacity .7s,background-color .4s,color .4s}" +
       "html.has-ann.ann-off .rx-ann,html.has-ann.mn-lock .rx-ann{transform:translateY(-100%)}html.has-ann.ann-off .mn-bar,html.has-ann.mn-lock .mn-bar{top:0}" +
       "@media (max-width:479px){.rx-ann{font-size:10px;letter-spacing:.05em;padding:0 36px}}" +
-      ".rx-maint{position:fixed;inset:0;z-index:2147483600;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:22px;padding:24px;background:#0e0e0e;color:#e9e6e2;font-family:Geist,sans-serif;text-align:center}" +
-      ".rx-maint b{font-size:clamp(48px,12vw,140px);font-weight:800;letter-spacing:-.05em;line-height:1}.rx-maint p{max-width:460px;margin:0;color:#bdb8b1;font-size:16px;line-height:1.6}" +
-      ".rx-preview{position:fixed;left:12px;bottom:12px;z-index:2147483600;padding:8px 12px;background:#c89564;color:#000;font:600 12px Geist,sans-serif;letter-spacing:.04em}";
+      ".rx-preview{position:fixed;left:12px;bottom:12px;z-index:2147483600;padding:8px 12px;max-width:calc(100% - 24px);background:#c89564;color:#000;font:600 12px/1.4 Geist,sans-serif;letter-spacing:.04em;text-decoration:underline;text-underline-offset:3px}";
     document.head.appendChild(css);
 
     if (c.maintenance && c.maintenance.enabled) {
       if (adminPreview()) {
-        var pv = document.createElement("div"); pv.className = "rx-preview"; pv.textContent = "Mode maintenance actif — aperçu administrateur";
+        // the team keeps seeing the shop: say so, with a link to what the visitors see
+        var pv = document.createElement("a"); pv.className = "rx-preview"; pv.href = "maintenance.html?preview"; pv.setAttribute("data-no-i18n", "");
+        pv.textContent = "Mode maintenance actif. Vous voyez la boutique parce que vous êtes connecté au back-office. Voir la page des visiteurs";
         document.body.appendChild(pv);
       } else {
-        var m = document.createElement("div"); m.className = "rx-maint"; m.setAttribute("role", "alert"); m.setAttribute("data-no-i18n", "");
-        m.innerHTML = "<b>RELAXX</b><p></p>"; m.querySelector("p").textContent = c.maintenance[lang] || c.maintenance.fr;
-        document.body.appendChild(m); html.style.overflow = "hidden";
+        // visitors go to the maintenance page, which sends them back here when the shop reopens
+        var here = (location.pathname.split("/").pop() || "index.html") + location.search + location.hash;
+        html.style.visibility = "hidden";
+        location.replace("maintenance.html?from=" + encodeURIComponent(here));
         return;
       }
     }

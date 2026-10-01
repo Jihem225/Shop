@@ -993,7 +993,7 @@ RelaxxDB.ready(function () {
 })();
 });
 </script>
-<script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.23/bundled/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.23/bundled/lenis.min.js" integrity="sha384-GuiQQtSonx5JfFrW04viv7KCVyTAZZKHCXVtcve0DYt8fUPKLdigmPuBh9XBEUD+" crossorigin="anonymous"></script>
 <script>
 RelaxxDB.ready(function () {
 (function () {
@@ -1078,7 +1078,7 @@ RelaxxDB.ready(function () {
     var id = parseInt(params.get("id"), 10);
     var FR0 = document.documentElement.getAttribute("data-lang") === "fr";
     // unknown address: say so instead of showing another product
-    if (!(id >= 0 && id < P.length)) {
+    if (!(id >= 0 && id < P.length) || !P[id] || (P[id].hidden && !P[id].name)) { // unknown, or no longer on sale (the catalogue then sends an empty entry)
       document.title = (FR0 ? "Produit introuvable" : "Product not found") + " — RELAXX";
       var mr = document.createElement("meta"); mr.name = "robots"; mr.content = "noindex"; document.head.appendChild(mr);
       page.innerHTML = '<section class="pd-missing" data-no-i18n><h1>' + (FR0 ? "Produit introuvable" : "Product not found") + "</h1><p>" +

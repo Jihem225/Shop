@@ -14,6 +14,7 @@ Site e-commerce bilingue (français / anglais) et son back-office, en HTML, CSS 
 | `aide.html` | Aide & FAQ : livraison, retours, guide des tailles, entretien, questions fréquentes, contact, boutique |
 | `cgv.html`, `cgu.html`, `confidentialite.html` | Pages légales (droit ivoirien) |
 | `404.html` | Page « introuvable » (servie automatiquement par la plupart des hébergeurs) |
+| `maintenance.html` | Page d'attente du mode maintenance : message du back-office, contact, retour automatique à la boutique dès la réouverture |
 | `admin/` | Back-office (voir [admin/README.md](admin/README.md)) |
 
 Autres fichiers : `relaxx-db.js`, la couche de données partagée par la boutique et le back-office ; `sw.js`, qui sert les photos et vidéos importées dans la médiathèque ; `favicon.svg` ; `robots.txt` (le back-office et la page de commande ne sont pas indexés).

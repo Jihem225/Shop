@@ -156,7 +156,8 @@
         '<div class="field full"><span>Aperçu</span><div class="ann-preview" data-prev></div></div></div></div></div>' +
       '<div class="card"><div class="card-h"><div><h2>Mode maintenance</h2><p>Remplace toute la boutique par un écran d\'attente. Les membres de l\'équipe connectés voient toujours le site.</p></div><label class="switch"><input type="checkbox" name="mOn"' + (m.enabled ? " checked" : "") + dis + "><i></i><b>Activé</b></label></div>" +
         '<div class="card-b"><div class="notice is-warn" style="margin-bottom:16px">' + I.alert + "<div>Pendant la maintenance, les clients ne peuvent ni consulter ni commander. À utiliser pendant une mise à jour importante.</div></div>" +
-        '<label class="field"><span>Message</span><textarea class="textarea" name="mFr" maxlength="240"' + dis + ">" + esc(m.fr) + "</textarea>" + RX.enNote(m.en && m.en !== m.fr ? m.en : "") + "</label></div></div>" +
+        '<label class="field"><span>Message</span><textarea class="textarea" name="mFr" maxlength="240"' + dis + ">" + esc(m.fr) + "</textarea>" + RX.enNote(m.en && m.en !== m.fr ? m.en : "") + "</label>" +
+        '<a class="btn is-sm" href="../maintenance.html?preview" target="_blank" rel="noopener" style="margin-top:16px">' + I.ext + "Voir la page de maintenance</a></div></div>" +
       (w ? '<div class="sticky-save" hidden><span>Modifications non enregistrées</span><div class="row"><button type="button" class="btn" data-reset>Annuler</button><button type="submit" class="btn is-primary">Publier sur le site</button></div></div>' : "") + "</form>";
     var f = $("[data-form]", el), bar = $(".sticky-save", el);
     function prev() { $("[data-prev]", el).textContent = f.annFr.value || "Votre message"; $("[data-prev]", el).style.opacity = f.annOn.checked ? "1" : ".35"; }

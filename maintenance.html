@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr" data-lang="fr" data-maintenance>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Boutique en retouche — RELAXX</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0e0e0e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;800&display=swap" rel="stylesheet">
+<script>
+/* language: saved choice, else browser language (FR/EN) */
+(function () {
+  var d = document.documentElement, l;
+  try { l = localStorage.getItem("relaxx-lang") || localStorage.getItem("woven-lang"); } catch (e) {}
+  if (l !== "fr" && l !== "en") l = (navigator.language || "").toLowerCase().indexOf("fr") === 0 ? "fr" : "en";
+  d.lang = l; d.setAttribute("data-lang", l);
+})();
+/* this page always asks Supabase whether the maintenance is still on */
+window.RELAXX_MAX_AGE = 0;
+</script>
+<script src="relaxx-db.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{margin:0;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:clamp(20px,4vw,48px);background:#0e0e0e;color:#e9e6e2;font-family:Geist,sans-serif;-webkit-font-smoothing:antialiased}
+html[data-lang="fr"] [data-l="en"],html[data-lang="en"] [data-l="fr"]{display:none}
+a,button{color:inherit;font:inherit}
+:focus-visible{outline:2px solid #c89564;outline-offset:3px}
+
+.mt-top{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.mt-brand{font-size:22px;font-weight:800;letter-spacing:-.05em;line-height:1}
+.mt-lang{display:flex;gap:2px}
+.mt-lang button{padding:8px 10px;border:0;background:none;color:#8a857c;font-size:13px;font-weight:500;cursor:pointer}
+.mt-lang button[aria-pressed="true"]{color:#e9e6e2;text-decoration:underline;text-underline-offset:5px}
+.mt-lang button:hover{color:#e9e6e2}
+
+.mt-main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,8vh,96px) 0}
+h1{margin:0;font-size:clamp(44px,10.5vw,148px);font-weight:800;letter-spacing:-.05em;line-height:.92;text-wrap:balance}
+
+/* the seam: a running stitch sewn across the page, needle at its head */
+.mt-seam{position:relative;height:22px;margin:clamp(28px,5vh,52px) 0 clamp(24px,4vh,40px)}
+.mt-stitch{position:absolute;left:0;top:10px;height:2px;width:100%;background:repeating-linear-gradient(90deg,#c89564 0 14px,transparent 14px 24px);animation:mt-sew 9s cubic-bezier(.45,0,.2,1) infinite}
+.mt-stitch::after{content:"";position:absolute;right:-2px;top:-17px;width:2px;height:36px;border-radius:2px;background:linear-gradient(#e9e6e2 0 78%,#c89564 78%);transform:rotate(38deg);transform-origin:50% 50%}
+@keyframes mt-sew{0%{width:0;opacity:1}78%{width:100%;opacity:1}92%{width:100%;opacity:1}100%{width:100%;opacity:0}}
+
+.mt-msg{max-width:34em;margin:0;font-size:clamp(17px,1.5vw,21px);line-height:1.55}
+.mt-note{max-width:34em;margin:14px 0 0;color:#8a857c;font-size:15px;line-height:1.6}
+.mt-note span[data-checked]{white-space:nowrap}
+
+.mt-foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:20px 32px;padding-top:24px;border-top:1px solid #2a2927}
+.mt-contact{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 24px;margin:0;color:#bdb8b1;font-size:15px}
+.mt-contact a{color:#e9e6e2;text-decoration:underline;text-decoration-color:#5c5852;text-underline-offset:4px}
+.mt-contact a:hover{text-decoration-color:#c89564}
+.mt-contact a:empty{display:none}
+.mt-retry{padding:13px 24px;border:1px solid #e9e6e2;background:none;text-transform:uppercase;letter-spacing:.08em;font-size:12px;cursor:pointer;transition:background-color .3s,color .3s}
+.mt-retry:hover{background:#e9e6e2;color:#0e0e0e}
+.mt-retry[disabled]{opacity:.5;cursor:default}
+
+.mt-preview{position:fixed;left:12px;bottom:12px;padding:8px 12px;background:#c89564;color:#000;font-weight:600;font-size:12px;letter-spacing:.04em}
+
+@media (max-width:479px){.mt-foot{flex-direction:column;align-items:flex-start}.mt-retry{width:100%}}
+@media (prefers-reduced-motion:reduce){.mt-stitch{animation:none}.mt-retry{transition:none}}
+</style>
+</head>
+<body>
+<header class="mt-top">
+  <span class="mt-brand">RELAXX</span>
+  <div class="mt-lang" role="group" aria-label="Langue · Language">
+    <button type="button" data-set-lang="fr" lang="fr">Français</button>
+    <button type="button" data-set-lang="en" lang="en">English</button>
+  </div>
+</header>
+
+<main class="mt-main">
+  <h1><span data-l="fr">La boutique est en retouche.</span><span data-l="en">The shop is in for alterations.</span></h1>
+  <div class="mt-seam" aria-hidden="true"><div class="mt-stitch"></div></div>
+  <!-- message written in the back office (Annonce & maintenance) -->
+  <p class="mt-msg" role="status">
+    <span data-l="fr" data-msg="fr">Nous mettons la boutique à jour. De retour très vite.</span>
+    <span data-l="en" data-msg="en">We are updating the store. Back very soon.</span>
+  </p>
+  <p class="mt-note">
+    <span data-l="fr">Cette page rouvre la boutique toute seule dès qu'elle est prête. Votre panier est conservé.</span>
+    <span data-l="en">This page reopens the shop by itself as soon as it is ready. Your bag is kept.</span>
+    <span data-checked></span>
+  </p>
+</main>
+
+<footer class="mt-foot">
+  <p class="mt-contact">
+    <span data-l="fr">Une commande en cours, une question ?</span><span data-l="en">An order under way, a question?</span>
+    <a data-store="email" data-store-link="email"></a>
+    <a data-store="phone" data-store-link="phone"></a>
+  </p>
+  <button type="button" class="mt-retry" data-retry><span data-l="fr">Vérifier maintenant</span><span data-l="en">Check now</span></button>
+</footer>
+
+<script>
+(function () {
+  var d = document.documentElement, params = new URLSearchParams(location.search);
+  var preview = params.has("preview");
+  // where the visitor was going: a page of this site only
+  var from = params.get("from") || "";
+  if (!/^[\w-]+\.html(\?[^#]*)?(#[\w-]*)?$/.test(from) || /^maintenance\.html/.test(from)) from = "index.html";
+
+  function fr() { return d.getAttribute("data-lang") === "fr"; }
+  function setLang(l) {
+    d.lang = l; d.setAttribute("data-lang", l);
+    document.title = (l === "fr" ? "Boutique en retouche" : "Shop under maintenance") + " — RELAXX";
+    Array.prototype.forEach.call(document.querySelectorAll("[data-set-lang]"), function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-set-lang") === l ? "true" : "false"); });
+    stamp();
+  }
+  var checkedAt = null, checkFailed = false;
+  function stamp() {
+    var el = document.querySelector("[data-checked]"); if (!checkedAt) return;
+    var t = checkedAt.toLocaleTimeString(fr() ? "fr-FR" : "en-GB", { hour: "2-digit", minute: "2-digit" });
+    el.textContent = checkFailed ? (fr() ? "Connexion impossible à " + t + ", nouvel essai dans une minute." : "No connection at " + t + ", trying again in a minute.")
+      : (fr() ? "Dernière vérification à " + t + "." : "Last checked at " + t + ".");
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-set-lang]");
+    if (b) { var l = b.getAttribute("data-set-lang"); try { localStorage.setItem("relaxx-lang", l); } catch (err) {} setLang(l); }
+    if (e.target.closest("[data-retry]")) check();
+  });
+  setLang(fr() ? "fr" : "en");
+
+  function show(m) {
+    if (!m) return;
+    ["fr", "en"].forEach(function (l) { var v = String(m[l] || m.fr || "").trim(); if (v) document.querySelector('[data-msg="' + l + '"]').textContent = v; });
+  }
+  function apply(m) {
+    show(m); checkedAt = new Date(); checkFailed = false; stamp();
+    if (m && m.enabled) return;
+    if (!preview) { location.replace(from); return; }
+    if (!document.querySelector(".mt-preview")) {
+      var pv = document.createElement("div"); pv.className = "mt-preview"; pv.textContent = "Aperçu — le mode maintenance est désactivé";
+      document.body.appendChild(pv);
+    }
+  }
+  function check() {
+    if (!window.RelaxxDB || !RelaxxDB.remote) return;
+    var btn = document.querySelector("[data-retry]"); btn.disabled = true;
+    RelaxxDB.refreshPublic().then(function (pub) {
+      btn.disabled = false;
+      apply(((pub && pub.settings && pub.settings.content) || {}).maintenance);
+    }, function () { btn.disabled = false; checkedAt = new Date(); checkFailed = true; stamp(); });
+  }
+  if (window.RelaxxDB) {
+    RelaxxDB.ready(function () { apply(RelaxxDB.get().settings.content.maintenance); });
+    setInterval(function () { if (!document.hidden) check(); }, 60000);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden && checkedAt && Date.now() - checkedAt > 60000) check(); });
+  }
+})();
+</script>
+</body>
+</html>
