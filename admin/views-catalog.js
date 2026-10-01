@@ -139,11 +139,10 @@
           '<label class="field full"><span>Nom du produit *</span><input class="input" name="nameFr" value="' + esc(p.nameFr) + '" required' + dis + ">" + (isNew ? "" : RX.enNote(p.name)) + "</label>" +
           '<label class="field full"><span>Description</span><textarea class="textarea" name="descFr" placeholder="Laisser vide pour utiliser la description type de la catégorie."' + dis + ">" + esc(p.descFr) + "</textarea>" + (p.descFr ? RX.enNote(p.desc) : "") + "</label>" +
         "</div></div></div>" +
-        '<div class="card"><div class="card-h"><h2>Photo</h2><p>Importez une photo (ordinateur, téléphone, glisser-déposer), reprenez-en une de la médiathèque ou collez un lien.</p></div><div class="card-b"><div class="img-drop" data-img-drop><img class="img-prev" alt="Aperçu" src="' + RX.img(p.img, 400) + '">' +
+        '<div class="card"><div class="card-h"><h2>Photos</h2><p>La grande photo du produit, puis ses photos supplémentaires. Importez une photo (ordinateur, téléphone, glisser-déposer), reprenez-en une de la médiathèque ou collez un lien.</p></div><div class="card-b"><div class="img-drop" data-img-drop><img class="img-prev" alt="Aperçu" src="' + RX.img(p.img, 400) + '">' +
           '<div class="stack" style="gap:12px">' + (w ? '<div class="row" style="flex-wrap:wrap"><button type="button" class="btn is-primary" data-img-upload>' + I.upload + "Importer ou choisir une photo</button><small class=\"muted\">ou glissez-déposez un fichier sur l'aperçu</small></div>" : "") +
           '<label class="field"><span>Adresse de l\'image</span><input class="input mono" name="img" value="' + esc(p.img) + '" placeholder="photo-1632149877166-f75d49000351 ou https://…"' + dis + "></label>" +
-          '<div class="field"><span>Ou choisir une photo existante</span><div class="img-picks">' + imgs.map(function (id) { return '<button type="button" data-pick="' + esc(id) + '" aria-pressed="' + (id === p.img) + '" aria-label="Choisir cette photo"' + dis + '><img alt="" loading="lazy" src="' + RX.img(id, 110) + '"></button>'; }).join("") + "</div></div></div></div></div></div>" +
-        '<div class="card"><div class="card-h"><div><h2>Photos supplémentaires</h2><p>Vignettes affichées à côté de la grande photo sur la fiche produit (autres vues, détails, porté). Jusqu\'à 8 photos ; le client en voit trois et fait défiler les autres.</p></div></div><div class="card-b" data-extras></div></div>' +
+          '<div class="field"><span>Photos supplémentaires</span><small class="muted" style="display:block;margin:-2px 0 10px">Vignettes affichées à côté de la grande photo sur la fiche produit (autres vues, détails, porté). Jusqu\'à 8 photos ; le client en voit trois et fait défiler les autres.</small><div data-extras></div></div></div></div></div></div>' +
         '<div class="card"><div class="card-h"><h2>Prix</h2><p>En francs CFA, TVA ' + (db.settings.store.vatIncluded ? "incluse" : "non incluse") + " (" + db.settings.store.vat + " %).</p></div><div class=\"card-b\"><div class=\"form-grid is-3\">" +
           num("Prix de vente *", "price", p.price) + num("Prix barré (avant remise)", "compare", p.compare || "") + num("Coût d'achat", "cost", p.cost || "") +
           '</div><div class="margin-box" style="margin-top:16px" data-margin></div></div></div>' +
@@ -151,6 +150,10 @@
           '<label class="switch" title="Ce produit existe en plusieurs couleurs"><input type="checkbox" data-variants' + (variants ? " checked" : "") + dis + '><i></i><b data-variants-lbl>' + (variants ? "Plusieurs couleurs" : "Couleur unique") + "</b></label></div>" +
           '<div class="card-b stack" style="gap:18px"><div data-colors></div><div data-sizes></div>' +
           '<small class="muted">Seuil d\'alerte : ' + db.settings.store.lowStock + " unités par taille (réglable dans Stock).</small></div></div>" +
+        '<div class="card"><div class="card-h"><h2>Détails de la fiche produit</h2><p>Les rubriques dépliables sous le bouton « Ajouter au panier ». « Livraison & retours » se remplit toute seule à partir de vos réglages de livraison.</p></div><div class="card-b"><div class="form-grid">' +
+          '<label class="field full"><span>Matière & coupe</span><textarea class="textarea" name="fabricFr" rows="3" maxlength="600" placeholder="ex. 54 % laine, 44 % polyester recyclé, 2 % élasthanne. Taille haute — le mannequin mesure 176 cm et porte une taille S. Laisser vide pour utiliser le texte type de la catégorie."' + dis + ">" + esc(p.fabricFr || "") + "</textarea>" + (p.fabricFr ? RX.enNote(p.fabric) : "") + "</label>" +
+          '<label class="field full"><span>Entretien</span><textarea class="textarea" name="careFr" rows="3" maxlength="600" placeholder="ex. Lavage à la main à froid. Séchage à plat. Laisser vide pour utiliser le texte type de la catégorie."' + dis + ">" + esc(p.careFr || "") + "</textarea>" + (p.careFr ? RX.enNote(p.care) : "") + "</label>" +
+        "</div></div></div>" +
       "</div><div class=\"stack\">" +
         '<div class="card"><div class="card-h"><h2>Publication</h2></div><div class="card-b stack" style="gap:14px">' +
           '<label class="field"><span>Statut</span><select class="select" name="status"' + dis + ">" + Object.keys(RX.PSTATUS).map(function (k) { return '<option value="' + k + '"' + (p.status === k ? " selected" : "") + ">" + RX.PSTATUS[k].label + "</option>"; }).join("") + "</select><small>Seuls les produits « Actif » sont visibles sur la boutique.</small></label>" +
@@ -313,7 +316,7 @@
       });
     });
     function setImg(v) {
-      form.img.value = v; $$("[data-pick]", el).forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.pick === v ? "true" : "false"); });
+      form.img.value = v;
       RX.dirty = true; var st = $("[data-state]", el); if (st) st.textContent = "Modifications non enregistrées"; preview();
     }
     var drop = $("[data-img-drop]", el);
@@ -328,8 +331,6 @@
       });
     }
     el.addEventListener("click", function (e) {
-      var pk = e.target.closest("[data-pick]");
-      if (pk) { setImg(pk.dataset.pick); return; }
       var b;
       if (e.target.closest("[data-cadd]")) { addColor("", "", "#cccccc"); return; }
       if ((b = e.target.closest("[data-cpal]"))) { var pc = b.dataset.cpal.split("|"); addColor(pc[0], pc[1], pc[2]); return; }
@@ -397,7 +398,7 @@
       if (errs.length) { errs.forEach(function (i) { i.setAttribute("aria-invalid", "true"); }); errs[0].focus(); RX.toast("Complétez les champs obligatoires (nom et prix)", "bad"); return; }
       var comp = +form.compare.value || 0, price = +form.price.value;
       if (comp && comp <= price) { form.compare.setAttribute("aria-invalid", "true"); RX.toast("Le prix barré doit être supérieur au prix de vente", "bad"); return; }
-      var nameFr = form.nameFr.value.trim(), descFr = form.descFr.value.trim();
+      var nameFr = form.nameFr.value.trim(), descFr = form.descFr.value.trim(), fabricFr = form.fabricFr.value.trim(), careFr = form.careFr.value.trim();
       var names = RX.products(db).filter(function (x) { return x.id !== p.id && (x.nameFr || "").trim().toLowerCase() === nameFr.toLowerCase(); });
       if (names.length) { form.nameFr.setAttribute("aria-invalid", "true"); RX.toast("Un autre produit porte déjà ce nom", "bad"); return; }
       if (variants) {
@@ -408,20 +409,23 @@
       }
 
       // English for the storefront: only what is new or was changed in French
-      var needName = isNew || !src.name || nameFr !== src.nameFr, needDesc = !!descFr && (isNew || descFr !== src.descFr || !src.desc);
+      var needName = isNew || !src.name || nameFr !== src.nameFr, needDesc = !!descFr && (isNew || descFr !== src.descFr || !src.desc),
+        needFab = !!fabricFr && (isNew || fabricFr !== src.fabricFr || !src.fabric), needCare = !!careFr && (isNew || careFr !== src.careFr || !src.care);
       var cols = variants ? p.colors.filter(function (c) { return !c.name; }) : [];
       var titles = (needName ? [nameFr] : []).concat(cols.map(function (c) { return c.nameFr; }));
       var btn = $('.sticky-save [type="submit"]', el), label = btn ? btn.textContent : "";
       saving = true; if (btn) { btn.disabled = true; btn.textContent = "Traduction en anglais…"; }
-      Promise.all([titles.length ? RX.translate(titles, { title: true }) : [], needDesc ? RX.translate([descFr]) : []]).then(function (r) { commit(r[0], r[1][0], true); }, function () { commit([], "", false); });
+      Promise.all([titles.length ? RX.translate(titles, { title: true }) : [], needDesc ? RX.translate([descFr]) : [], needFab ? RX.translate([fabricFr]) : [], needCare ? RX.translate([careFr]) : []]).then(function (r) { commit(r[0], r[1][0], true, r[2][0], r[3][0]); }, function () { commit([], "", false); });
 
-      function commit(tt, enDesc, ok) {
+      function commit(tt, enDesc, ok, enFab, enCare) {
         saving = false; if (btn) { btn.disabled = false; btn.textContent = label; }
         if (!ok) RX.translateFailed();
         var k = 0, enName = needName ? tt[k++] || nameFr : src.name;
         cols.forEach(function (c) { c.name = tt[k++] || c.nameFr; });
         var target = isNew ? { id: db.products.length, createdAt: Date.now() } : src;
         target.nameFr = nameFr; target.name = enName; target.descFr = descFr; target.desc = !descFr ? "" : needDesc ? enDesc || descFr : src.desc;
+        target.fabricFr = fabricFr; target.fabric = !fabricFr ? "" : needFab ? enFab || fabricFr : src.fabric;
+        target.careFr = careFr; target.care = !careFr ? "" : needCare ? enCare || careFr : src.care;
         target.img = form.img.value.trim() || "photo-1632149877166-f75d49000351"; target.imgs = (p.imgs || []).filter(Boolean).slice(0, MAX_EXTRA); target.price = price; target.compare = comp; target.cost = +form.cost.value || 0;
         target.status = form.status.value; target.cat = form.cat.value; target.tag = form.tag.value;
         target.sku = form.sku.value.trim() || "RX-" + target.cat.slice(0, 3).toUpperCase() + "-" + ("00" + (target.id + 1)).slice(-3);

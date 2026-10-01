@@ -26,7 +26,7 @@
   if (l === "fr") { d.classList.add("i18n-pending"); setTimeout(function () { d.classList.remove("i18n-pending"); }, 4000); }
 })();
 </script>
-<script src="relaxx-db.js?v=20261001d"></script>
+<script src="relaxx-db.js?v=20261001f"></script>
 <style>
 :root{
   --bg:#fbf8f1;--hero-bg:#dcbba8;--primary:#c89564;--n100:#b0b0b0;--n300:#545454;
@@ -1324,9 +1324,11 @@ RelaxxDB.ready(function () {
           (exp.enabled ? (std.enabled ? "; express delivery in " : "Express delivery in ") + exp.days + " business days (" + money(exp.price) + ")" : "") +
           '. Returns are free within 30 days of delivery — see our <a href="cgv.html#retractation">terms of sale</a> and the <a href="aide.html#retours">Returns</a> page.';
     }
+    // the texts written in the back office for this product come first, else those of the category
+    function txt(v) { return String(v || "").replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
     var ACC = [
-      ["Fabric & Fit", info.fabric],
-      ["Care Instructions", info.care],
+      ["Fabric & Fit", txt(p.fabric) || info.fabric],
+      ["Care Instructions", txt(p.care) || info.care],
       ["Shipping & Returns", shipTxt ? '<span data-no-i18n>' + shipTxt + "</span>" : 'Returns are free within 30 days of delivery — see our <a href="cgv.html#retractation">terms of sale</a>.']
     ].filter(function (a) { return a[1]; });
     var acc = $(".pd-acc");
@@ -1750,7 +1752,7 @@ RelaxxDB.ready(function () {
    into a ring over links and buttons. Disabled for coarse pointers and reduced motion. */
 (function () {
   "use strict";
-  var COLOR = "#ff4c24", STIFFNESS = 150, DAMPING = 22, MASS = 0.8;
+  var COLOR = "#bf8c4e", STIFFNESS = 150, DAMPING = 22, MASS = 0.8;
   var TARGETS = 'a[href], button, [role="button"], [role="tab"], select, summary, label[for], input[type="submit"], .product-post';
   var MUTED = ".trend-card"; // the Trending cards already show their own cursor badge
 
