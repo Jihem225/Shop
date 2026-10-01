@@ -477,13 +477,17 @@
 
   function api(path, o) {
     o = o || {};
+    // a call that gets no answer is given up after 15 seconds (files being sent are not timed): the pages then show their "connection" message
+    var ctl = !o.raw && typeof AbortController !== "undefined" ? new AbortController() : null, timer = 0;
+    var stop = function () { clearTimeout(timer); };
     // an expired team session never blocks a call: it goes out as a visitor
-    return (o.anon ? Promise.resolve(null) : auth.token().catch(function () { return null; })).then(function (tok) {
+    var call = (o.anon ? Promise.resolve(null) : auth.token().catch(function () { return null; })).then(function (tok) {
       var h = { apikey: SUPA.key };
       if (o.body !== undefined && !o.raw) h["Content-Type"] = "application/json";
       if (tok) h.Authorization = "Bearer " + tok;
       for (var k in o.headers || {}) h[k] = o.headers[k];
-      return fetch(SUPA.url + path, { method: o.method || "GET", headers: h, body: o.raw ? o.body : o.body !== undefined ? JSON.stringify(o.body) : undefined });
+      if (ctl) timer = setTimeout(function () { ctl.abort(); }, o.timeout || 15000);
+      return fetch(SUPA.url + path, { method: o.method || "GET", headers: h, body: o.raw ? o.body : o.body !== undefined ? JSON.stringify(o.body) : undefined, signal: ctl ? ctl.signal : undefined });
     }).then(function (r) {
       return r.text().then(function (t) {
         var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) { j = t; }
@@ -494,6 +498,8 @@
         return { data: j, headers: r.headers };
       });
     });
+    call.then(stop, stop);
+    return call;
   }
   function rpc(fn, args) { return api("/rest/v1/rpc/" + fn, { method: "POST", body: args || {} }).then(function (r) { return r.data; }); }
 
@@ -593,6 +599,8 @@
     return fetchAll("/rest/v1/rx_docs?select=coll,key,data,updated_at&order=coll,key").then(function (rows) {
       var db = emptyDb(); synced = {};
       rows.forEach(function (r) {
+        // collections this object does not hold (media library) are not followed: a save would otherwise delete them
+        if (r.coll !== "settings" && r.coll !== "traffic" && !LISTS[r.coll]) return;
         applyDoc(db, r.coll, r.key, r.data);
         synced[r.coll + SEP + r.key] = JSON.stringify(r.data);
         if (r.updated_at > lastSync) lastSync = r.updated_at;
@@ -650,6 +658,7 @@
       var rows = r.data || [], changed = [];
       rows.forEach(function (row) {
         if (row.updated_at > lastSync) lastSync = row.updated_at;
+        if (row.coll !== "settings" && row.coll !== "traffic" && !LISTS[row.coll]) return;
         var k = row.coll + SEP + row.key, s = JSON.stringify(row.data);
         if (synced[k] === s) return;
         synced[k] = s; applyDoc(cache, row.coll, row.key, row.data); changed.push(row);
@@ -926,14 +935,28 @@
   // order from the checkout: stored, stock and promo usage updated, customer created or updated.
   // No payment is taken on the site: every order starts "pending" until the shop confirms the payment.
   // resolves with the order; rejects with Error("stock") (+ .lines) when the stock changed, or Error(<reason>)
+  // one token per order as typed: sending the same order again (answer lost, connection cut) returns the order already recorded
+  var orderSig = "", orderToken = "";
+  function tokenFor(p) {
+    var sig = JSON.stringify(p);
+    if (sig !== orderSig || !orderToken) {
+      var b = new Uint8Array(16); crypto.getRandomValues(b);
+      orderToken = Array.prototype.map.call(b, function (x) { return ("0" + x.toString(16)).slice(-2); }).join(""); orderSig = sig;
+    }
+    return orderToken;
+  }
   function placeOrder(data, guard) {
     if (REMOTE) {
+      var p = { customer: data.customer, address: data.address, promo: data.promo || null, lang: data.lang || "fr",
+        items: data.items.map(function (it) { return { pid: it.pid, q: it.q, size: it.size || "", color: it.color || "" }; }),
+        shipping: { method: data.shipping.method }, payment: data.payment };
+      try { p.token = tokenFor(p); } catch (e) {}
       return guardValue(guard).then(function (g) {
-        return rpc("rx_place_order", { p: { customer: data.customer, address: data.address, promo: data.promo || null, lang: data.lang || "fr",
-          items: data.items.map(function (it) { return { pid: it.pid, q: it.q, size: it.size || "", color: it.color || "" }; }),
-          shipping: { method: data.shipping.method }, payment: data.payment, guard: g } });
+        p.guard = g;
+        return rpc("rx_place_order", { p: p });
       }).then(function (r) {
           if (!r || r.error) { var e = new Error(r ? r.error : "order"); e.lines = r && r.lines; e.max = r && r.max; throw e; }
+          orderToken = ""; // recorded: the next order is a new one
           refreshPublic().then(function (pub) { cache = fromPublic(pub); }, function () {}); // new stock for the next page
           return r;
         });
@@ -1402,6 +1425,19 @@
     remote: REMOTE, ready: ready, auth: auth, loadAll: loadAll, poll: poll, flush: function () { return pushChanges(); }, pending: function () { return pending; },
     fetchPromo: fetchPromo, refreshPublic: refreshPublic, rpc: rpc, protect: protect
   };
+
+  // errors met by the visitors (and the team) are recorded in the database, three per page at most: Journal d'activité → Erreurs du site
+  var errSent = 0, errSeen = {};
+  function reportError(msg, src, line) {
+    msg = String(msg || "").slice(0, 300);
+    if (!REMOTE || !msg || msg === "Script error." || errSent >= 3 || errSeen[msg]) return;
+    errSeen[msg] = 1; errSent++;
+    rpc("rx_log_error", { p: { msg: msg, src: String(src || "").slice(0, 200), line: String(line || ""), page: (location.pathname + location.search).slice(0, 200), ua: navigator.userAgent.slice(0, 200) } }).catch(function () {});
+  }
+  if (typeof window !== "undefined" && window.addEventListener) {
+    window.addEventListener("error", function (e) { if (e && e.message) reportError(e.message, e.filename, e.lineno); });
+    window.addEventListener("unhandledrejection", function (e) { var r = e && e.reason; if (r && r.name !== "AbortError" && !r.status && r.stack) reportError("Promise: " + (r.message || r), "", ""); });
+  }
 
   // storefront: the page scripts wait for the data (RelaxxDB.ready), then the shared parts of the pages are filled in
   function whenDom(fn) { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn); else fn(); }

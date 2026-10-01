@@ -274,6 +274,21 @@
     draw();
     $("[data-q]", el).addEventListener("input", RX.debounce(function (e) { AS.q = e.target.value; draw(); }, 160));
     $("[data-user]", el).addEventListener("change", function (e) { AS.user = e.target.value; draw(); });
+    // errors met in the browser by the visitors and the team (Supabase only), loaded on demand
+    if (DB.remote) {
+      var ec = document.createElement("div"); ec.className = "card"; ec.style.marginTop = "18px";
+      ec.innerHTML = '<div class="card-h"><div><h2>Erreurs du site</h2><p>Erreurs rencontrées dans le navigateur par les visiteurs et l\'équipe (30 derniers jours, 200 dernières).</p></div><button type="button" class="btn is-sm" data-errs>Afficher</button></div><div data-errs-body></div>';
+      el.appendChild(ec);
+      $("[data-errs]", ec).addEventListener("click", function (e) {
+        var btn = e.currentTarget, body = $("[data-errs-body]", ec); btn.disabled = true;
+        DB.rpc("rx_error_list").then(function (rows) {
+          btn.disabled = false; btn.textContent = "Actualiser"; rows = rows || [];
+          body.innerHTML = rows.length ? '<ul class="list">' + rows.map(function (r) {
+            return '<li><div class="grow"><b>' + esc(r.msg) + '</b><br><small class="muted">' + esc(RX.date(r.t) + " · " + RX.time(r.t) + " · " + (r.page || "") + (r.src ? " · " + String(r.src).split("/").pop() + (r.line ? ":" + r.line : "") : "")) + '</small><br><small class="muted">' + esc(r.ua || "") + "</small></div></li>";
+          }).join("") + "</ul>" : RX.empty("Aucune erreur enregistrée", "", I.list);
+        }, function () { btn.disabled = false; body.innerHTML = RX.empty("Lecture impossible", "Vérifiez que supabase/schema.sql a été exécuté.", I.alert); });
+      });
+    }
     el.addEventListener("click", function (e) { if (e.target.closest("[data-export]")) RX.download("journal-relaxx-" + DB.dayKey(Date.now()) + ".csv", RX.csv([["Date", "Heure", "Auteur", "Action", "Objet"]].concat(list().map(function (a) { return [RX.date(a.t), RX.time(a.t), a.user, a.action, a.target]; })))); });
   });
 })();
