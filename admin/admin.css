@@ -523,7 +523,7 @@ table.t{width:100%;border-collapse:collapse;font-size:13.5px}
 .mp-meta{display:flex;flex-direction:column;gap:1px;padding-top:6px;min-width:0}
 .mp-meta span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:12px}
 .mp-meta small{font-size:11px;color:var(--muted)}
-.mp-del{position:absolute;top:6px;right:6px;width:28px;height:28px;background:rgba(255,255,255,.92);color:#111;opacity:0;transition:opacity .2s}
+.mp-del{position:absolute;top:6px;right:6px;width:28px;height:28px;background:rgba(255,255,255,.92);color:#111;opacity:.9;transition:opacity .2s}
 .mp-lib-item:hover .mp-del,.mp-del:focus-visible{opacity:1}
 @media (hover:none){.mp-del{opacity:1}}
 .media-field{display:grid;grid-template-columns:120px minmax(0,1fr);gap:14px;align-items:start}

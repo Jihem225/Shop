@@ -118,6 +118,10 @@
      o.onPick(value, { poster, meta, name }) */
   RX.pickMedia = function (o) {
     var accept = o.accept || "image", urls = [], lib = [];
+    // photos of the site removed from this window by the team (they stay where they are already used)
+    var gone = (DB.get().settings.store || {}).hiddenPhotos || [];
+    o.groups = (o.groups || []).map(function (g) { return { label: g.label, items: g.items.filter(function (it) { return gone.indexOf(typeof it === "string" ? it : it.src) < 0; }) }; });
+    var canDel = RX.canWrite("products") || RX.canWrite("content");
     var tabs = [["upload", "Importer"], ["library", "Médiathèque"]].concat((o.groups || []).length ? [["site", o.siteLabel || "Images du site"]] : []).concat([["link", "Lien"]]);
     var m = RX.modal({
       title: o.title || (accept === "media" ? "Choisir une image ou une vidéo" : "Choisir une image"), size: "lg", cls: "mp-modal",
@@ -133,7 +137,8 @@
         ((o.groups || []).length ? '<div data-mp-panel="site" hidden class="stack">' + o.groups.map(function (g, gi) {
           return '<div class="field"><span>' + esc(g.label) + '</span><div class="mp-grid is-small">' + g.items.map(function (it, ii) {
             var src = typeof it === "string" ? it : it.src;
-            return '<button type="button" class="mp-item" data-mp-site="' + gi + ":" + ii + '" aria-pressed="' + (src === o.current) + '">' + RX.mediaThumb(src, "", 240, 'loading="lazy"') + "</button>";
+            return '<div class="mp-lib-item"><button type="button" class="mp-item" data-mp-site="' + gi + ":" + ii + '" aria-pressed="' + (src === o.current) + '">' + RX.mediaThumb(src, "", 240, 'loading="lazy"') + "</button>" +
+              (canDel ? '<button type="button" class="icon-btn mp-del" data-mp-hide="' + gi + ":" + ii + '" aria-label="Supprimer cette photo" title="Supprimer cette photo">' + I.trash + "</button>" : "") + "</div>";
           }).join("") + "</div></div>";
         }).join("") + "</div>" : "") +
         '<div data-mp-panel="link" hidden><div class="stack" style="gap:10px"><label class="field"><span>Adresse ' + (accept === "media" ? "d'une image ou d'un fichier vidéo" : "d'une image") + '</span><div class="row"><input class="input mono" data-mp-url placeholder="https://…' + (accept === "media" ? " (.jpg, .png, .mp4, .webm…)" : "") + '"><button type="button" class="btn is-primary" data-mp-use>Utiliser</button></div></label>' +
@@ -217,6 +222,18 @@
       if (t.closest("[data-mp-use]")) { useLink(); return; }
       if ((b = t.closest("[data-mp-site]"))) { var p = b.dataset.mpSite.split(":"), it = o.groups[+p[0]].items[+p[1]]; pick(typeof it === "string" ? it : it.src, { meta: typeof it === "string" ? null : it.meta }); return; }
       if ((b = t.closest("[data-mp-lib-pick]"))) { var r = lib.filter(function (x) { return M.ref(x) === b.dataset.mpLibPick; })[0]; pick(b.dataset.mpLibPick, { poster: r && r.poster, name: r && r.name }); return; }
+      if ((b = t.closest("[data-mp-hide]"))) {
+        var hp = b.dataset.mpHide.split(":"), hit = o.groups[+hp[0]].items[+hp[1]], hsrc = typeof hit === "string" ? hit : hit.src, tile = b.parentNode;
+        var hused = JSON.stringify(DB.get()).indexOf(JSON.stringify(hsrc)) > -1;
+        RX.confirm({ title: "Supprimer cette photo ?", danger: true, ok: "Supprimer",
+          text: "Elle ne sera plus proposée dans cette fenêtre." + (hused ? " Elle reste affichée là où elle est déjà utilisée (produit, couleur ou page du site) tant que vous ne la remplacez pas." : "") }).then(function (ok) {
+          if (!ok) return;
+          var st = DB.get().settings.store; st.hiddenPhotos = (st.hiddenPhotos || []).filter(function (x) { return x !== hsrc; }).concat([hsrc]).slice(-400);
+          var wasDirty = RX.dirty; RX.save("a supprimé une photo des médias", ""); RX.dirty = wasDirty;
+          tile.hidden = true; RX.toast("Photo supprimée");
+        });
+        return;
+      }
       if ((b = t.closest("[data-mp-del]"))) {
         var rec = lib.filter(function (x) { return x.id === b.dataset.mpDel; })[0]; if (!rec) return;
         var used = JSON.stringify(DB.get()).indexOf(M.ref(rec)) > -1;

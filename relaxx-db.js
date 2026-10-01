@@ -863,7 +863,7 @@
     db.categories.forEach(function (c) { if (!c.visible) hiddenCat[c.key] = 1; });
     return db.products.map(function (p) {
       var out = totalStock(p) <= 0;
-      return { id: p.id, cat: p.cat, name: clean(p.name), nameFr: clean(p.nameFr), price: p.price, compare: p.compare, tag: out ? "Sold Out" : p.tag, img: p.img, imgs: p.imgs || [], desc: p.desc, stock: p.stock, sizes: sizesFor(p),
+      return { id: p.id, cat: p.cat, name: clean(p.name), nameFr: clean(p.nameFr), price: p.price, compare: p.compare, tag: out ? "Sold Out" : p.tag, img: p.img, imgs: p.imgs || [], desc: p.desc, fabric: p.fabric || "", care: p.care || "", stock: p.stock, sizes: sizesFor(p),
         colors: hasColors(p) ? p.colors : [], vstock: hasColors(p) ? p.vstock : null,
         hidden: p.status !== "active" || !!hiddenCat[p.cat], soldOut: out, sku: p.sku };
     });
@@ -876,6 +876,7 @@
     var db = get(), d = { "Sold Out": "Épuisé", "Unavailable": "Indisponible", "Mobile Money": "Mobile Money", "Cash on delivery": "Paiement à la livraison" };
     db.products.forEach(function (p) {
       if (p.nameFr) d[clean(p.name)] = clean(p.nameFr); if (p.desc && p.descFr) d[p.desc] = p.descFr;
+      if (p.fabric && p.fabricFr) d[p.fabric] = p.fabricFr; if (p.care && p.careFr) d[p.care] = p.careFr;
       (p.colors || []).forEach(function (c) { if (c.nameFr && !d[c.name]) d[c.name] = c.nameFr; });
     });
     db.categories.forEach(function (c) { if (c.labelFr) d[clean(c.label)] = clean(c.labelFr); });
