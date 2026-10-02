@@ -1342,7 +1342,7 @@
     });
     // © year: always the current one
     var year = String(new Date().getFullYear());
-    Array.prototype.forEach.call(document.querySelectorAll('[data-cms="footer.copyright"],[data-cms="home.hero.foot"]'), function (el) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-footer-copyright],[data-cms="home.hero.foot"]'), function (el) {
       if (/©\s*\d{4}/.test(el.textContent)) el.textContent = el.textContent.replace(/(©\s*)\d{4}/, "$1" + year);
     });
   }

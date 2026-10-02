@@ -64,6 +64,7 @@ $$;
 -- write access per role and collection (settings are split in sections)
 create or replace function public.rx_can_write(p_coll text, p_key text) returns boolean language sql stable security definer set search_path = public as $$
   select case public.rx_role()
+    when 'owner' then true
     when 'admin' then true
     when 'manager' then
       p_coll in ('products', 'categories', 'promos', 'subscribers', 'orders', 'customers', 'reviews', 'activity', 'media')
@@ -80,12 +81,19 @@ $$;
 -- (promo codes and newsletter subscribers: administrator and manager; the team list: administrator, and one's own entry)
 create or replace function public.rx_can_read(p_coll text, p_key text) returns boolean language sql stable security definer set search_path = public as $$
   select case public.rx_role()
+    when 'owner' then true
     when 'admin' then true
     when 'manager' then p_coll <> 'staff' or p_key = lower(coalesce(auth.jwt()->>'email', ''))
     when 'support' then p_coll not in ('staff', 'promos', 'subscribers') or (p_coll = 'staff' and p_key = lower(coalesce(auth.jwt()->>'email', '')))
     when 'viewer' then p_coll not in ('staff', 'promos', 'subscribers') or (p_coll = 'staff' and p_key = lower(coalesce(auth.jwt()->>'email', '')))
     else false
   end
+$$;
+
+-- the designer of the site (role "owner" in the staff collection): every right of the administrator, plus what only
+-- maintenance needs. The rest of the team, administrator included, never receives this account nor what it does.
+create or replace function public.rx_is_owner() returns boolean language sql stable security definer set search_path = public as $$
+  select coalesce(public.rx_role() = 'owner', false)
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -97,10 +105,21 @@ drop policy if exists rx_docs_read on public.rx_docs;
 drop policy if exists rx_docs_insert on public.rx_docs;
 drop policy if exists rx_docs_update on public.rx_docs;
 drop policy if exists rx_docs_delete on public.rx_docs;
-create policy rx_docs_read on public.rx_docs for select to authenticated using (public.rx_can_read(coll, key));
-create policy rx_docs_insert on public.rx_docs for insert to authenticated with check (public.rx_can_write(coll, key));
-create policy rx_docs_update on public.rx_docs for update to authenticated using (public.rx_can_write(coll, key)) with check (public.rx_can_write(coll, key));
-create policy rx_docs_delete on public.rx_docs for delete to authenticated using (public.rx_can_write(coll, key));
+-- hidden from everyone but the designer: its own account, and its lines of the activity journal
+create policy rx_docs_read on public.rx_docs for select to authenticated using (
+  public.rx_can_read(coll, key)
+  and (public.rx_is_owner() or not ((coll = 'staff' and data->>'role' = 'owner') or (coll = 'activity' and data->>'hidden' = 'true'))));
+-- nobody but the designer creates, changes or removes a designer account
+create policy rx_docs_insert on public.rx_docs for insert to authenticated with check (
+  public.rx_can_write(coll, key) and (public.rx_is_owner() or not (coll = 'staff' and data->>'role' = 'owner')));
+create policy rx_docs_update on public.rx_docs for update to authenticated
+  using (public.rx_can_write(coll, key) and (public.rx_is_owner() or not (coll = 'staff' and data->>'role' = 'owner')))
+  with check (public.rx_can_write(coll, key) and (public.rx_is_owner() or not (coll = 'staff' and data->>'role' = 'owner')));
+-- orders and products are never deleted in the daily work of the shop (an order is cancelled, a product keeps its place):
+-- only the maintenance tools delete them (restore a backup, remove the demonstration data, reset the shop), so only the designer may
+create policy rx_docs_delete on public.rx_docs for delete to authenticated using (
+  public.rx_can_write(coll, key)
+  and (public.rx_is_owner() or (coll not in ('orders', 'products') and not (coll = 'staff' and data->>'role' = 'owner'))));
 
 revoke all on public.rx_docs from anon;
 grant select, insert, update, delete on public.rx_docs to authenticated;
@@ -513,9 +532,9 @@ revoke execute on function public.rx_log_error(jsonb), public.rx_error_list() fr
 grant execute on function public.rx_log_error(jsonb) to anon, authenticated;
 grant execute on function public.rx_error_list() to authenticated;
 -- Supabase grants every new function to anon and authenticated by name: revoking from "public" above does not remove that
-revoke execute on function public.rx_me(), public.rx_set_my_name(text), public.rx_role(), public.rx_can_write(text, text), public.rx_can_read(text, text) from public, anon;
+revoke execute on function public.rx_me(), public.rx_set_my_name(text), public.rx_role(), public.rx_can_write(text, text), public.rx_can_read(text, text), public.rx_is_owner() from public, anon;
 revoke execute on function public.rx_guard_check(text, jsonb), public.rx_rate(text, int, int) from public, anon, authenticated;
-grant execute on function public.rx_me(), public.rx_set_my_name(text), public.rx_role(), public.rx_can_write(text, text), public.rx_can_read(text, text) to authenticated;
+grant execute on function public.rx_me(), public.rx_set_my_name(text), public.rx_role(), public.rx_can_write(text, text), public.rx_can_read(text, text), public.rx_is_owner() to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- media library: photos and videos uploaded in the back office (public files)
@@ -541,3 +560,14 @@ create policy rx_media_delete on storage.objects for delete to authenticated usi
 insert into public.rx_docs (coll, key, data) values ('staff', 'jihemekacou@gmail.com', jsonb_build_object(
   'id', 'u1', 'name', 'Administrateur RELAXX', 'email', 'jihemekacou@gmail.com', 'role', 'admin', 'active', true, 'createdAt', public.rx_now_ms(), 'lastLogin', 0))
 on conflict (coll, key) do nothing;
+
+-- ---------------------------------------------------------------------------
+-- account of the designer of the site (optional). It has every right, plus the maintenance tools of the back office,
+-- and the team of the shop never sees it. To create it:
+--   1. Authentication → Users → Add user → Create new user: the address below, a password, "Auto Confirm User" ticked
+--   2. replace the address in the two places below, remove the "--" at the start of the four lines, and run them
+-- ---------------------------------------------------------------------------
+-- insert into public.rx_docs (coll, key, data) values ('staff', 'vous@strateo.example', jsonb_build_object(
+--   'id', 'u-owner', 'name', 'Strateo', 'email', 'vous@strateo.example', 'role', 'owner', 'active', true,
+--   'createdAt', public.rx_now_ms(), 'lastLogin', 0))
+-- on conflict (coll, key) do update set data = public.rx_docs.data || jsonb_build_object('role', 'owner', 'active', true);

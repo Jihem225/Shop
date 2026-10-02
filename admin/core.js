@@ -23,8 +23,17 @@
     admin: { label: "Administrateur", desc: "Accès complet, y compris les réglages et l'équipe." },
     manager: { label: "Gestionnaire", desc: "Ventes, catalogue et marketing. Pas de réglages ni d'équipe." },
     support: { label: "Support client", desc: "Commandes, clients et avis. Catalogue en lecture." },
-    viewer: { label: "Lecture seule", desc: "Consulte les tableaux de bord et les listes, sans rien modifier." }
+    viewer: { label: "Lecture seule", desc: "Consulte les tableaux de bord et les listes, sans rien modifier." },
+    // the account of the designer of the site: every right of the administrator, plus the maintenance tools (restore, reset…).
+    // It is not offered in the lists of roles and the rest of the team never sees it (the database does not send it).
+    owner: { label: "Strateo", desc: "Concepteur du site : accès complet et outils de maintenance.", hidden: true }
   };
+  RX.roleKeys = function () { return Object.keys(RX.ROLES).filter(function (r) { return !RX.ROLES[r].hidden; }); };
+  RX.isOwner = function () { return !!RX.user && RX.user.role === "owner"; };
+  // the maintenance tools: the designer only (and the local demonstration, which has no database to protect)
+  RX.canMaintain = function () { return RX.isOwner() || !DB.remote; };
+  // the team as the signed-in member may see it
+  RX.team = function (db) { return (db || DB.get()).users.filter(function (u) { return u.role !== "owner" || RX.isOwner(); }); };
   // section -> access per role ("w" write, "r" read, "" none)
   RX.PERMS = {
     dashboard: { admin: "w", manager: "w", support: "r", viewer: "r" },
@@ -175,7 +184,9 @@
   };
   RX.log = function (action, target) {
     var db = DB.get();
-    db.activity.unshift({ t: Date.now(), user: RX.user ? RX.user.name : "Système", action: action, target: target || "" });
+    var entry = { t: Date.now(), user: RX.user ? RX.user.name : "Système", action: action, target: target || "" };
+    if (RX.isOwner()) entry.hidden = true; // the journal of the team does not show what the designer does
+    db.activity.unshift(entry);
     if (db.activity.length > 400) db.activity.length = 400;
     DB.persist();
   };
@@ -325,7 +336,7 @@
     if (DB.remote) { DB.flush().then(function () { return DB.auth.signOut(); }).then(function () { location.hash = "#/"; location.reload(); }); return; }
     sessionStorage.removeItem(SKEY); RX.user = null; location.hash = "#/"; renderLogin();
   };
-  RX.can = function (section) { if (!RX.user) return ""; var p = RX.PERMS[section]; return p ? p[RX.user.role] || "" : RX.user.role === "admin" ? "w" : ""; };
+  RX.can = function (section) { if (!RX.user) return ""; var role = RX.user.role === "owner" ? "admin" : RX.user.role, p = RX.PERMS[section]; return p ? p[role] || "" : role === "admin" ? "w" : ""; };
   RX.canWrite = function (section) { return RX.can(section) === "w"; };
 
   /* ---------- UI kit ---------- */

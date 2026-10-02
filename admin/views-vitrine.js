@@ -57,7 +57,7 @@
       { id: "shops", title: "Bloc boutiques", fields: [T("footer.shops.title", "Titre"), T("footer.shops.button", "Texte du bouton"), T("footer.shops.link", "Lien du bouton", "link")] },
       { id: "links", title: "Liens utiles", desc: "Colonnes « Entreprise » et « Aide ». Par défaut, ils mènent aux rubriques de la page Aide (aide.html). Les catégories du pied de page suivent la liste des catégories.", fields: [["shipping", "Livraison"], ["returns", "Retours"], ["sizeguide", "Guide des tailles"], ["care", "Entretien"], ["faq", "FAQ"]].reduce(function (a, x) {
         return a.concat([T(null, x[1], "sub"), T("footer.link." + x[0], "Libellé"), T("footer.link." + x[0] + ".href", "Lien", "link")]); }, []) },
-      { id: "bottom", title: "Bas de page", fields: [T("footer.copyright", "Mention de copyright"), T("footer.tagline", "Signature"), T("footer.image", "Image de fond", "img")] }
+      { id: "bottom", title: "Bas de page", desc: "La mention de copyright et la signature sont fixes : elles ne se modifient pas ici.", fields: [T("footer.image", "Image de fond", "img")] }
     ] },
     instagram: { label: "Instagram", url: "../index.html", custom: "vitrineInstagram" },
     seo: { label: "Référencement", seo: [["index", "Page d'accueil", "index.html"], ["shop", "Boutique", "shop.html"], ["histoire", "Notre histoire", "histoire.html"]] }
