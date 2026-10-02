@@ -26,7 +26,7 @@
   if (l === "fr") { d.classList.add("i18n-pending"); setTimeout(function () { d.classList.remove("i18n-pending"); }, 4000); }
 })();
 </script>
-<script src="relaxx-db.js?v=20261002c"></script>
+<script src="relaxx-db.js?v=20261002g"></script>
 <style>
 /* ---------- tokens ---------- */
 :root{
@@ -743,6 +743,14 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
 .nl-legal{max-width:600px;margin:4px auto 0;font-size:13px;color:#9a958d}
 @media (max-width:479px){.nl-title{font-size:30px}.nl-form{flex-direction:column;align-items:stretch}.nl-input,.nl-btn{flex:none;width:100%;max-width:none}}
 
+/* gallery on phones and tablets: one row of two photos, the others slide in; no Instagram icon on the photos */
+@media (max-width:991px){
+  .social-grid{display:flex;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .social-grid::-webkit-scrollbar{display:none}
+  .social,.social:nth-child(5){display:flex;flex:0 0 50%;width:50%;scroll-snap-align:start}
+  .social-icon{display:none}
+}
+
 /* footer: less empty space under the last line on large screens */
 @media (min-width:992px){.mfoot{padding-bottom:64px}}
 </style>
@@ -751,9 +759,10 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
 <!-- PRELOADER -->
 <div class="wl" id="wl" role="status" aria-label="Loading RELAXX" data-no-i18n>
   <div class="wl-frame" aria-hidden="true">
+    <img class="wl-img" alt="" src="https://images.unsplash.com/photo-1613915617430-8ab0fd7c6baf?w=1400&q=80&auto=format&fit=crop">
+    <img class="wl-img" alt="" src="https://images.unsplash.com/photo-1515511624704-b8916dcc30ea?w=1400&q=80&auto=format&fit=crop">
+    <img class="wl-img" alt="" src="https://images.unsplash.com/photo-1635760057387-36eedcc8123f?w=1400&q=80&auto=format&fit=crop">
     <img class="wl-img" alt="" src="https://images.unsplash.com/photo-1632149877166-f75d49000351?w=1400&q=80&auto=format&fit=crop">
-    <img class="wl-img" alt="" src="https://images.unsplash.com/photo-1704627363852-484e95695411?w=1400&q=80&auto=format&fit=crop">
-    <img class="wl-img" alt="" src="https://images.unsplash.com/photo-1580331451062-99ff652288d7?w=1400&q=80&auto=format&fit=crop">
     <img class="wl-img" alt="" src="https://images.unsplash.com/photo-1664076458686-3449062080ac?w=1400&q=80&auto=format&fit=crop">
     <img class="wl-img" alt="" src="https://images.unsplash.com/photo-1589278042662-e60081fcb3d8?w=1400&q=80&auto=format&fit=crop">
     <img class="wl-img is-hero" data-cms="home.hero.image" data-cms-type="media" alt="" src="https://images.unsplash.com/photo-1785927984870-79d4e5129e88?w=2000&q=80&auto=format&fit=crop">
@@ -761,7 +770,7 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
   <div class="wl-word" aria-hidden="true"><span class="wl-char" style="--i:0"><span>R</span></span><span class="wl-char" style="--i:1"><span>E</span></span><span class="wl-char" style="--i:2"><span>L</span></span><span class="wl-char" style="--i:3"><span>A</span></span><span class="wl-char" style="--i:4"><span>X</span></span><span class="wl-char" style="--i:5"><span>X</span></span></div>
   <div class="wl-meta wl-top wl-fade">
     <p><span class="wl-brand">RELAXX</span><br><span data-l="en">Considered clothing</span><span data-l="fr">Vêtements réfléchis</span></p>
-    <p><span data-l="en">Loading</span><span data-l="fr">Chargement</span> <span class="wl-idx">01</span>/06</p>
+    <p><span data-l="en">Loading</span><span data-l="fr">Chargement</span> <span class="wl-idx">01</span>/<span class="wl-tot">07</span></p>
   </div>
   <div class="wl-meta wl-bottom wl-fade">
     <p><span data-l="en">Designed &amp; made<br>in small batches</span><span data-l="fr">Conçu et fabriqué<br>en petites séries</span></p>
@@ -776,10 +785,24 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
 (function () {
   "use strict";
   var d = document.documentElement, el = document.getElementById("wl"), cbs = [], done = false;
+  // photos of the categories (set in the back office), kept from the last visit: they replace the ones of the page
+  function setImages(list) {
+    if (!el || !list || !list.length) return;
+    var cur = el.querySelectorAll(".wl-img:not(.is-hero)"), hero = el.querySelector(".wl-img.is-hero"), i;
+    for (i = 0; i < list.length && i < 6; i++) {
+      var im = cur[i];
+      if (!im) { im = document.createElement("img"); im.className = "wl-img"; im.alt = ""; hero.parentNode.insertBefore(im, hero); }
+      if (im.getAttribute("src") !== list[i]) im.src = list[i];
+    }
+    for (; i < cur.length; i++) if (!cur[i].classList.contains("is-on")) cur[i].parentNode.removeChild(cur[i]);
+    var tot = el.querySelector(".wl-tot"); if (tot) tot.textContent = ("0" + el.querySelectorAll(".wl-img").length).slice(-2);
+  }
   window.RelaxxLoader = {
     isDone: function () { return done; },
-    on: function (cb) { if (done) cb(); else cbs.push(cb); }
+    on: function (cb) { if (done) cb(); else cbs.push(cb); },
+    setImages: function (list) { if (!done) setImages(list); }
   };
+  try { setImages(JSON.parse(localStorage.getItem("relaxx-loader") || "null")); } catch (e) {}
   if (!el) { done = true; return; }
   // only when the site is opened or the page reloaded: coming from another page of the site
   // (logo, menu, back button) lands straight on the home page
@@ -790,7 +813,7 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
   if (type !== "reload" && (internal || type === "back_forward")) { done = true; el.parentNode.removeChild(el); return; }
   d.classList.add("wl-lock");
   var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var imgs = el.querySelectorAll(".wl-img"), last = imgs.length - 1;
+  var imgs = el.querySelectorAll(".wl-img"), last = imgs.length - 1; // read again at each change: the list can be replaced
   var count = el.querySelector(".wl-count"), bar = el.querySelector(".wl-bar"), idx = el.querySelector(".wl-idx");
   var MIN = reduced ? 700 : 2600, MAX = 8000, FLIP = 380;
   var t0 = performance.now(), shown = 0, loaded = document.readyState === "complete", cur = -1, flipAt = 0, z = 1, ending = false;
@@ -799,7 +822,8 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
 
   function show(i) {
     if (i === cur) return;
-    imgs = el.querySelectorAll(".wl-img"); // the hero slide may have been swapped for a video (back office)
+    imgs = el.querySelectorAll(".wl-img"); last = imgs.length - 1; // the hero slide may have been swapped for a video, the photos replaced (back office)
+    if (i > last) i = last;
     imgs[i].style.zIndex = ++z;
     imgs[i].classList.add("is-on");
     var prev = imgs[cur];
@@ -827,12 +851,12 @@ button:not(.pd-swatch):not(.pd-dot),input:not([type="radio"]),select,textarea,
     shown += (goal - shown) * 0.12;
     if (loaded && cap >= 1 && shown > 0.995) shown = 1;
     paint();
-    if (!ending && t > 500 && now - flipAt > FLIP) { flipAt = now; show((cur + 1) % last); }
+    if (!ending && t > 500 && now - flipAt > FLIP) { flipAt = now; show((cur + 1) % Math.max(1, el.querySelectorAll(".wl-img").length - 1)); }
     if (shown === 1) finish(); else requestAnimationFrame(tick);
   }
   function finish() {
     ending = true;
-    show(last); // the hero image: the window opens straight onto the landing page
+    show(el.querySelectorAll(".wl-img").length - 1); // the hero image: the window opens straight onto the landing page
     setTimeout(function () {
       el.classList.add("is-out", "is-full");
       setTimeout(function () {
@@ -1373,11 +1397,27 @@ RelaxxDB.ready(function () {
     });
   })();
 
+  /* ---------- gallery on phones and tablets: the row moves on by itself, two photos at a time ---------- */
+  (function () {
+    var row = $(".social-grid"); if (!row || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var mq = matchMedia("(max-width:991px)"), hold = 0;
+    ["touchstart", "pointerdown", "wheel"].forEach(function (ev) { row.addEventListener(ev, function () { hold = Date.now(); }, { passive: true }); });
+    setInterval(function () {
+      if (!mq.matches || document.hidden || Date.now() - hold < 6000) return;
+      var r = row.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) return;
+      var step = row.clientWidth / 2, end = row.scrollLeft + row.clientWidth >= row.scrollWidth - 4;
+      row.scrollTo({ left: end ? 0 : row.scrollLeft + step, behavior: "smooth" });
+    }, 3200);
+  })();
+
   /* ---------- our accessories: collection cards (image only, like the collection section) ---------- */
   (function () {
     var list = $(".acc-list");
     if (!list) return;
-    list.innerHTML = (ACC_PICKS ? ACC_PICKS.map(function (id) { return P[id]; }).filter(function (p) { return p && !p.hidden; }) : PV.filter(function (p) { return p.cat === "accessories"; }).slice(0, 3)).map(productCard).join("");
+    // six blocks: the products chosen in the back office, completed with the other accessories then the other products on sale
+    var acc = (ACC_PICKS ? ACC_PICKS.map(function (id) { return P[id]; }).filter(function (p) { return p && !p.hidden; }) : []);
+    PV.filter(function (p) { return p.cat === "accessories"; }).concat(PV).forEach(function (p) { if (acc.length < 6 && acc.indexOf(p) < 0) acc.push(p); });
+    list.innerHTML = acc.slice(0, 6).map(productCard).join("");
   })();
 
   /* ---------- smooth scroll (same Lenis build + options as the original) ---------- */

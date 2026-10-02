@@ -12,6 +12,9 @@
   function rep(n, fn) { var out = []; for (var i = 1; i <= n; i++) out = out.concat(fn(i)); return out; }
   var PAGES = {
     home: { label: "Page d'accueil", file: "index.html", url: "../index.html", sections: [
+      { id: "logo", title: "Logo", desc: "Remplace le mot « RELAXX » en haut de toutes les pages du site, à la même place et à la même taille. Laissez les deux champs vides pour garder le mot.", fields: [
+        T("brand.logo.light", "Logo blanc (affiché sur la bannière et les fonds de couleur)", "img", { hint: "Image au fond transparent (PNG, WebP ou SVG), plus large que haute. Si vous ne donnez qu'un seul logo, il est recoloré automatiquement en blanc ou en noir pour l'autre fond." }),
+        T("brand.logo.dark", "Logo noir (affiché sur fond blanc, quand on fait défiler la page)", "img")] },
       { id: "hero", title: "Bannière principale", desc: "Grand visuel plein écran à l'ouverture du site (après la page de chargement).", fields: [
         T("home.hero.title", "Titre (une ligne par retour à la ligne)", "lines", { keepWith: "home.hero.lines" }),
         T("home.hero.lines", "Nombre de lignes du titre", "choice", { options: [["", "Comme saisi dans le titre"], ["1", "1 ligne"], ["2", "2 lignes"], ["3", "3 lignes"]], hint: "Pour un titre long : le texte est réparti sur le nombre de lignes choisi." }),
@@ -32,8 +35,8 @@
         T("home.reviews.kicker", "Surtitre"), T("home.reviews.title", "Titre"), T("home.reviews.intro", "Introduction", "long")].concat(rep(5, function (i) {
           return [T(null, "Avis " + i, "sub"), T("home.reviews." + i + ".quote", "Citation", "long"), T("home.reviews." + i + ".name", "Nom"), T("home.reviews." + i + ".city", "Ville"),
             T("home.reviews." + i + ".product", "Produit porté", "product"), T("home.reviews." + i + ".image", "Photo", "img")]; })) },
-      { id: "accessories", section: "home.accessories", title: "Nos accessoires", desc: "Trois produits mis en avant avec leur nom et leur prix.", fields: [
-        T("home.accessories.title", "Titre"), T("home.accessories.button", "Texte du bouton")], picks: { key: "accessories", n: 3, label: "Produits affichés (3)" } },
+      { id: "accessories", section: "home.accessories", title: "Nos accessoires", desc: "Six produits mis en avant avec leur nom et leur prix.", fields: [
+        T("home.accessories.title", "Titre"), T("home.accessories.button", "Texte du bouton")], picks: { key: "accessories", n: 6, label: "Produits affichés (6)" } },
       { id: "newsletter", section: "home.newsletter", title: "Bannière newsletter", fields: [
         T("home.newsletter.title", "Titre"), T("home.newsletter.text", "Texte", "long"), T("home.newsletter.placeholder", "Texte d'aide du champ e-mail"), T("home.newsletter.button", "Texte du bouton")] },
       { id: "instagram", section: "home.instagram", title: "Galerie Instagram", desc: "Cinq photos avant le pied de page, chacune liée à sa publication Instagram.", fields: [], goto: ["instagram", "Gérer les photos et le compte Instagram"] }
@@ -47,6 +50,10 @@
       { id: "cta", section: "story.cta", title: "Appel à l'action final", fields: [T("story.cta.title", "Titre"), T("story.cta.primary", "Bouton principal"), T("story.cta.secondary", "Bouton secondaire")] }
     ] },
     footer: { label: "Pied de page", file: "index.html", url: "../index.html", note: "Le pied de page est le même sur toutes les pages du site.", sections: [
+      { id: "band", title: "Bande défilante", desc: "La bande inclinée qui défile en haut du pied de page.", fields: [
+        T("footer.band.text", "Textes qui défilent (un par ligne)", "lines"),
+        T("footer.band.color", "Couleur de la bande", "color", { def: "#e4e1de", hint: "Le texte passe tout seul en blanc sur une bande foncée, en noir sur une bande claire." }),
+        T("footer.band.logo", "Logo du petit carré", "img", { hint: "Remplace le carré « R » devant chaque texte. Image carrée de préférence, au fond transparent ou uni. Vide : le carré « R » reste." })] },
       { id: "shops", title: "Bloc boutiques", fields: [T("footer.shops.title", "Titre"), T("footer.shops.button", "Texte du bouton"), T("footer.shops.link", "Lien du bouton", "link")] },
       { id: "links", title: "Liens utiles", desc: "Colonnes « Entreprise » et « Aide ». Par défaut, ils mènent aux rubriques de la page Aide (aide.html). Les catégories du pied de page suivent la liste des catégories.", fields: [["shipping", "Livraison"], ["returns", "Retours"], ["sizeguide", "Guide des tailles"], ["care", "Entretien"], ["faq", "FAQ"]].reduce(function (a, x) {
         return a.concat([T(null, x[1], "sub"), T("footer.link." + x[0], "Libellé"), T("footer.link." + x[0] + ".href", "Lien", "link")]); }, []) },
@@ -124,9 +131,15 @@
       loadDefaults(P.file).then(function (d) {
         defs = d;
         P.sections.forEach(function (s) {
-          s.fields.forEach(function (f) { if (!f.k) return; if (!d[f.k] && isVal(f.t)) d[f.k] = { v: "" }; state[f.k] = V.fields[f.k] ? clone(V.fields[f.k]) : clone(d[f.k] || (isVal(f.t) ? { v: "" } : { fr: "", en: "" })); });
+          s.fields.forEach(function (f) { if (!f.k) return; if (!d[f.k]) d[f.k] = isVal(f.t) ? { v: "" } : { fr: "", en: "" }; state[f.k] = V.fields[f.k] ? clone(V.fields[f.k]) : clone(d[f.k] || (isVal(f.t) ? { v: "" } : { fr: "", en: "" })); });
           if (s.section) state["§" + s.section] = V.sections[s.section] !== false;
-          if (s.picks) state["picks." + s.picks.key] = (V.picks[s.picks.key] || DB.defaultVitrine().picks[s.picks.key]).slice();
+          if (s.picks) {
+            var pl = (V.picks[s.picks.key] || DB.defaultVitrine().picks[s.picks.key]).slice(0, s.picks.n);
+            // fewer products than blocks: completed with the other products of the section, then the other products on sale
+            var pool = RX.products(db).filter(function (x) { return x.status === "active"; });
+            pool.filter(function (x) { return x.cat === s.picks.key; }).concat(pool).forEach(function (x) { if (pl.length < s.picks.n && pl.indexOf(x.id) < 0) pl.push(x.id); });
+            state["picks." + s.picks.key] = pl;
+          }
         });
         body.innerHTML = P.sections.map(sectionCard).join("");
       }).catch(function () { body.innerHTML = '<div class="card">' + RX.empty("Impossible de lire la page", "Ouvrez le back-office depuis le serveur du site (http://…), pas en fichier local.", I.alert) + "</div>"; });
@@ -158,7 +171,7 @@
     }
     // colour: white (original), black, or any colour from the picker
     function colorField(f) {
-      var v = /^#[0-9a-f]{6}$/i.test(state[f.k].v || "") ? state[f.k].v.toLowerCase() : "#ffffff";
+      var v = /^#[0-9a-f]{6}$/i.test(state[f.k].v || "") ? state[f.k].v.toLowerCase() : f.def || "#ffffff";
       return '<div class="field" data-f="' + f.k + '"><div class="row is-between"><span style="font-size:12.5px;font-weight:600">' + esc(f.l) + "</span>" + resetBtn(f.k) + '</div><div class="row" style="gap:8px;flex-wrap:wrap">' +
         '<input type="color" aria-label="' + esc(f.l) + '" data-k="' + f.k + '" data-v value="' + v + '" style="width:46px;height:40px;padding:2px;border:1px solid var(--line);background:var(--surface);cursor:pointer"' + dis + ">" +
         [["#ffffff", "Blanc"], ["#000000", "Noir"]].map(function (c) { return '<button type="button" class="btn is-sm" data-color="' + f.k + '" data-val="' + c[0] + '" aria-pressed="' + (v === c[0]) + '"' + dis + ">" + c[1] + "</button>"; }).join("") +
@@ -188,6 +201,7 @@
           (w ? '<div class="row" style="flex-wrap:wrap"><button type="button" class="btn is-sm is-primary" data-pick="' + f.k + '">' + I.upload + (media ? "Importer ou choisir une image / une vidéo" : "Importer ou choisir une image") + "</button></div>" : "") +
           '<input class="input mono" aria-label="' + esc(f.l) + '" data-k="' + f.k + '" data-v value="' + esc(v) + '" placeholder="… ou collez un lien https://"' + dis + ">" +
           (w ? '<small class="muted">Glissez-déposez aussi un fichier sur la vignette' + (media ? " — vidéo MP4 ou WebM : muette, en boucle, lancée automatiquement" : "") + ".</small>" : "") +
+          (f.hint ? '<small class="muted">' + esc(f.hint) + "</small>" : "") +
         "</div></div></div>";
     }
     function setVal(k, v, poster) {
@@ -278,15 +292,23 @@
       RX.toast("Import de « " + file.name + " »…");
       RX.uploadMedia(file, d.dataset.accept).then(function (r) { setVal(d.dataset.drop, r.ref, r.poster); RX.toast("Fichier importé dans la médiathèque"); }, function (err) { RX.toast(err.message, "bad"); });
     });
+    // the preview shows the page with the changes being made, before they are published: the form is handed to the
+    // page through the browser storage (read only with ?apercu=1 and a team session), nothing is saved.
     function preview() {
-      var go = function () {
-        var src = P.url || "../index.html";
-        RX.modal({ title: "Aperçu — " + P.label, size: "lg", body: '<div class="row" style="margin-bottom:10px"><div class="seg" data-dev><button type="button" data-w="100%" aria-pressed="true">Ordinateur</button><button type="button" data-w="390px" aria-pressed="false">Mobile</button></div><a class="btn is-sm" href="' + src + '" target="_blank" rel="noopener" style="margin-left:auto">' + I.ext + "Nouvel onglet</a></div>" +
-          '<div style="display:flex;justify-content:center;background:var(--grey-soft)"><iframe title="Aperçu" src="' + src + '" style="width:100%;height:66vh;border:0;background:#fff;transition:width .3s"></iframe></div>', actions: [{ label: "Fermer", close: true }] });
+      var go = function (draft) {
+        var src = (P.url || "../index.html") + (draft ? "?apercu=1" : "");
+        RX.modal({ title: "Aperçu — " + P.label, size: "lg", body: '<div class="row" style="margin-bottom:10px;flex-wrap:wrap"><div class="seg" data-dev><button type="button" data-w="100%" aria-pressed="true">Ordinateur</button><button type="button" data-w="390px" aria-pressed="false">Mobile</button></div>' +
+          (draft ? '<span class="badge t-warn">Modifications non publiées</span>' : '<span class="badge t-ok">Version publiée</span>') + '<a class="btn is-sm" href="' + src + '" target="_blank" rel="noopener" style="margin-left:auto">' + I.ext + "Nouvel onglet</a></div>" +
+          '<div style="display:flex;justify-content:center;background:var(--grey-soft);border-radius:18px;overflow:hidden"><iframe title="Aperçu" src="' + src + '" style="width:100%;height:66vh;border:0;background:#fff;transition:width .3s"></iframe></div>', actions: [{ label: "Fermer", close: true }] });
         var mm = $(".modal:last-of-type"); if (mm) mm.addEventListener("click", function (e) { var b = e.target.closest("[data-w]"); if (!b) return; $("iframe", mm).style.width = b.dataset.w; $$("[data-w]", mm).forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); });
       };
-      if (RX.dirty && w) RX.confirm({ title: "Publier avant l'aperçu ?", text: "L'aperçu montre le site tel qu'il est publié. Publier vos modifications maintenant ?", ok: "Publier et voir l'aperçu" }).then(function (ok) { if (ok) save().then(go); });
-      else go();
+      if (!RX.dirty || !w) { go(false); return; }
+      // Instagram has its own data: it is published first, as before
+      if (ctl || !defs) { RX.confirm({ title: "Publier avant l'aperçu ?", text: "L'aperçu montre le site tel qu'il est publié. Publier vos modifications maintenant ?", ok: "Publier et voir l'aperçu" }).then(function (ok) { if (ok) save().then(function () { go(false); }); }); return; }
+      var draft = clone(V); draft.sections = draft.sections || {}; draft.fields = draft.fields || {}; draft.picks = draft.picks || {};
+      fill(draft);
+      try { localStorage.setItem("relaxx-vitrine-draft", JSON.stringify({ t: Date.now(), v: draft })); go(true); }
+      catch (e) { RX.toast("Aperçu impossible : le navigateur refuse de garder le brouillon (image collée trop lourde ?).", "bad"); }
     }
     var publishing = false;
     function save() {
@@ -311,7 +333,8 @@
         commit(); todo.forEach(refreshNote);
       }
     }
-    function commit() {
+    // writes the form into a vitrine object: the published one (commit) or a copy for the preview
+    function fill(V) {
       var n = 0;
       Object.keys(state).forEach(function (k) {
         if (k.charAt(0) === "§") { var sk = k.slice(1); if (state[k]) delete V.sections[sk]; else V.sections[sk] = false; return; }
@@ -325,6 +348,10 @@
         var kw = (findField(k) || {}).keepWith;
         if (changed(k) || (kw && state[kw] && state[kw].v && (state[k].fr || "").trim())) { V.fields[k] = normalize(state[k]); if (isVal((findField(k) || {}).t)) { V.fields[k] = { v: state[k].v }; if (state[k].poster) V.fields[k].poster = state[k].poster; } n++; } else delete V.fields[k];
       });
+      return n;
+    }
+    function commit() {
+      var n = fill(V);
       RX.dirty = false;
       RX.save("a publié la vitrine", P.label);
       var b = $(".sticky-save", el); if (b) b.hidden = true;
