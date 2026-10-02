@@ -970,3 +970,11 @@ table.t{font-size:14px}
   .top{position:sticky}
   .search-pop{left:12px;right:12px;top:66px}
 }
+
+/* Vitrine › Logo: the whole logo is shown, the white one on a dark tile */
+[data-thumb^="brand.logo"]{aspect-ratio:16/9!important;width:160px!important}
+[data-thumb^="brand.logo"] img{object-fit:contain!important;padding:14px}
+[data-thumb="brand.logo.light"]{background:#141416!important}
+[data-drop^="brand.logo"]{grid-template-columns:160px minmax(0,1fr)}
+[data-thumb="footer.band.logo"]{aspect-ratio:1!important}
+[data-thumb="footer.band.logo"] img{object-fit:contain!important;padding:12px}

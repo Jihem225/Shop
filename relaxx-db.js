@@ -1140,9 +1140,64 @@
     if (line.length) out.push(line.join(" "));
     return out;
   }
+  // logo of the navigation bar, set in the back office (Vitrine): it takes the place of the word RELAXX, in the same box.
+  // Two versions: the white one over the banner and coloured backgrounds, the black one when the bar is white.
+  function applyLogo(F) {
+    var a = document.querySelector(".mn-brand"); if (!a) return;
+    var dark = F["brand.logo.dark"] && F["brand.logo.dark"].v, light = F["brand.logo.light"] && F["brand.logo.light"].v;
+    if (!dark && !light) return;
+    if (!a.classList.contains("has-logo")) {
+      // the box of the word, measured before it is replaced: same height, same width at every screen size
+      var fs = parseFloat(getComputedStyle(a).fontSize) || 48, ratio = a.getBoundingClientRect().width / fs;
+      if (!(ratio > 1.5 && ratio < 8)) ratio = 3.9;
+      var st = document.createElement("style");
+      st.textContent = ".mn-brand.has-logo{display:grid;width:" + ratio.toFixed(3) + "em;height:1em;line-height:0}" +
+        ".mn-brand.has-logo img{grid-area:1/1;display:block;width:100%;height:100%;object-fit:contain;transition:opacity .4s}" +
+        ".mn-logo-b{opacity:0}" +
+        '.mn-bar[data-theme="dark"] .mn-logo-b,.mn-bar.is-solid .mn-logo-b,.mn-bar.menu-open .mn-logo-b{opacity:1}' +
+        '.mn-bar[data-theme="dark"] .mn-logo-w,.mn-bar.is-solid .mn-logo-w,.mn-bar.menu-open .mn-logo-w{opacity:0}' +
+        ".mn-logo-w.is-auto{filter:brightness(0) invert(1)}.mn-logo-b.is-auto{filter:brightness(0)}";
+      document.head.appendChild(st);
+      var name = (a.textContent || "RELAXX").trim();
+      a.textContent = ""; a.classList.add("has-logo"); a.setAttribute("data-no-i18n", "");
+      ["w", "b"].forEach(function (k) { var im = document.createElement("img"); im.className = "mn-logo-" + k; im.alt = k === "w" ? name : ""; im.decoding = "async"; a.appendChild(im); });
+    }
+    // only one logo given: it is recoloured for the other background
+    var w = a.querySelector(".mn-logo-w"), b = a.querySelector(".mn-logo-b");
+    w.src = imgUrl(light || dark, 600); w.classList.toggle("is-auto", !light);
+    b.src = imgUrl(dark || light, 600); b.classList.toggle("is-auto", !dark);
+  }
+  // scrolling band of the footer, set in the back office (Vitrine › Pied de page): its texts (one per line), the logo of
+  // the small square and the colour of the band. Nothing set: the band of the page is left as it is.
+  function applyBand(F, txt) {
+    var band = document.querySelector(".mf-banner"); if (!band) return;
+    var lines = String(txt(F["footer.band.text"]) || "").split("\n").map(function (x) { return x.trim(); }).filter(Boolean);
+    var logo = F["footer.band.logo"] && F["footer.band.logo"].v, col = F["footer.band.color"] && F["footer.band.color"].v;
+    if (!/^#[0-9a-f]{6}$/i.test(col || "")) col = "";
+    if (!lines.length && !logo && !col) return;
+    var first = band.querySelector(".mf-banner-item"), groups = band.querySelectorAll(".mf-banner-group");
+    if (!first || !groups.length) return;
+    if (!band._logo) band._logo = first.querySelector(".mf-banner-logo").innerHTML;
+    if (!lines.length) lines = [(first.querySelector(".mf-banner-text").textContent || "RELAXX").trim()];
+    var items = lines.slice(); while (items.length < 4) items = items.concat(lines);
+    var esc = function (x) { return String(x).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+    var mark = logo ? '<img alt="" src="' + esc(imgUrl(logo, 200)) + '" style="display:block;width:100%;height:auto">' : band._logo;
+    var html = items.map(function (t) { return '<div class="mf-banner-item"><span class="mf-banner-logo">' + mark + '</span><span class="mf-dot-wrap"><span class="mf-dot"></span></span><span class="mf-banner-text">' + esc(t) + "</span></div>"; }).join("");
+    Array.prototype.forEach.call(groups, function (g) { g.innerHTML = html; });
+    band.setAttribute("data-no-i18n", "");
+    if (col) {
+      // dark band: light text (and the reverse)
+      var n = parseInt(col.slice(1), 16), lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255, ink = lum > 0.55 ? "#1a1a1a" : "#ffffff";
+      band.style.background = col; band.style.color = ink;
+      Array.prototype.forEach.call(band.querySelectorAll(".mf-dot"), function (d) { d.style.background = ink; });
+      Array.prototype.forEach.call(band.querySelectorAll(".mf-banner-logo svg path"), function (pa) { pa.setAttribute("stroke", col); });
+    }
+  }
   function applyVitrine() {
-    var html = document.documentElement, lang = html.getAttribute("data-lang") === "fr" ? "fr" : "en", db = get(), V = db.settings.vitrine || defaultVitrine(), F = V.fields || {};
+    var html = document.documentElement, lang = html.getAttribute("data-lang") === "fr" ? "fr" : "en", db = get(), V = vit(db), F = V.fields || {};
     var txt = function (f) { return f ? (f[lang] != null && f[lang] !== "" ? f[lang] : f.fr || f.en || "") : null; };
+    applyLogo(F);
+    try { applyBand(F, txt); } catch (e) {}
     Array.prototype.forEach.call(document.querySelectorAll("[data-cms-section]"), function (el) { if (V.sections[el.getAttribute("data-cms-section")] === false) el.hidden = true, el.style.display = "none"; });
     Array.prototype.forEach.call(document.querySelectorAll("[data-cms]"), function (el) {
       var f = F[el.getAttribute("data-cms")], type = el.getAttribute("data-cms-type") || "text";
@@ -1229,7 +1284,17 @@
       if (de) { var md = document.querySelector("meta[name=description]"); if (md) md.setAttribute("content", de); }
     }
   }
-  function vitrine() { return get().settings.vitrine || defaultVitrine(); }
+  // preview from the back office (Vitrine › Aperçu): the page opened with ?apercu=1 by a member of the team shows the
+  // changes being made, kept in the browser storage for an hour. Nothing of it is saved or sent.
+  var VDRAFT = null;
+  try {
+    if (/[?&]apercu=1\b/.test(location.search) && !document.documentElement.hasAttribute("data-admin")) {
+      var vd = JSON.parse(localStorage.getItem("relaxx-vitrine-draft") || "null");
+      if (vd && vd.v && Date.now() - vd.t < 36e5) VDRAFT = vd.v;
+    }
+  } catch (e) {}
+  function vit(db) { return (VDRAFT && adminPreview() ? VDRAFT : null) || (db || get()).settings.vitrine || defaultVitrine(); }
+  function vitrine() { return vit(); }
 
   /* ---------- shop details on the pages ----------
      data-store="field": text from the shop settings (an empty setting keeps the placeholder written in the page);
@@ -1290,7 +1355,7 @@
     var photoOf = function (key) { var p = db.products.filter(function (x) { return x.cat === key && x.status === "active"; })[0]; return p ? imgUrl(p.img, 1400) : ""; };
     var closeMenu = function () { var b = document.querySelector(".mn-burger.is-open"); if (b) b.click(); };
     // a category shown as a card on the home page ("Catégories tendance", back office › Vitrine) has the same photo in the menu
-    var F = (db.settings.vitrine || {}).fields || {}, trendImg = {};
+    var F = vit(db).fields || {}, trendImg = {};
     [["outerwear", "photo-1613915617430-8ab0fd7c6baf"], ["knitwear", "photo-1515511624704-b8916dcc30ea"], ["dresses", "photo-1635760057387-36eedcc8123f"]].forEach(function (d, n) {
       var link = (F["home.trend." + (n + 1) + ".link"] || {}).v, img = (F["home.trend." + (n + 1) + ".image"] || {}).v || d[1];
       var key = link ? (String(link).split("#")[1] || "") : d[0];
@@ -1298,17 +1363,31 @@
     });
     // the other categories take the photo of their product shown in the home collection (back office › Vitrine › products put forward),
     // or of their first product on sale
-    var vp = (db.settings.vitrine || {}).picks || {}, dp = defaultVitrine().picks, picks = (vp.collection || dp.collection).concat(vp.accessories || dp.accessories);
+    var vp = vit(db).picks || {}, dp = defaultVitrine().picks, picks = (vp.collection || dp.collection).concat(vp.accessories || dp.accessories);
     var pickImg = function (key) {
       for (var n = 0; n < picks.length; n++) { var pp = db.products[picks[n]]; if (pp && pp.cat === key && pp.status === "active" && pp.img) return imgUrl(pp.img, 1400); }
       return photoOf(key);
     };
+    // loading screen of the home page: the photos of the categories (the three cards under the banner first, then the
+    // other categories), six at most. Kept in the browser so that the next visit shows them from the first instant.
+    try {
+      var wl = [], seenWl = {};
+      Object.keys(trendImg).forEach(function (k) { if (trendImg[k] && !seenWl[trendImg[k]]) { seenWl[trendImg[k]] = 1; wl.push(trendImg[k]); } });
+      cats.forEach(function (c) { if (trendImg[c.key]) return; var u = pickImg(c.key); if (u && !seenWl[u]) { seenWl[u] = 1; wl.push(u); } });
+      wl = wl.slice(0, 6);
+      if (wl.length) {
+        localStorage.setItem("relaxx-loader", JSON.stringify(wl));
+        if (window.RelaxxLoader && RelaxxLoader.setImages) RelaxxLoader.setImages(wl);
+      }
+    } catch (e) {}
+    // the burger menu lists six categories at most (the shop page lists them all)
+    var menuCats = cats.slice(0, 6);
     var menu = document.querySelector(".mn-links");
     if (menu) {
       var have = {};
       Array.prototype.forEach.call(menu.querySelectorAll(".mn-link"), function (a) { have[(a.getAttribute("href") || "").split("#")[1]] = a; a.parentNode.removeChild(a); });
       var tpl = have[Object.keys(have)[0]];
-      cats.forEach(function (c, i) {
+      menuCats.forEach(function (c, i) {
         var a = have[c.key];
         if (!a && tpl) {
           a = tpl.cloneNode(true); a.setAttribute("href", "shop.html#" + c.key);
@@ -1322,7 +1401,7 @@
         if (ti && tsrc) { ti.removeAttribute("srcset"); ti.src = tsrc; }
         a.querySelector(".mn-num").textContent = ("0" + (i + 1)).slice(-2) + ".";
         a.querySelector(".mn-label").textContent = c.label;
-        a.style.setProperty("--od", (300 + i * 100) + "ms"); a.style.setProperty("--cd", Math.max(0, (cats.length - 1 - i) * 100) + "ms");
+        a.style.setProperty("--od", (300 + i * 100) + "ms"); a.style.setProperty("--cd", Math.max(0, (menuCats.length - 1 - i) * 100) + "ms");
         menu.appendChild(a);
       });
     }
@@ -1439,6 +1518,13 @@
 
   function storefront() {
     try { applyVitrine(); } catch (e) {}
+    try {
+      if (VDRAFT && adminPreview()) {
+        var pb = document.createElement("div"); pb.setAttribute("data-no-i18n", ""); pb.textContent = "Aperçu — modifications non publiées";
+        pb.style.cssText = "position:fixed;left:50%;bottom:12px;z-index:2147483600;transform:translateX(-50%);padding:8px 14px;border-radius:999px;background:#111;color:#fff;font:600 12px/1.4 Geist,sans-serif;pointer-events:none;white-space:nowrap";
+        document.body.appendChild(pb);
+      }
+    } catch (e) {}
     try { applyStore(); } catch (e) {}
     try { applyCategories(); } catch (e) {}
     try {
