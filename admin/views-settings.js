@@ -124,9 +124,10 @@
           [["newOrder", "Nouvelle commande"], ["lowStock", "Stock faible ou rupture"], ["newReview", "Nouvel avis à modérer"], ["dailyReport", "Rapport quotidien des ventes"]].map(function (x) { return '<label class="switch"><input type="checkbox" name="n-' + x[0] + '"' + (n[x[0]] ? " checked" : "") + "><i></i><b>" + x[1] + "</b></label>"; }).join("") +
         "</div></div>" + saveBar() + "</form>" +
       '<div class="card" id="s-data"><div class="card-h"><div><h2>Données & sauvegarde</h2><p>Base de la boutique : ' + size + (DB.remote ? " Ko enregistrés dans Supabase · " : " Ko enregistrés dans ce navigateur · ") + db.orders.length + " commandes · " + RX.products(db).length + " produits · " + db.customers.length + " clients.</p></div></div>" +
-        '<div class="card-b stack" style="gap:14px"><div class="row is-wrap"><button type="button" class="btn" data-backup>' + I.down + 'Télécharger une sauvegarde (JSON)</button><label class="btn">' + I.upload + 'Restaurer une sauvegarde<input type="file" accept="application/json,.json" data-restore hidden></label></div>' +
-        '<div class="hr"></div><div class="row is-wrap"><button type="button" class="btn is-ghost-danger" data-clear-demo>' + I.trash + 'Supprimer les données de démonstration</button><button type="button" class="btn is-ghost-danger" data-reset-all>' + I.refresh + "Réinitialiser toute la boutique</button></div>" +
-        '<p class="muted" style="font-size:12.5px">« Supprimer les données de démonstration » retire les commandes, clients, avis, abonnés et visites d\'exemple, et garde vos produits, réglages et commandes passées sur le site.</p></div></div></div></div>';
+        '<div class="card-b stack" style="gap:14px"><div class="row is-wrap"><button type="button" class="btn" data-backup>' + I.down + 'Télécharger une sauvegarde (JSON)</button>' + (RX.canMaintain() ? '<label class="btn">' + I.upload + 'Restaurer une sauvegarde<input type="file" accept="application/json,.json" data-restore hidden></label>' : "") + "</div>" +
+        (RX.canMaintain() ? '<div class="hr"></div><div class="row is-wrap"><span class="badge t-muted is-plain">Outils du concepteur</span><button type="button" class="btn is-ghost-danger" data-clear-demo>' + I.trash + 'Supprimer les données de démonstration</button><button type="button" class="btn is-ghost-danger" data-reset-all>' + I.refresh + "Réinitialiser toute la boutique</button></div>" +
+        '<p class="muted" style="font-size:12.5px">« Supprimer les données de démonstration » retire les commandes, clients, avis, abonnés et visites d\'exemple, et garde vos produits, réglages et commandes passées sur le site.</p>'
+          : '<p class="muted" style="font-size:12.5px">La sauvegarde est un fichier à garder en lieu sûr : elle contient vos produits, vos commandes et vos clients.</p>') + "</div></div></div></div>";
     var form = $("[data-form]", el);
     watch(el, form);
     $$(".set-nav a", el).forEach(function (a) { a.addEventListener("click", function (e) { e.preventDefault(); var t = document.querySelector(a.getAttribute("href")); if (t) t.scrollIntoView({ behavior: "smooth", block: "start" }); $$(".set-nav a", el).forEach(function (x) { x.classList.toggle("is-on", x === a); }); }); });
@@ -143,6 +144,7 @@
     });
     el.addEventListener("click", function (e) {
       if (e.target.closest("[data-backup]")) { RX.download("sauvegarde-relaxx-" + DB.dayKey(Date.now()) + ".json", JSON.stringify(RX.db(), null, 1), "application/json"); RX.log("a téléchargé une sauvegarde"); return; }
+      if (e.target.closest("[data-clear-demo], [data-reset-all]") && !RX.canMaintain()) return;
       if (e.target.closest("[data-clear-demo]")) {
         RX.confirm({ title: "Supprimer les données de démonstration", html: "Les <b>commandes, clients, avis, abonnés et statistiques de visite d'exemple</b> seront supprimés. Vos produits, réglages, codes promo et les commandes passées sur le site sont conservés.", ok: "Supprimer les données de démo", danger: true }).then(function (ok) {
           if (!ok) return;
@@ -165,7 +167,8 @@
         });
       }
     });
-    $("[data-restore]", el).addEventListener("change", function (e) {
+    if ($("[data-restore]", el)) $("[data-restore]", el).addEventListener("change", function (e) {
+      if (!RX.canMaintain()) return;
       var file = e.target.files[0]; if (!file) return;
       var rd = new FileReader();
       rd.onload = function () {
@@ -194,17 +197,17 @@
       el.innerHTML =
         '<div class="ph"><div><h1>Équipe & rôles</h1><p>Comptes ayant accès au back-office et leurs permissions.</p></div><div class="ph-actions"><button type="button" class="btn is-primary" data-add>' + I.plus + "Ajouter un membre</button></div></div>" +
         '<div class="card"><div class="table-wrap"><table class="t"><thead><tr><th>Membre</th><th>Rôle</th><th>Statut</th><th>Dernière connexion</th><th class="r">Actions</th></tr></thead><tbody>' +
-        db.users.map(function (u) {
+        RX.team(db).map(function (u) {
           var me = u.id === RX.user.id;
           return '<tr><td><div class="cell"><span class="avatar">' + RX.initials(u.name) + '</span><div class="cell-txt"><b>' + esc(u.name) + (me ? ' <span class="chip" style="height:20px">vous</span>' : "") + "</b><small>" + esc(u.email) + "</small></div></div></td>" +
-            '<td><select class="select" data-role="' + u.id + '" style="width:auto"' + (me ? " disabled" : "") + ">" + Object.keys(RX.ROLES).map(function (r) { return '<option value="' + r + '"' + (u.role === r ? " selected" : "") + ">" + RX.ROLES[r].label + "</option>"; }).join("") + "</select></td>" +
+            '<td><select class="select" data-role="' + u.id + '" style="width:auto"' + (me ? " disabled" : "") + ">" + RX.roleKeys().concat(u.role === "owner" ? ["owner"] : []).map(function (r) { return '<option value="' + r + '"' + (u.role === r ? " selected" : "") + ">" + RX.ROLES[r].label + "</option>"; }).join("") + "</select></td>" +
             "<td>" + (!u.active ? RX.badge("muted", "Désactivé") : DB.remote ? (u.lastLogin ? RX.badge("ok", "Actif") : RX.badge("warn", "Jamais connecté")) : !u.passHash ? RX.badge("warn", "Invitation en attente") : RX.badge("ok", "Actif")) + "</td><td>" + (u.lastLogin ? RX.rel(u.lastLogin) : '<span class="faint">Jamais</span>') + "</td>" +
             '<td class="r w0">' + (me ? "" : (DB.remote ? "" : '<button type="button" class="btn is-sm" data-pass="' + u.id + '">' + I.key + (u.passHash ? "Nouveau mot de passe" : "Définir le mot de passe") + "</button> ") + '<button type="button" class="btn is-sm" data-active="' + u.id + '">' + (u.active ? "Désactiver" : "Réactiver") + '</button> <button type="button" class="btn is-sm is-ghost-danger" data-del="' + u.id + '" aria-label="Supprimer">' + I.trash + "</button>") + "</td></tr>";
         }).join("") + "</tbody></table></div></div>" +
         (DB.remote ? '<div class="notice" style="margin-top:18px">' + I.info + "<div>" + loginHelp() + "</div></div>" : "") +
-        '<div class="card" style="margin-top:18px"><div class="card-h"><div><h2>Permissions par rôle</h2><p>M = modification · L = lecture seule · — = pas d\'accès</p></div></div><div class="table-wrap"><table class="t perm-t"><thead><tr><th>Section</th>' + Object.keys(RX.ROLES).map(function (r) { return "<th>" + RX.ROLES[r].label + "</th>"; }).join("") + "</tr></thead><tbody>" +
-        Object.keys(RX.PERMS).map(function (k) { return "<tr><td>" + RX.SECTION_LABELS[k] + "</td>" + Object.keys(RX.ROLES).map(function (r) { var v = RX.PERMS[k][r]; return "<td>" + (v === "w" ? '<span class="yes">M</span>' : v === "r" ? '<span class="part">L</span>' : '<span class="no">—</span>') + "</td>"; }).join("") + "</tr>"; }).join("") +
-        '</tbody></table></div><div class="card-b" style="border-top:1px solid var(--line)"><div class="grid g-4" style="gap:12px">' + Object.keys(RX.ROLES).map(function (r) { return '<div><b>' + RX.ROLES[r].label + '</b><p class="muted" style="font-size:12.5px;margin-top:4px">' + RX.ROLES[r].desc + "</p></div>"; }).join("") + "</div></div></div>";
+        '<div class="card" style="margin-top:18px"><div class="card-h"><div><h2>Permissions par rôle</h2><p>M = modification · L = lecture seule · — = pas d\'accès</p></div></div><div class="table-wrap"><table class="t perm-t"><thead><tr><th>Section</th>' + RX.roleKeys().map(function (r) { return "<th>" + RX.ROLES[r].label + "</th>"; }).join("") + "</tr></thead><tbody>" +
+        Object.keys(RX.PERMS).map(function (k) { return "<tr><td>" + RX.SECTION_LABELS[k] + "</td>" + RX.roleKeys().map(function (r) { var v = RX.PERMS[k][r]; return "<td>" + (v === "w" ? '<span class="yes">M</span>' : v === "r" ? '<span class="part">L</span>' : '<span class="no">—</span>') + "</td>"; }).join("") + "</tr>"; }).join("") +
+        '</tbody></table></div><div class="card-b" style="border-top:1px solid var(--line)"><div class="grid g-4" style="gap:12px">' + RX.roleKeys().map(function (r) { return '<div><b>' + RX.ROLES[r].label + '</b><p class="muted" style="font-size:12.5px;margin-top:4px">' + RX.ROLES[r].desc + "</p></div>"; }).join("") + "</div></div></div>";
     }
     draw();
     function byId(id) { return db.users.filter(function (u) { return u.id === id; })[0]; }
@@ -237,7 +240,7 @@
       var dl = t.closest("[data-del]"); if (dl) { var ud = byId(dl.dataset.del); RX.confirm({ title: "Supprimer le compte", text: "Supprimer l'accès de " + ud.name + " au back-office ?", ok: "Supprimer", danger: true }).then(function (ok) { if (!ok) return; db.users.splice(db.users.indexOf(ud), 1); RX.save("a supprimé le compte de", ud.name); draw(); }); return; }
       if (t.closest("[data-add]")) {
         RX.modal({ title: "Ajouter un membre", body: '<div class="stack"><label class="field"><span>Nom complet</span><input class="input" name="name"></label><label class="field"><span>E-mail professionnel</span><input class="input" type="email" name="email"></label>' +
-          '<label class="field"><span>Rôle</span><select class="select" name="role">' + Object.keys(RX.ROLES).map(function (r) { return '<option value="' + r + '"' + (r === "support" ? " selected" : "") + ">" + RX.ROLES[r].label + " — " + RX.ROLES[r].desc + "</option>"; }).join("") + '</select></label><p class="err" data-err></p></div>',
+          '<label class="field"><span>Rôle</span><select class="select" name="role">' + RX.roleKeys().map(function (r) { return '<option value="' + r + '"' + (r === "support" ? " selected" : "") + ">" + RX.ROLES[r].label + " — " + RX.ROLES[r].desc + "</option>"; }).join("") + '</select></label><p class="err" data-err></p></div>',
           actions: [{ label: "Annuler", close: true }, { label: "Ajouter", tone: "primary", onClick: function (m) {
             var name = $("[name=name]", m.el).value.trim(), email = $("[name=email]", m.el).value.trim().toLowerCase();
             if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { $("[data-err]", m.el).textContent = "Nom et e-mail valides obligatoires."; return; }
